@@ -1,5 +1,5 @@
 // Go module definition and dependencies
 
-module AlgoScales
+module github.com/Blockhead-Consulting/AlgoScales
 
 go 1.24

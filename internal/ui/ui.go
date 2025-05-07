@@ -2,6 +2,4 @@
 
 package ui
 
-func main() {
-    // TODO: implement ui.go
-}
+// TODO: implement ui.go

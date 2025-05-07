@@ -2,6 +2,4 @@
 
 package session
 
-func main() {
-    // TODO: implement render.go
-}
+// TODO: implement render.go

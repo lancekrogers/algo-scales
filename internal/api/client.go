@@ -2,6 +2,4 @@
 
 package api
 
-func main() {
-    // TODO: implement client.go
-}
+// TODO: implement client.go

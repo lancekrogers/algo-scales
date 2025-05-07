@@ -2,6 +2,4 @@
 
 package stats
 
-func main() {
-    // TODO: implement stats_test.go
-}
+// TODO: implement stats_test.go

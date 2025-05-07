@@ -1,7 +1,5 @@
 // Start command for practice sessions
 
-package main
+package cmd
 
-func main() {
-    // TODO: implement start.go
-}
+// TODO: implement start.go

@@ -1,7 +1,5 @@
 // Tests for root command
 
-package main
+package cmd
 
-func main() {
-    // TODO: implement root_test.go
-}
+// TODO: implement root_test.go

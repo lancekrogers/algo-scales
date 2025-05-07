@@ -2,6 +2,4 @@
 
 package problem
 
-func main() {
-    // TODO: implement problem.go
-}
+// TODO: implement problem.go

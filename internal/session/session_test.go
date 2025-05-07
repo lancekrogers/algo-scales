@@ -2,6 +2,4 @@
 
 package session
 
-func main() {
-    // TODO: implement session_test.go
-}
+// TODO: implement session_test.go

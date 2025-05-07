@@ -1,7 +1,5 @@
 // Root command implementation
 
-package main
+package cmd
 
-func main() {
-    // TODO: implement root.go
-}
+// TODO: implement root.go

@@ -1,7 +1,5 @@
 // Tests for stats command
 
-package main
+package cmd
 
-func main() {
-    // TODO: implement stats_test.go
-}
+// TODO: implement stats_test.go

@@ -1,7 +1,5 @@
 // Daily scale practice command
 
-package main
+package cmd
 
-func main() {
-    // TODO: implement daily.go
-}
+// TODO: implement daily.go

@@ -1,6 +1,6 @@
 // API server implementation
 
-package server
+package main
 
 func main() {
     // TODO: implement main.go

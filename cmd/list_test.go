@@ -1,7 +1,5 @@
 // Tests for list command
 
-package main
+package cmd
 
-func main() {
-    // TODO: implement list_test.go
-}
+// TODO: implement list_test.go

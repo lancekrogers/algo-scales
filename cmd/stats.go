@@ -1,7 +1,5 @@
 // Stats command for viewing progress
 
-package main
+package cmd
 
-func main() {
-    // TODO: implement stats.go
-}
+// TODO: implement stats.go

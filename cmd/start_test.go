@@ -1,7 +1,5 @@
 // Tests for start command
 
-package main
+package cmd
 
-func main() {
-    // TODO: implement start_test.go
-}
+// TODO: implement start_test.go

@@ -2,6 +2,4 @@
 
 package session
 
-func main() {
-    // TODO: implement create.go
-}
+// TODO: implement create.go

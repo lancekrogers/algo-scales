@@ -1,7 +1,5 @@
 // Vim mode integration for Neovim
 
-package main
+package cmd
 
-func main() {
-    // TODO: implement vim.go
-}
+// TODO: implement vim.go

@@ -1,7 +1,5 @@
 // List command for displaying problems
 
-package main
+package cmd
 
-func main() {
-    // TODO: implement list.go
-}
+// TODO: implement list.go

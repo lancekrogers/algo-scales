@@ -2,6 +2,4 @@
 
 package license
 
-func main() {
-    // TODO: implement license.go
-}
+// TODO: implement license.go
