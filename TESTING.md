@@ -1,1 +1,0 @@
-<!-- Testing guide and instructions -->

@@ -1,1 +1,33 @@
 # Docker configuration for API server
+version: "3.8"
+
+services:
+  api:
+    build:
+      context: .
+      dockerfile: server/Dockerfile
+    ports:
+      - "8080:8080"
+    environment:
+      - PORT=8080
+    restart: unless-stopped
+    volumes:
+      - api_data:/data
+
+  # Optional database service to store problems and licenses
+  # Uncomment and configure as needed for production use
+  # db:
+  #   image: postgres:14
+  #   environment:
+  #     - POSTGRES_USER=algoscales
+  #     - POSTGRES_PASSWORD=securepassword
+  #     - POSTGRES_DB=algoscales
+  #   volumes:
+  #     - db_data:/var/lib/postgresql/data
+  #   ports:
+  #     - "5432:5432"
+  #   restart: unless-stopped
+
+volumes:
+  api_data:
+  # db_data:

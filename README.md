@@ -164,4 +164,4 @@ Created by Blockhead Consulting
 
 ## Support
 
-For support, please email <lancekrogers@gmail.com> or open an issue on GitHub.
+For support, please email <lance@blockhead.consulting> or open an issue on GitHub.
