@@ -11,9 +11,10 @@ GOFMT=$(GOCMD) fmt
 # Default test package path
 PKG?=./...
 
-# Binary names
+# Binary names and paths
 BINARY_NAME=algo-scales
 SERVER_BINARY_NAME=algo-scales-server
+BIN_DIR=bin
 
 # Main package paths
 MAIN_PATH=./
@@ -25,15 +26,16 @@ SERVER_PATH=./server
 all: test build
 
 build:
-	$(GOBUILD) -o $(BINARY_NAME) -v $(MAIN_PATH)
-	$(GOBUILD) -o $(SERVER_BINARY_NAME) -v $(SERVER_PATH)
+	mkdir -p $(BIN_DIR)
+	$(GOBUILD) -o $(BIN_DIR)/$(BINARY_NAME) -v $(MAIN_PATH)
+	$(GOBUILD) -o $(BIN_DIR)/$(SERVER_BINARY_NAME) -v $(SERVER_PATH)
 
 clean:
 	$(GOCLEAN)
-	rm -f $(BINARY_NAME)
-	rm -f $(SERVER_BINARY_NAME)
-	rm -f $(BINARY_NAME).test
-	rm -f $(SERVER_BINARY_NAME).test
+	rm -f $(BIN_DIR)/$(BINARY_NAME)
+	rm -f $(BIN_DIR)/$(SERVER_BINARY_NAME)
+	rm -f $(BIN_DIR)/$(BINARY_NAME).test
+	rm -f $(BIN_DIR)/$(SERVER_BINARY_NAME).test
 	rm -f coverage.out
 
 test:
@@ -123,33 +125,39 @@ lint:
 	golangci-lint run
 
 run:
-	$(GOBUILD) -o $(BINARY_NAME) -v $(MAIN_PATH)
-	./$(BINARY_NAME)
+	mkdir -p $(BIN_DIR)
+	$(GOBUILD) -o $(BIN_DIR)/$(BINARY_NAME) -v $(MAIN_PATH)
+	$(BIN_DIR)/$(BINARY_NAME)
 
 server:
-	$(GOBUILD) -o $(SERVER_BINARY_NAME) -v $(SERVER_PATH)
-	./$(SERVER_BINARY_NAME)
+	mkdir -p $(BIN_DIR)
+	$(GOBUILD) -o $(BIN_DIR)/$(SERVER_BINARY_NAME) -v $(SERVER_PATH)
+	$(BIN_DIR)/$(SERVER_BINARY_NAME)
 
 install:
-	$(GOBUILD) -o $(BINARY_NAME) -v $(MAIN_PATH)
-	sudo mv $(BINARY_NAME) /usr/local/bin/$(BINARY_NAME)
+	mkdir -p $(BIN_DIR)
+	$(GOBUILD) -o $(BIN_DIR)/$(BINARY_NAME) -v $(MAIN_PATH)
+	sudo mv $(BIN_DIR)/$(BINARY_NAME) /usr/local/bin/$(BINARY_NAME)
 
 # Cross-compile targets
 .PHONY: build-linux build-windows build-darwin
 
 build-linux:
-	GOOS=linux GOARCH=amd64 $(GOBUILD) -o $(BINARY_NAME)-linux-amd64 -v $(MAIN_PATH)
-	GOOS=linux GOARCH=amd64 $(GOBUILD) -o $(SERVER_BINARY_NAME)-linux-amd64 -v $(SERVER_PATH)
+	mkdir -p $(BIN_DIR)
+	GOOS=linux GOARCH=amd64 $(GOBUILD) -o $(BIN_DIR)/$(BINARY_NAME)-linux-amd64 -v $(MAIN_PATH)
+	GOOS=linux GOARCH=amd64 $(GOBUILD) -o $(BIN_DIR)/$(SERVER_BINARY_NAME)-linux-amd64 -v $(SERVER_PATH)
 
 build-windows:
-	GOOS=windows GOARCH=amd64 $(GOBUILD) -o $(BINARY_NAME)-windows-amd64.exe -v $(MAIN_PATH)
-	GOOS=windows GOARCH=amd64 $(GOBUILD) -o $(SERVER_BINARY_NAME)-windows-amd64.exe -v $(SERVER_PATH)
+	mkdir -p $(BIN_DIR)
+	GOOS=windows GOARCH=amd64 $(GOBUILD) -o $(BIN_DIR)/$(BINARY_NAME)-windows-amd64.exe -v $(MAIN_PATH)
+	GOOS=windows GOARCH=amd64 $(GOBUILD) -o $(BIN_DIR)/$(SERVER_BINARY_NAME)-windows-amd64.exe -v $(SERVER_PATH)
 
 build-darwin:
-	GOOS=darwin GOARCH=amd64 $(GOBUILD) -o $(BINARY_NAME)-darwin-amd64 -v $(MAIN_PATH)
-	GOOS=darwin GOARCH=amd64 $(GOBUILD) -o $(SERVER_BINARY_NAME)-darwin-amd64 -v $(SERVER_PATH)
-	GOOS=darwin GOARCH=arm64 $(GOBUILD) -o $(BINARY_NAME)-darwin-arm64 -v $(MAIN_PATH)
-	GOOS=darwin GOARCH=arm64 $(GOBUILD) -o $(SERVER_BINARY_NAME)-darwin-arm64 -v $(SERVER_PATH)
+	mkdir -p $(BIN_DIR)
+	GOOS=darwin GOARCH=amd64 $(GOBUILD) -o $(BIN_DIR)/$(BINARY_NAME)-darwin-amd64 -v $(MAIN_PATH)
+	GOOS=darwin GOARCH=amd64 $(GOBUILD) -o $(BIN_DIR)/$(SERVER_BINARY_NAME)-darwin-amd64 -v $(SERVER_PATH)
+	GOOS=darwin GOARCH=arm64 $(GOBUILD) -o $(BIN_DIR)/$(BINARY_NAME)-darwin-arm64 -v $(MAIN_PATH)
+	GOOS=darwin GOARCH=arm64 $(GOBUILD) -o $(BIN_DIR)/$(SERVER_BINARY_NAME)-darwin-arm64 -v $(SERVER_PATH)
 
 # Build all platforms
 .PHONY: build-all

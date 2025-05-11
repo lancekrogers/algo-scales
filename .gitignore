@@ -1,2 +1,28 @@
+# Binaries and executables
+/bin/
+*.exe
+*.exe~
+*.dll
+*.so
+*.dylib
+algo-scales
+algo-scales-server
+
+# Environment and temporary files
 *.env
 *.wip
+.DS_Store
+*.tmp
+/tmp/
+
+# Go specific
+*.test
+*.out
+/vendor/
+go.work.sum
+
+# IDE files
+.idea/
+.vscode/
+*.swp
+*.swo
