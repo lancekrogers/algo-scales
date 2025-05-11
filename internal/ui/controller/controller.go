@@ -7,7 +7,11 @@ import (
 	"time"
 
 	tea "github.com/charmbracelet/bubbletea"
+	"github.com/lancekrogers/algo-scales/internal/common/highlight"
+	"github.com/lancekrogers/algo-scales/internal/common/interfaces"
+	"github.com/lancekrogers/algo-scales/internal/common/utils"
 	"github.com/lancekrogers/algo-scales/internal/problem"
+	"github.com/lancekrogers/algo-scales/internal/session"
 	"github.com/lancekrogers/algo-scales/internal/ui/model"
 	"github.com/lancekrogers/algo-scales/internal/ui/view"
 )
@@ -18,55 +22,46 @@ type Controller struct {
 	Model *model.UIModel
 
 	// Visualization components
-	syntaxHighlighter *view.SyntaxHighlighter
+	syntaxHighlighter *highlight.SyntaxHighlighter
 	spinners          view.CustomSpinners
 	patternViz        *view.PatternVisualization
 
-	// Problem service
-	problemService *problem.Service
+	// Session management
+	sessionManager interfaces.SessionManager
+	activeSession  interfaces.Session
 }
 
-// NewController creates a new controller with the given model
+// NewController creates a new controller with the model and initializes components
 func NewController(m *model.UIModel) *Controller {
 	return &Controller{
 		Model:             m,
-		syntaxHighlighter: view.NewSyntaxHighlighter("monokai"),
+		syntaxHighlighter: highlight.NewSyntaxHighlighter("monokai"),
 		spinners:          view.NewCustomSpinners(),
 		patternViz:        view.NewPatternVisualization(),
-		problemService:    problem.NewService(),
+		sessionManager:    session.NewManager(),
 	}
 }
 
-// Init initializes the controller and loads initial data
-func (c *Controller) Init() tea.Cmd {
-	// Return a command that loads the problem list
-	return c.loadProblems
-}
-
-// loadProblems loads the available problems
-func (c *Controller) loadProblems() tea.Msg {
-	// Create a loading message
-	c.Model.Loading = true
-
-	// Load problems from the problem service
-	problems, err := c.problemService.ListAll()
-	if err != nil {
-		return model.ErrorMsg(fmt.Sprintf("Failed to load problems: %v", err))
+// Initialize loads initial data and sets up the application
+func (c *Controller) Initialize() tea.Cmd {
+	// Load initial problems
+	return func() tea.Msg {
+		// Load all problems
+		problems, err := problem.ListAll()
+		if err != nil {
+			return model.ErrorMsg(fmt.Sprintf("Failed to load problems: %v", err))
+		}
+		
+		// Load any saved stats
+		// TODO: Implement stats loading
+		
+		return model.ProblemsLoadedMsg{Problems: problems}
 	}
-
-	// Return a message with the loaded problems
-	return model.ProblemsLoadedMsg{Problems: problems}
 }
 
-// Update handles model updates based on messages
+// Update handles messages and updates the model accordingly
 func (c *Controller) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
-	var cmd tea.Cmd
-
 	switch msg := msg.(type) {
-	case tea.KeyMsg:
-		// Handle key presses
-		cmd = c.handleKeyPress(msg)
-
 	case model.ProblemsLoadedMsg:
 		// Update model with loaded problems
 		c.Model.AvailableProblems = msg.Problems
@@ -79,221 +74,207 @@ func (c *Controller) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 	case model.TickMsg:
 		// Handle timer ticks
-		if c.Model.Session.Active && c.Model.Session.TimeRemaining > 0 {
-			c.Model.Session.TimeRemaining -= time.Second
+		if c.activeSession != nil {
+			// Update model with remaining time from session
+			remaining := c.activeSession.GetTimeRemaining()
+			c.Model.Session.TimeRemaining = remaining
 			return c.Model, c.tickTimer()
 		}
 
 	case model.ProblemSelectedMsg:
 		// Handle problem selection
-		cmd = c.startSession(msg.ProblemID, msg.Mode)
-
-	case model.AchievementUnlockedMsg:
-		// Handle unlocked achievements
-		achievement, exists := c.Model.Achievements[msg.AchievementID]
-		if exists && !achievement.Earned {
-			achievement.Earned = true
-			achievement.EarnedDate = time.Now()
-			c.Model.Achievements[msg.AchievementID] = achievement
-		}
-	}
-
-	return c.Model, cmd
-}
-
-// handleKeyPress processes keyboard input
-func (c *Controller) handleKeyPress(msg tea.KeyMsg) tea.Cmd {
-	switch msg.String() {
-	case "ctrl+c", "q":
-		// Exit the application
-		return tea.Quit
-
-	case "?":
-		// Toggle help
-		c.Model.ShowHelp = !c.Model.ShowHelp
-		return nil
-
-	case "h":
-		// Show hints when in a session
-		if c.Model.Session.Active {
-			c.Model.Session.ShowHints = true
-		}
-		return nil
-
-	case "s":
-		// Show solution when in a session
-		if c.Model.Session.Active {
-			c.Model.Session.ShowSolution = true
-		}
-		return nil
-
-	case "e":
-		// Open code in editor
-		if c.Model.Session.Active {
-			return c.openEditor
-		}
-
-	case "enter":
-		// Submit solution or select menu item
-		if c.Model.Session.Active {
-			return c.submitSolution
-		} else {
-			return c.handleSelection
-		}
-
-	case "up", "k":
-		// Navigate menu up
-		if c.Model.SelectedIndex > 0 {
-			c.Model.SelectedIndex--
-		}
-		return nil
-
-	case "down", "j":
-		// Navigate menu down
-		if c.Model.AppState == model.StateProblemSelection && 
-		   c.Model.SelectedIndex < len(c.Model.AvailableProblems)-1 {
-			c.Model.SelectedIndex++
-		} else if c.Model.AppState == model.StateModeSelection && 
-				 c.Model.SelectedIndex < 2 { // 3 modes
-			c.Model.SelectedIndex++
-		} else if c.Model.AppState == model.StatePatternSelection && 
-				 c.Model.SelectedIndex < len(view.MusicScales) {
-			c.Model.SelectedIndex++
-		}
-		return nil
-	}
-
-	return nil
-}
-
-// handleSelection processes selection in menus
-func (c *Controller) handleSelection() tea.Msg {
-	switch c.Model.AppState {
-	case model.StateModeSelection:
-		// Select mode
-		mode := ""
-		switch c.Model.SelectedIndex {
-		case 0:
-			mode = "learn"
-		case 1:
-			mode = "practice"
-		case 2:
-			mode = "cram"
-		}
-
-		// Move to pattern selection
-		c.Model.AppState = model.StatePatternSelection
-		c.Model.SelectedIndex = 0 // Reset selection
-		c.Model.Session.Mode = mode
-		return nil
-
-	case model.StatePatternSelection:
-		// Get all pattern keys
-		patterns := make([]string, 0, len(view.MusicScales))
-		for pattern := range view.MusicScales {
-			patterns = append(patterns, pattern)
-		}
-
-		if c.Model.SelectedIndex == 0 {
-			// All patterns selected, go to problem selection with all problems
-			c.Model.AppState = model.StateProblemSelection
-			c.Model.SelectedIndex = 0
-			return nil
-		} else if c.Model.SelectedIndex <= len(patterns) {
-			// Specific pattern selected
-			pattern := patterns[c.Model.SelectedIndex-1]
-			c.Model.Session.CurrentPattern = pattern
-
-			// Filter problems by pattern
-			c.filterProblemsByPattern(pattern)
-			
-			// Move to problem selection
-			c.Model.AppState = model.StateProblemSelection
-			c.Model.SelectedIndex = 0
-			return nil
-		}
-
-	case model.StateProblemSelection:
-		// Select a problem
-		if c.Model.SelectedIndex < len(c.Model.AvailableProblems) {
-			problem := c.Model.AvailableProblems[c.Model.SelectedIndex]
-			return model.ProblemSelectedMsg{
-				ProblemID: problem.ID, 
-				Mode:      c.Model.Session.Mode,
+		for _, p := range c.Model.AvailableProblems {
+			if p.ID == msg.ProblemID {
+				// Start a session with this problem
+				return c.Model, c.startSession(p, msg.Mode)
 			}
 		}
-	}
 
-	return nil
-}
+	case model.ShowHintsMsg:
+		// Toggle hints visibility
+		if c.activeSession != nil {
+			c.activeSession.ShowHints(msg.Show)
+			c.Model.Session.ShowHints = msg.Show
+		}
 
-// filterProblemsByPattern filters the available problems by pattern
-func (c *Controller) filterProblemsByPattern(pattern string) {
-	// Filter the problems by pattern
-	var filtered []problem.Problem
-	for _, p := range c.Model.AvailableProblems {
-		for _, patt := range p.Patterns {
-			if patt == pattern {
-				filtered = append(filtered, p)
-				break
-			}
+	case model.ShowSolutionMsg:
+		// Toggle solution visibility
+		if c.activeSession != nil {
+			c.activeSession.ShowSolution(msg.Show)
+			c.Model.Session.ShowSolution = msg.Show
+		}
+
+	case model.CodeUpdatedMsg:
+		// Code has been updated, refresh the view
+		
+	case model.TestResultsMsg:
+		// Handle test results
+		c.Model.Session.TestResults = msg.Results
+		if msg.AllPassed {
+			// Problem solved!
+			c.activeSession.Finish(true)
+			c.updateStatistics()
+			return c.Model, c.checkAchievements()
+		}
+		
+	case model.SelectionMsg:
+		// Handle selection changes based on app state
+		return c.Model, c.handleSelection(msg.Index)
+		
+	case model.EditCodeMsg:
+		// User wants to edit code in external editor
+		return c.Model, func() tea.Msg {
+			return c.openEditor()
 		}
 	}
 	
-	// Update the model with filtered problems
-	if len(filtered) > 0 {
-		c.Model.AvailableProblems = filtered
+	return c.Model, nil
+}
+
+// handleSelection processes a selection based on current state
+func (c *Controller) handleSelection(index int) tea.Cmd {
+	return func() tea.Msg {
+		c.Model.SelectedIndex = index
+		
+		switch c.Model.AppState {
+		case model.StateInitial:
+			// Initial menu selection
+			switch index {
+			case 0: // Start Practice
+				c.Model.AppState = model.StateModeSelection
+				c.Model.SelectedIndex = 0
+				return nil
+				
+			case 1: // View Stats
+				c.Model.AppState = model.StateStatistics
+				return nil
+				
+			case 2: // Settings
+				c.Model.AppState = model.StateSettings
+				return nil
+				
+			case 3: // Quit
+				return model.QuitMsg{}
+			}
+			
+		case model.StateModeSelection:
+			// Practice mode selection
+			mode := interfaces.PracticeMode // Default to practice mode
+			
+			switch index {
+			case 0: // Learn mode
+				mode = interfaces.LearnMode
+			case 1: // Practice mode
+				mode = interfaces.PracticeMode
+			case 2: // Cram mode
+				mode = interfaces.CramMode
+			}
+			
+			c.Model.AppState = model.StatePatternSelection
+			c.Model.SelectedIndex = 0
+			c.Model.Session.Mode = string(mode)
+			return nil
+
+		case model.StatePatternSelection:
+			// Get all pattern keys
+			patterns := make([]string, 0, len(view.MusicScales))
+			for pattern := range view.MusicScales {
+				patterns = append(patterns, pattern)
+			}
+
+			if c.Model.SelectedIndex == 0 {
+				// All patterns selected, go to problem selection with all problems
+				c.Model.AppState = model.StateProblemSelection
+				c.Model.SelectedIndex = 0
+				return nil
+			} else if c.Model.SelectedIndex <= len(patterns) {
+				// Specific pattern selected
+				pattern := patterns[c.Model.SelectedIndex-1]
+				c.Model.Session.CurrentPattern = pattern
+				c.Model.AppState = model.StateProblemSelection
+				c.Model.SelectedIndex = 0
+				
+				// Filter problems by pattern
+				var filtered []problem.Problem
+				for _, p := range c.Model.AvailableProblems {
+					for _, patternName := range p.Patterns {
+						if patternName == pattern {
+							filtered = append(filtered, p)
+							break
+						}
+					}
+				}
+				
+				// Update available problems list
+				c.Model.AvailableProblems = filtered
+				return nil
+			}
+		}
+		
+		return nil
 	}
 }
 
-// startSession begins a new problem session
-func (c *Controller) startSession(problemID, mode string) tea.Cmd {
-	// Load the problem
-	p, err := c.problemService.GetByID(problemID)
+// startSession starts a new practice session with the given problem
+func (c *Controller) startSession(p problem.Problem, mode string) tea.Cmd {
+	// Convert mode string to enum
+	sessionMode := interfaces.PracticeMode
+	switch mode {
+	case "learn":
+		sessionMode = interfaces.LearnMode
+	case "practice":
+		sessionMode = interfaces.PracticeMode
+	case "cram":
+		sessionMode = interfaces.CramMode
+	}
+	
+	// Prepare session options
+	options := interfaces.SessionOptions{
+		Mode:      sessionMode,
+		ProblemID: p.ID,
+		Language:  c.Model.Session.Language,
+		Pattern:   c.Model.Session.CurrentPattern,
+	}
+	
+	// Create session
+	session, err := c.sessionManager.StartSession(options)
 	if err != nil {
-		return tea.Batch(
-			func() tea.Msg {
-				return model.ErrorMsg(fmt.Sprintf("Failed to load problem: %v", err))
-			},
-		)
-	}
-
-	// Initialize session
-	c.Model.Session = model.Session{
-		Active:        true,
-		Mode:          mode,
-		Problem:       p,
-		StartTime:     time.Now(),
-		TimeRemaining: time.Duration(p.EstimatedTime) * time.Minute,
-		ShowHints:     mode == "learn",
-		ShowSolution:  false,
-		Language:      c.Model.Session.Language,
-	}
-
-	if c.Model.Session.Language == "" {
-		c.Model.Session.Language = "go" // Default language
-	}
-
-	// Get starter code for the language
-	if starterCode, ok := p.StarterCode[c.Model.Session.Language]; ok {
-		c.Model.Session.Code = starterCode
-	} else {
-		// Try to find any starter code if the preferred language isn't available
-		for lang, code := range p.StarterCode {
-			c.Model.Session.Language = lang
-			c.Model.Session.Code = code
-			break
+		return func() tea.Msg {
+			return model.ErrorMsg(fmt.Sprintf("Failed to start session: %v", err))
 		}
 	}
 
+	// Store the active session
+	c.activeSession = session
+
+	// Update the model with session info
+	problem := session.GetProblem()
+	
+	c.Model.Session = model.Session{
+		Active:        true,
+		Mode:          string(options.Mode),
+		Problem:       problem,
+		StartTime:     session.GetStartTime(),
+		TimeRemaining: session.GetTimeRemaining(),
+		ShowHints:     session.AreHintsShown(),
+		ShowSolution:  session.IsSolutionShown(),
+		Language:      session.GetLanguage(),
+		Code:          session.GetCode(),
+		CurrentPattern: options.Pattern,
+	}
+	
+	// Update app state
+	c.Model.AppState = model.StateSession
+	
 	// Start the session timer
-	return c.tickTimer
+	return c.tickTimer()
 }
 
 // tickTimer handles the session timer
-func (c *Controller) tickTimer() tea.Msg {
-	time.Sleep(time.Second)
-	return model.TickMsg{}
+func (c *Controller) tickTimer() tea.Cmd {
+	return tea.Tick(time.Second, func(t time.Time) tea.Msg {
+		return model.TickMsg{}
+	})
 }
 
 // openEditor opens the code in an external editor
@@ -313,25 +294,21 @@ func (c *Controller) openEditor() tea.Msg {
 		return model.ErrorMsg(fmt.Sprintf("Failed to close temp file: %v", err))
 	}
 
-	// Determine which editor to use
-	editor := os.Getenv("EDITOR")
-	if editor == "" {
-		editor = "vim" // Default to vim if EDITOR is not set
-	}
-
-	// Open the file in the editor
-	cmd := tea.ExecProcess(tea.ShellCommand(editor + " " + tmpfile.Name()), func(err error) tea.Msg {
+	// Use our utility function to open the editor with exec.Command
+	editor := utils.OpenEditor(tmpfile.Name())
+	cmd := tea.ExecProcess(editor, func(err error) tea.Msg {
 		if err != nil {
 			return model.ErrorMsg(fmt.Sprintf("Editor exited with error: %v", err))
 		}
 
 		// Read the updated file
-		content, err := os.ReadFile(tmpfile.Name())
+		content, err := utils.ReadFile(tmpfile.Name())
 		if err != nil {
 			return model.ErrorMsg(fmt.Sprintf("Failed to read temp file: %v", err))
 		}
 
-		// Update the code in the model
+		// Update the code in the session and model
+		c.activeSession.SetCode(string(content))
 		c.Model.Session.Code = string(content)
 		return model.CodeUpdatedMsg{}
 	})
@@ -340,73 +317,71 @@ func (c *Controller) openEditor() tea.Msg {
 }
 
 // submitSolution submits the current solution for testing
-func (c *Controller) submitSolution() tea.Msg {
-	// Validate that we're in an active session
-	if !c.Model.Session.Active || c.Model.Session.Problem == nil {
-		return model.ErrorMsg("No active session")
-	}
-
-	// Create a loading message
-	c.Model.Loading = true
-
-	// Execute the tests
-	results, err := c.problemService.TestSolution(
-		c.Model.Session.Problem.ID,
-		c.Model.Session.Code,
-		c.Model.Session.Language,
-	)
-
-	// Update model with test results
-	c.Model.Loading = false
-	if err != nil {
-		return model.ErrorMsg(fmt.Sprintf("Failed to test solution: %v", err))
-	}
-
-	// Check if all tests passed
-	allPassed := true
-	for _, result := range results {
-		if !result.Passed {
-			allPassed = false
-			break
+func (c *Controller) submitSolution() tea.Cmd {
+	return func() tea.Msg {
+		// Validate that we're in an active session
+		if c.activeSession == nil {
+			return model.ErrorMsg("No active session")
 		}
-	}
 
-	// Update stats if all tests passed
-	if allPassed {
-		c.updateStatistics()
-		c.checkAchievements()
-	}
+		// Create a loading message
+		c.Model.Loading = true
 
-	// Update session with test results
-	c.Model.Session.TestResults = results
-	return model.TestResultsMsg{Results: results, AllPassed: allPassed}
+		// Execute the tests using our session
+		results, allPassed, err := c.activeSession.RunTests()
+		if err != nil {
+			return model.ErrorMsg(fmt.Sprintf("Failed to run tests: %v", err))
+		}
+
+		// Convert result types
+		modelResults := make([]model.TestResult, len(results))
+		for i, result := range results {
+			modelResults[i] = model.TestResult{
+				Input:    result.Input,
+				Expected: result.Expected,
+				Actual:   result.Actual,
+				Passed:   result.Passed,
+			}
+		}
+
+		// Update session with test results
+		c.Model.Session.TestResults = modelResults
+		return model.TestResultsMsg{Results: modelResults, AllPassed: allPassed}
+	}
 }
 
 // updateStatistics updates user statistics after solving a problem
 func (c *Controller) updateStatistics() {
 	// Increment problems solved count
 	c.Model.Stats.ProblemsSolved++
-
+	
 	// Update time spent
-	elapsedTime := time.Since(c.Model.Session.StartTime)
-	c.Model.Stats.TotalTime += elapsedTime
-
-	// Update pattern counts
-	for _, pattern := range c.Model.Session.Problem.Patterns {
+	c.Model.Stats.TotalTime += time.Since(c.activeSession.GetStartTime())
+	
+	// Update pattern stats if defined
+	problem := c.activeSession.GetProblem()
+	for _, pattern := range problem.Patterns {
 		c.Model.Stats.PatternCounts[pattern]++
 		
-		// Calculate pattern progress (10 problems = 100%)
-		progress := float64(c.Model.Stats.PatternCounts[pattern]) / 10.0
-		if progress > 1.0 {
-			progress = 1.0
+		// Calculate progress for this pattern
+		patternProblems := 0
+		for _, p := range c.Model.AvailableProblems {
+			for _, pt := range p.Patterns {
+				if pt == pattern {
+					patternProblems++
+				}
+			}
 		}
-		c.Model.Stats.PatternsProgress[pattern] = progress
+		
+		// Update progress (0.0 to 1.0)
+		if patternProblems > 0 {
+			c.Model.Stats.PatternsProgress[pattern] = float64(c.Model.Stats.PatternCounts[pattern]) / float64(patternProblems)
+		}
 	}
-
-	// Update difficulty counts
-	difficulty := c.Model.Session.Problem.Difficulty
-	c.Model.Stats.DifficultyCounts[difficulty]++
-
+	
+	// Update difficulty stats
+	c.Model.Stats.DifficultyCounts[problem.Difficulty]++
+	
 	// Update streak
 	today := time.Now().Format("2006-01-02")
 	lastPractice := c.Model.Stats.LastPracticeDate.Format("2006-01-02")
@@ -432,39 +407,36 @@ func (c *Controller) updateStatistics() {
 }
 
 // checkAchievements checks for any newly unlocked achievements
-func (c *Controller) checkAchievements() {
-	// Check pattern mastery achievements
-	for pattern, count := range c.Model.Stats.PatternCounts {
-		if count >= 10 {
-			achievementID := "pattern-master-" + pattern
-			if achievement, exists := c.Model.Achievements[achievementID]; exists && !achievement.Earned {
-				return func() tea.Msg {
+func (c *Controller) checkAchievements() tea.Cmd {
+	return func() tea.Msg {
+		// Check pattern mastery achievements
+		for pattern, count := range c.Model.Stats.PatternCounts {
+			if count >= 10 {
+				achievementID := "pattern-master-" + pattern
+				if achievement, exists := c.Model.Achievements[achievementID]; exists && !achievement.Earned {
 					return model.AchievementUnlockedMsg{AchievementID: achievementID}
 				}
 			}
 		}
-	}
-	
-	// Check streak achievement
-	if c.Model.Stats.CurrentStreak >= 30 {
-		if achievement, exists := c.Model.Achievements["streak-virtuoso"]; exists && !achievement.Earned {
-			return func() tea.Msg {
+		
+		// Check streak achievement
+		if c.Model.Stats.CurrentStreak >= 30 {
+			if achievement, exists := c.Model.Achievements["streak-virtuoso"]; exists && !achievement.Earned {
 				return model.AchievementUnlockedMsg{AchievementID: "streak-virtuoso"}
 			}
 		}
-	}
-	
-	// Check performance ace achievement (solve hard problem in under 15 min)
-	if c.Model.Session.Problem.Difficulty == "hard" {
-		elapsedTime := time.Since(c.Model.Session.StartTime)
-		if elapsedTime < 15*time.Minute {
-			if achievement, exists := c.Model.Achievements["performance-ace"]; exists && !achievement.Earned {
-				return func() tea.Msg {
+		
+		// Check performance ace achievement (solve hard problem in under 15 min)
+		problem := c.activeSession.GetProblem()
+		if problem.Difficulty == "hard" {
+			elapsedTime := time.Since(c.activeSession.GetStartTime())
+			if elapsedTime < 15*time.Minute {
+				if achievement, exists := c.Model.Achievements["performance-ace"]; exists && !achievement.Earned {
 					return model.AchievementUnlockedMsg{AchievementID: "performance-ace"}
 				}
 			}
 		}
+		
+		return nil
 	}
-	
-	return nil
 }

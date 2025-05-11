@@ -117,26 +117,56 @@ func TestGetSummary(t *testing.T) {
 	tempDir, cleanup := withTestDir(t)
 	defer cleanup()
 
-	// Create sample sessions (6 sessions, 3 solved)
-	sessions := createSampleSessions(t, tempDir, 6)
+	// Test with no sessions first
+	emptySummary, err := GetSummary()
+	require.NoError(t, err)
+	assert.Equal(t, 0, emptySummary.TotalAttempted)
+	assert.Equal(t, 0, emptySummary.TotalSolved)
+	assert.Equal(t, float64(0), emptySummary.SuccessRate)
+
+	// Create a "most challenging" problem that's been attempted but not solved
+	// This ensures we have at least one problem that meets the criteria
+	unsolved := SessionStats{
+		ProblemID:    "hard-problem",
+		StartTime:    time.Now().Add(-3 * time.Hour),
+		EndTime:      time.Now().Add(-2 * time.Hour),
+		Duration:     time.Hour,
+		Solved:       false,
+		Mode:         "practice",
+		HintsUsed:    true,
+		SolutionUsed: true,
+		Patterns:     []string{"hash-map", "dynamic-programming"},
+		Difficulty:   "Hard",
+	}
+
+	// Record it twice to make it the most challenging
+	err = RecordSession(unsolved)
+	require.NoError(t, err)
+
+	unsolved.StartTime = time.Now().Add(-5 * time.Hour)
+	unsolved.EndTime = time.Now().Add(-4 * time.Hour)
+	err = RecordSession(unsolved)
+	require.NoError(t, err)
+
+	// Now create sample sessions (6 sessions, 3 solved)
+	_ = createSampleSessions(t, tempDir, 6)
 
 	// Get summary
 	summary, err := GetSummary()
 	require.NoError(t, err)
 
-	// Verify summary
-	assert.Equal(t, 6, summary.TotalAttempted)
+	// Verify summary (should now have 8 total sessions - 6 + 2 unsolved)
+	assert.Equal(t, 8, summary.TotalAttempted)
 	assert.Equal(t, 3, summary.TotalSolved)
 	assert.NotEmpty(t, summary.AvgSolveTime)
-	assert.Equal(t, float64(50), summary.SuccessRate) // 3/6 = 50%
+	assert.Equal(t, float64(3)/float64(8)*100, summary.SuccessRate)
 
 	assert.NotEmpty(t, summary.FastestSolve.ProblemID)
 	assert.NotEmpty(t, summary.FastestSolve.Time)
 
-	// Check for most challenging problem
-	// In our sample data, we'd expect a problem that was attempted and never solved
-	assert.NotEmpty(t, summary.MostChallenging.ProblemID)
-	assert.Greater(t, summary.MostChallenging.Attempts, 0)
+	// Check for most challenging problem - should be our "hard-problem" with 2 attempts
+	assert.Equal(t, "hard-problem", summary.MostChallenging.ProblemID)
+	assert.Equal(t, 2, summary.MostChallenging.Attempts)
 }
 
 func TestGetByPattern(t *testing.T) {
@@ -144,7 +174,7 @@ func TestGetByPattern(t *testing.T) {
 	defer cleanup()
 
 	// Create sample sessions
-	sessions := createSampleSessions(t, tempDir, 6)
+	_ = createSampleSessions(t, tempDir, 6)
 
 	// Get pattern stats
 	patternStats, err := GetByPattern()

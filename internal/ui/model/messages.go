@@ -36,3 +36,24 @@ type TestResultsMsg struct {
 type AchievementUnlockedMsg struct {
 	AchievementID string
 }
+
+// ShowHintsMsg is sent to toggle visibility of hints
+type ShowHintsMsg struct {
+	Show bool
+}
+
+// ShowSolutionMsg is sent to toggle visibility of solution
+type ShowSolutionMsg struct {
+	Show bool
+}
+
+// SelectionMsg is sent when a selection is made from a menu
+type SelectionMsg struct {
+	Index int
+}
+
+// EditCodeMsg is sent when the user wants to edit code
+type EditCodeMsg struct{}
+
+// QuitMsg is sent when the application should quit
+type QuitMsg struct{}

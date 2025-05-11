@@ -45,7 +45,7 @@ and step-by-step solutions to help you understand the algorithm patterns.`,
 		}
 
 		if err := session.Start(opts); err != nil {
-			fmt.Printf("Error starting session: %v\n", err)
+			fmt.Fprintf(cmd.ErrOrStderr(), "Error starting session: %v\n", err)
 		}
 	},
 }
@@ -72,7 +72,7 @@ but allows you to request them when needed.`,
 		}
 
 		if err := session.Start(opts); err != nil {
-			fmt.Printf("Error starting session: %v\n", err)
+			fmt.Fprintf(cmd.ErrOrStderr(), "Error starting session: %v\n", err)
 		}
 	},
 }
@@ -93,7 +93,7 @@ from the most common algorithm patterns, with a timer for each problem.`,
 		}
 
 		if err := session.Start(opts); err != nil {
-			fmt.Printf("Error starting session: %v\n", err)
+			fmt.Fprintf(cmd.ErrOrStderr(), "Error starting session: %v\n", err)
 		}
 	},
 }

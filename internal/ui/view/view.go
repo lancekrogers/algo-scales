@@ -8,6 +8,7 @@ import (
 
 	"github.com/charmbracelet/bubbles/spinner"
 	"github.com/charmbracelet/lipgloss"
+	"github.com/lancekrogers/algo-scales/internal/common/highlight"
 	"github.com/lancekrogers/algo-scales/internal/ui/model"
 )
 
@@ -18,7 +19,7 @@ type View struct {
 
 	// UI components
 	spinner           spinner.Model
-	syntaxHighlighter *SyntaxHighlighter
+	syntaxHighlighter *highlight.SyntaxHighlighter
 	patternViz        *PatternVisualization
 }
 
@@ -389,7 +390,7 @@ func (v *View) renderSessionScreen(width, height int) string {
 		solutionCode, ok := problem.Solutions[v.Model.Session.Language]
 		if !ok {
 			// Try to find any solution if the current language isn't available
-			for lang, code := range problem.Solutions {
+			for _, code := range problem.Solutions {
 				solutionCode = code
 				break
 			}
@@ -500,7 +501,7 @@ func (v *View) renderStatisticsScreen(width, height int) string {
 	var achievementsSection strings.Builder
 	achievementsSection.WriteString("\nAchievements:\n")
 	
-	for id, achievement := range v.Model.Achievements {
+	for _, achievement := range v.Model.Achievements {
 		status := "□"
 		if achievement.Earned {
 			status = "✓"

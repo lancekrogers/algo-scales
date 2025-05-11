@@ -66,6 +66,10 @@ func initConfig() {
 
 // isFirstRun checks if this is the first time the app is run
 func isFirstRun() bool {
+	// Skip setup during tests
+	if os.Getenv("TESTING") == "1" {
+		return false
+	}
 	configDir := getConfigDir()
 	return !fileExists(configDir)
 }
@@ -92,7 +96,8 @@ func fileExists(path string) bool {
 }
 
 // getConfigDir returns the configuration directory
-func getConfigDir() string {
+// Exported as variable for testing
+var getConfigDir = func() string {
 	homeDir, _ := os.UserHomeDir()
 	return filepath.Join(homeDir, ".algo-scales")
-}/
+}

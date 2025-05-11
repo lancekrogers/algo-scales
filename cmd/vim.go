@@ -5,12 +5,9 @@ package cmd
 import (
 	"encoding/json"
 	"fmt"
-	"io/ioutil"
-	"os"
 
 	"github.com/lancekrogers/algo-scales/internal/problem"
 	"github.com/lancekrogers/algo-scales/internal/session"
-	"github.com/spf13/cobra"
 )
 
 // Flag to enable vim mode output (JSON format)
@@ -114,10 +111,9 @@ var musicalScales = map[string]struct {
 	},
 }
 
-// Initialize Vim Mode
+// Initialize Vim Mode - Implementation is in root.go
 func initVimMode() {
-	// Add vim-mode flag to root command and all subcommands
-	rootCmd.PersistentFlags().BoolVar(&vimMode, "vim-mode", false, "Output in Vim-friendly JSON format")
+	// Flag initialization is handled by root.go
 }
 
 // handleVimModeStart handles the start command in Vim mode
@@ -154,3 +150,28 @@ func handleVimModeStart(s *session.Session) error {
 			resp.ScaleDesc = scale.Description
 		}
 	}
+	
+	// Return JSON response
+	jsonResp, err := json.Marshal(resp)
+	if err != nil {
+		return fmt.Errorf("error marshaling JSON: %v", err)
+	}
+	
+	fmt.Println(string(jsonResp))
+	return nil
+}
+
+// handleVimModeList handles the list command in Vim mode
+func handleVimModeList(problems []problem.Problem) error {
+	resp := VimListResponse{
+		Problems: problems,
+	}
+	
+	jsonResp, err := json.Marshal(resp)
+	if err != nil {
+		return fmt.Errorf("error marshaling JSON: %v", err)
+	}
+	
+	fmt.Println(string(jsonResp))
+	return nil
+}

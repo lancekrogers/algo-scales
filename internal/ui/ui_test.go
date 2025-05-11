@@ -261,7 +261,7 @@ func TestTimer(t *testing.T) {
 	m.timer.Init()
 
 	// Create a tick message
-	tickMsg := timer.TickMsg(time.Now())
+	tickMsg := timer.TickMsg{}
 
 	// Update the model
 	updatedModel, _ := m.Update(tickMsg)

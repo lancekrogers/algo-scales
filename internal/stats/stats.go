@@ -94,7 +94,8 @@ func RecordSession(stats SessionStats) error {
 }
 
 // GetSummary returns summary statistics
-func GetSummary() (*Summary, error) {
+// Exported as variable for testing
+var GetSummary = func() (*Summary, error) {
 	// Load all session stats
 	sessions, err := loadAllSessions()
 	if err != nil {
@@ -102,7 +103,26 @@ func GetSummary() (*Summary, error) {
 	}
 
 	if len(sessions) == 0 {
-		return &Summary{}, nil
+		return &Summary{
+			TotalAttempted: 0,
+			TotalSolved:    0,
+			SuccessRate:    0,
+			AvgSolveTime:   "00:00",
+			FastestSolve: struct {
+				ProblemID string `json:"problem_id"`
+				Time      string `json:"time"`
+			}{
+				ProblemID: "",
+				Time:      "",
+			},
+			MostChallenging: struct {
+				ProblemID string `json:"problem_id"`
+				Attempts  int    `json:"attempts"`
+			}{
+				ProblemID: "",
+				Attempts:  0,
+			},
+		}, nil
 	}
 
 	// Calculate summary stats
@@ -172,7 +192,8 @@ func GetSummary() (*Summary, error) {
 }
 
 // GetByPattern returns statistics by pattern
-func GetByPattern() (map[string]PatternStats, error) {
+// Exported as variable for testing
+var GetByPattern = func() (map[string]PatternStats, error) {
 	// Load all session stats
 	sessions, err := loadAllSessions()
 	if err != nil {
@@ -230,7 +251,8 @@ func GetByPattern() (map[string]PatternStats, error) {
 }
 
 // GetTrends returns usage trends over time
-func GetTrends() (*Trends, error) {
+// Exported as variable for testing
+var GetTrends = func() (*Trends, error) {
 	// Load all session stats
 	sessions, err := loadAllSessions()
 	if err != nil {
@@ -342,7 +364,8 @@ func GetTrends() (*Trends, error) {
 }
 
 // Reset resets all statistics
-func Reset() error {
+// Exported as variable for testing
+var Reset = func() error {
 	statsDir := filepath.Join(getConfigDir(), "stats")
 
 	// Create directory if it doesn't exist
@@ -443,7 +466,8 @@ func endOfWeek(t time.Time) time.Time {
 }
 
 // getConfigDir returns the configuration directory
-func getConfigDir() string {
+// Exported as variable for testing
+var getConfigDir = func() string {
 	homeDir, _ := os.UserHomeDir()
 	return filepath.Join(homeDir, ".algo-scales")
 }

@@ -8,6 +8,7 @@ import (
 	"path/filepath"
 	"testing"
 
+	"github.com/lancekrogers/algo-scales/internal/common/interfaces"
 	"github.com/lancekrogers/algo-scales/internal/problem"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -89,20 +90,20 @@ func TestCreateWorkspace(t *testing.T) {
 	testProblem := getTestProblem()
 
 	// Create a session
-	session := &Session{
+	session := &SessionImpl{
 		Problem: testProblem,
-		Options: Options{
-			Mode:     LearnMode,
+		Options: interfaces.SessionOptions{
+			Mode:     interfaces.LearnMode,
 			Language: "go",
 			Timer:    30,
 		},
-		ShowHints:    true,
-		ShowPattern:  true,
-		ShowSolution: false,
+		hintsShown:    true,
+		ShowPattern:   true,
+		solutionShown: false,
 	}
 
 	// Try to create the workspace
-	err := session.createWorkspace()
+	err := createWorkspace(session)
 	require.NoError(t, err)
 	defer os.RemoveAll(session.Workspace)
 
@@ -126,23 +127,23 @@ func TestCreateWorkspace(t *testing.T) {
 	assert.Equal(t, testProblem.StarterCode["go"], string(codeContent))
 }
 
-func TestFormatProblemDescription(t *testing.T) {
+func TestFormatDescription(t *testing.T) {
 	testProblem := getTestProblem()
 
 	t.Run("LearnMode", func(t *testing.T) {
 		// Create a session in Learn mode
-		session := &Session{
+		session := &SessionImpl{
 			Problem: testProblem,
-			Options: Options{
-				Mode: LearnMode,
+			Options: interfaces.SessionOptions{
+				Mode: interfaces.LearnMode,
 			},
-			ShowHints:    true,
-			ShowPattern:  true,
-			ShowSolution: false,
+			hintsShown:    true,
+			ShowPattern:   true,
+			solutionShown: false,
 		}
 
 		// Format the description
-		description := session.FormatProblemDescription()
+		description := session.FormatDescription()
 
 		// Verify content
 		assert.Contains(t, description, testProblem.Title)
@@ -153,18 +154,18 @@ func TestFormatProblemDescription(t *testing.T) {
 
 	t.Run("PracticeMode", func(t *testing.T) {
 		// Create a session in Practice mode
-		session := &Session{
+		session := &SessionImpl{
 			Problem: testProblem,
-			Options: Options{
-				Mode: PracticeMode,
+			Options: interfaces.SessionOptions{
+				Mode: interfaces.PracticeMode,
 			},
-			ShowHints:    false,
-			ShowPattern:  false,
-			ShowSolution: false,
+			hintsShown:    false,
+			ShowPattern:   false,
+			solutionShown: false,
 		}
 
 		// Format the description
-		description := session.FormatProblemDescription()
+		description := session.FormatDescription()
 
 		// Verify content
 		assert.Contains(t, description, testProblem.Title)
@@ -175,18 +176,18 @@ func TestFormatProblemDescription(t *testing.T) {
 
 	t.Run("WithSolution", func(t *testing.T) {
 		// Create a session with solution shown
-		session := &Session{
+		session := &SessionImpl{
 			Problem: testProblem,
-			Options: Options{
-				Mode: PracticeMode,
+			Options: interfaces.SessionOptions{
+				Mode: interfaces.PracticeMode,
 			},
-			ShowHints:    false,
-			ShowPattern:  false,
-			ShowSolution: true,
+			hintsShown:    false,
+			ShowPattern:   false,
+			solutionShown: true,
 		}
 
 		// Format the description
-		description := session.FormatProblemDescription()
+		description := session.FormatDescription()
 
 		// Verify content
 		assert.Contains(t, description, testProblem.Title)
@@ -321,7 +322,7 @@ func TestJoinStrings(t *testing.T) {
 
 	for _, tc := range testCases {
 		t.Run("join", func(t *testing.T) {
-			result := joinStrings(tc.strings)
+			result := JoinStrings(tc.strings)
 			assert.Equal(t, tc.expected, result)
 		})
 	}

@@ -7,7 +7,7 @@ import (
 // Re-export the syntax highlighter from the common package
 var (
 	// SyntaxHighlighter is the type from the common package
-	SyntaxHighlighter = highlight.SyntaxHighlighter
+	SyntaxHighlighter = (*highlight.SyntaxHighlighter)(nil) // Just for type reference
 
 	// NewSyntaxHighlighter creates a new syntax highlighter
 	NewSyntaxHighlighter = highlight.NewSyntaxHighlighter

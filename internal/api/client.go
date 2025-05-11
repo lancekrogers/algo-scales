@@ -115,7 +115,8 @@ func shouldUpdate() bool {
 }
 
 // getConfigDir returns the configuration directory
-func getConfigDir() string {
+// Exported as variable for testing
+var getConfigDir = func() string {
 	homeDir, _ := os.UserHomeDir()
 	return filepath.Join(homeDir, ".algo-scales")
 }

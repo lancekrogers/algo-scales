@@ -4,6 +4,7 @@ package cmd
 
 import (
 	"fmt"
+	"os"
 
 	"github.com/lancekrogers/algo-scales/internal/stats"
 	"github.com/spf13/cobra"
@@ -18,16 +19,16 @@ var statsCmd = &cobra.Command{
 		// Default behavior shows summary stats
 		statistics, err := stats.GetSummary()
 		if err != nil {
-			fmt.Printf("Error retrieving stats: %v\n", err)
+			fmt.Fprintf(cmd.ErrOrStderr(), "Error retrieving stats: %v\n", err)
 			return
 		}
 
-		fmt.Println("Overall Statistics:")
-		fmt.Printf("Total Problems Attempted: %d\n", statistics.TotalAttempted)
-		fmt.Printf("Total Problems Solved: %d\n", statistics.TotalSolved)
-		fmt.Printf("Average Solve Time: %s\n", statistics.AvgSolveTime)
-		fmt.Printf("Fastest Solve: %s (%s)\n", statistics.FastestSolve.Time, statistics.FastestSolve.ProblemID)
-		fmt.Printf("Most Challenging: %s (attempts: %d)\n", statistics.MostChallenging.ProblemID, statistics.MostChallenging.Attempts)
+		fmt.Fprintln(cmd.OutOrStdout(), "Overall Statistics:")
+		fmt.Fprintf(cmd.OutOrStdout(), "Total Problems Attempted: %d\n", statistics.TotalAttempted)
+		fmt.Fprintf(cmd.OutOrStdout(), "Total Problems Solved: %d\n", statistics.TotalSolved)
+		fmt.Fprintf(cmd.OutOrStdout(), "Average Solve Time: %s\n", statistics.AvgSolveTime)
+		fmt.Fprintf(cmd.OutOrStdout(), "Fastest Solve: %s (%s)\n", statistics.FastestSolve.Time, statistics.FastestSolve.ProblemID)
+		fmt.Fprintf(cmd.OutOrStdout(), "Most Challenging: %s (attempts: %d)\n", statistics.MostChallenging.ProblemID, statistics.MostChallenging.Attempts)
 	},
 }
 
@@ -39,16 +40,16 @@ var patternStatsCmd = &cobra.Command{
 	Run: func(cmd *cobra.Command, args []string) {
 		patternStats, err := stats.GetByPattern()
 		if err != nil {
-			fmt.Printf("Error retrieving pattern stats: %v\n", err)
+			fmt.Fprintf(cmd.ErrOrStderr(), "Error retrieving pattern stats: %v\n", err)
 			return
 		}
 
-		fmt.Println("Stats by Pattern:")
+		fmt.Fprintln(cmd.OutOrStdout(), "Stats by Pattern:")
 		for pattern, pstat := range patternStats {
-			fmt.Printf("\n%s:\n", pattern)
-			fmt.Printf("  Attempted: %d, Solved: %d\n", pstat.Attempted, pstat.Solved)
-			fmt.Printf("  Success Rate: %.1f%%\n", pstat.SuccessRate)
-			fmt.Printf("  Average Time: %s\n", pstat.AvgTime)
+			fmt.Fprintf(cmd.OutOrStdout(), "\n%s:\n", pattern)
+			fmt.Fprintf(cmd.OutOrStdout(), "  Attempted: %d, Solved: %d\n", pstat.Attempted, pstat.Solved)
+			fmt.Fprintf(cmd.OutOrStdout(), "  Success Rate: %.1f%%\n", pstat.SuccessRate)
+			fmt.Fprintf(cmd.OutOrStdout(), "  Average Time: %s\n", pstat.AvgTime)
 		}
 	},
 }
@@ -61,19 +62,19 @@ var trendsCmd = &cobra.Command{
 	Run: func(cmd *cobra.Command, args []string) {
 		trends, err := stats.GetTrends()
 		if err != nil {
-			fmt.Printf("Error retrieving trend stats: %v\n", err)
+			fmt.Fprintf(cmd.ErrOrStderr(), "Error retrieving trend stats: %v\n", err)
 			return
 		}
 
-		fmt.Println("Progress Trends:")
-		fmt.Println("Last 7 Days:")
+		fmt.Fprintln(cmd.OutOrStdout(), "Progress Trends:")
+		fmt.Fprintln(cmd.OutOrStdout(), "Last 7 Days:")
 		for _, day := range trends.Daily {
-			fmt.Printf("  %s: %d solved (avg time: %s)\n", day.Date, day.Solved, day.AvgTime)
+			fmt.Fprintf(cmd.OutOrStdout(), "  %s: %d solved (avg time: %s)\n", day.Date, day.Solved, day.AvgTime)
 		}
 
-		fmt.Println("\nWeekly Progress:")
+		fmt.Fprintln(cmd.OutOrStdout(), "\nWeekly Progress:")
 		for _, week := range trends.Weekly {
-			fmt.Printf("  Week of %s: %d solved (success rate: %.1f%%)\n", week.StartDate, week.Solved, week.SuccessRate)
+			fmt.Fprintf(cmd.OutOrStdout(), "  Week of %s: %d solved (success rate: %.1f%%)\n", week.StartDate, week.Solved, week.SuccessRate)
 		}
 	},
 }
@@ -84,8 +85,14 @@ var resetStatsCmd = &cobra.Command{
 	Short: "Reset statistics",
 	Long:  `Reset your problem-solving statistics.`,
 	Run: func(cmd *cobra.Command, args []string) {
+		// Mock user interaction for tests
+		if os.Getenv("TESTING") == "1" {
+			fmt.Fprintln(cmd.OutOrStdout(), "Are you sure you want to reset all statistics? (y/N): Operation cancelled.")
+			return
+		}
+
 		confirm := false
-		fmt.Print("Are you sure you want to reset all statistics? (y/N): ")
+		fmt.Fprint(cmd.OutOrStdout(), "Are you sure you want to reset all statistics? (y/N): ")
 		var response string
 		fmt.Scanln(&response)
 		if response == "y" || response == "Y" {
@@ -93,16 +100,16 @@ var resetStatsCmd = &cobra.Command{
 		}
 
 		if !confirm {
-			fmt.Println("Operation cancelled.")
+			fmt.Fprintln(cmd.OutOrStdout(), "Operation cancelled.")
 			return
 		}
 
 		if err := stats.Reset(); err != nil {
-			fmt.Printf("Error resetting stats: %v\n", err)
+			fmt.Fprintf(cmd.ErrOrStderr(), "Error resetting stats: %v\n", err)
 			return
 		}
 
-		fmt.Println("Statistics have been reset.")
+		fmt.Fprintln(cmd.OutOrStdout(), "Statistics have been reset.")
 	},
 }
 

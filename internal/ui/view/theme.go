@@ -2,6 +2,7 @@
 package view
 
 import (
+	"strings"
 	"github.com/charmbracelet/lipgloss"
 )
 

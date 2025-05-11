@@ -42,7 +42,8 @@ type TestCase struct {
 }
 
 // GetByID retrieves a problem by its ID
-func GetByID(id string) (*Problem, error) {
+// Exported as variable for testing
+var GetByID = func(id string) (*Problem, error) {
 	configDir := getConfigDir()
 
 	// Search in all pattern directories
@@ -79,7 +80,8 @@ func GetByID(id string) (*Problem, error) {
 }
 
 // ListAll lists all available problems
-func ListAll() ([]Problem, error) {
+// Exported as variable for testing
+var ListAll = func() ([]Problem, error) {
 	var problems []Problem
 	configDir := getConfigDir()
 
@@ -133,7 +135,8 @@ func ListAll() ([]Problem, error) {
 }
 
 // ListPatterns lists problems organized by pattern
-func ListPatterns() (map[string][]Problem, error) {
+// Exported as variable for testing
+var ListPatterns = func() (map[string][]Problem, error) {
 	patterns := make(map[string][]Problem)
 
 	// Get all problems
@@ -153,7 +156,8 @@ func ListPatterns() (map[string][]Problem, error) {
 }
 
 // ListByDifficulty lists problems organized by difficulty
-func ListByDifficulty() (map[string][]Problem, error) {
+// Exported as variable for testing
+var ListByDifficulty = func() (map[string][]Problem, error) {
 	difficulties := make(map[string][]Problem)
 
 	// Get all problems
@@ -171,7 +175,8 @@ func ListByDifficulty() (map[string][]Problem, error) {
 }
 
 // ListByCompany lists problems organized by company
-func ListByCompany() (map[string][]Problem, error) {
+// Exported as variable for testing
+var ListByCompany = func() (map[string][]Problem, error) {
 	companies := make(map[string][]Problem)
 
 	// Get all problems
@@ -190,8 +195,9 @@ func ListByCompany() (map[string][]Problem, error) {
 	return companies, nil
 }
 
-// getConfigDir returns the configuration directory
-func getConfigDir() string {
+// GetConfigDir returns the configuration directory
+// Exported as variable for testing
+var getConfigDir = func() string {
 	homeDir, _ := os.UserHomeDir()
 	return filepath.Join(homeDir, ".algo-scales")
 }

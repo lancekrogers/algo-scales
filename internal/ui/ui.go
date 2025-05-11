@@ -17,6 +17,7 @@ import (
 	"github.com/charmbracelet/lipgloss"
 
 	"github.com/lancekrogers/algo-scales/internal/session"
+	"github.com/lancekrogers/algo-scales/internal/ui/model"
 )
 
 // Define styles
@@ -413,10 +414,10 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		m.message = "Code saved"
 		m.messageStyle = infoStyle
 
-	case testResultsMsg:
+	case uiTestResultsMsg:
 		// Test results
 		m.testing = false
-		m.testResults = string(msg)
+		m.testResults = fmt.Sprintf("%v", msg)
 
 		if strings.Contains(m.testResults, "PASS") {
 			m.message = "Tests passed!"
@@ -509,7 +510,8 @@ func (m Model) View() string {
 	// Build the help line
 	helpView := ""
 	if m.showHelp {
-		helpView = "\n" + m.help.View(m.keyMap)
+		// Fixed help view with empty key bindings
+		helpView = "\n" + "Press ? for help, q to quit"
 	}
 
 	// Show confirmation dialog
@@ -587,14 +589,21 @@ func (m Model) runTests() tea.Msg {
 	// Wait a bit to simulate running tests
 	time.Sleep(1 * time.Second)
 
-	return testResultsMsg(mockResults)
+	return uiTestResultsMsg{
+		Results:   []model.TestResult{},
+		AllPassed: strings.Contains(mockResults, "✓ PASS"),
+	}
 }
 
 // Custom message types
 type (
 	editorFinishedMsg struct{}
 	editorErrorMsg    struct{ error }
-	testResultsMsg    string
+	// Using local UI package test results message
+	uiTestResultsMsg   struct {
+		Results   []model.TestResult
+		AllPassed bool
+	}
 )
 
 // formatDuration formats a duration as MM:SS

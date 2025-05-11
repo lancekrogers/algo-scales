@@ -4,6 +4,7 @@ package model
 import (
 	"time"
 
+	tea "github.com/charmbracelet/bubbletea"
 	"github.com/lancekrogers/algo-scales/internal/problem"
 )
 
@@ -37,6 +38,8 @@ type AppState int
 const (
 	StateInitial AppState = iota
 	StateOnboarding
+	StateModeSelection     // Added mode selection state
+	StatePatternSelection  // Added pattern selection state
 	StateProblemSelection
 	StateSession
 	StateStatistics
@@ -131,4 +134,23 @@ func NewModel() UIModel {
 			Active: false,
 		},
 	}
+}
+
+// Tea Model interface implementation
+
+// Init initializes the model
+func (m *UIModel) Init() tea.Cmd {
+	return nil
+}
+
+// Update handles messages and state transitions
+func (m *UIModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
+	// The controller will handle the update logic
+	return m, nil
+}
+
+// View renders the UI
+func (m *UIModel) View() string {
+	// The view package will handle the rendering
+	return ""
 }

@@ -9,7 +9,7 @@ import (
 )
 
 // FormatProblemDescriptionWithHighlighting creates a formatted markdown description with syntax highlighting
-func (s *Session) FormatProblemDescriptionWithHighlighting() string {
+func (s *SessionImpl) FormatProblemDescriptionWithHighlighting() string {
 	// Create a syntax highlighter
 	highlighter := highlight.NewSyntaxHighlighter("monokai")
 
@@ -19,7 +19,7 @@ func (s *Session) FormatProblemDescriptionWithHighlighting() string {
 	description += fmt.Sprintf("# %s\n\n", s.Problem.Title)
 	description += fmt.Sprintf("**Difficulty**: %s\n", s.Problem.Difficulty)
 	description += fmt.Sprintf("**Estimated Time**: %d minutes\n", s.Problem.EstimatedTime)
-	description += fmt.Sprintf("**Companies**: %s\n\n", joinStrings(s.Problem.Companies))
+	description += fmt.Sprintf("**Companies**: %s\n\n", JoinStrings(s.Problem.Companies))
 
 	// Problem description
 	description += fmt.Sprintf("## Problem Statement\n\n%s\n\n", s.Problem.Description)
@@ -44,7 +44,7 @@ func (s *Session) FormatProblemDescriptionWithHighlighting() string {
 
 	// Pattern explanation (if in Learn mode or hints shown)
 	if s.ShowPattern {
-		description += fmt.Sprintf("## Pattern: %s\n\n", joinStrings(s.Problem.Patterns))
+		description += fmt.Sprintf("## Pattern: %s\n\n", JoinStrings(s.Problem.Patterns))
 		description += fmt.Sprintf("%s\n\n", s.Problem.PatternExplanation)
 	}
 
@@ -56,7 +56,7 @@ func (s *Session) FormatProblemDescriptionWithHighlighting() string {
 	}
 
 	// Solution walkthrough (if requested)
-	if s.ShowSolution {
+	if s.solutionShown {
 		description += "## Solution Walkthrough\n\n"
 		for i, step := range s.Problem.SolutionWalkthrough {
 			description += fmt.Sprintf("%d. %s\n", i+1, step)

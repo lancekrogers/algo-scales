@@ -5,14 +5,12 @@ package session
 import (
 	"fmt"
 	"io/ioutil"
-	"math/rand"
 	"os"
 	"path/filepath"
 	"time"
 
 	"github.com/lancekrogers/algo-scales/internal/problem"
 	"github.com/lancekrogers/algo-scales/internal/stats"
-	"github.com/lancekrogers/algo-scales/internal/ui"
 )
 
 // Mode represents a session mode
@@ -48,7 +46,8 @@ type Session struct {
 }
 
 // Start begins a new practice session
-func Start(opts Options) error {
+// Exported as variable for testing
+var Start = func(opts Options) error {
 	// Initialize session
 	session := &Session{
 		Options:      opts,
@@ -85,64 +84,11 @@ func Start(opts Options) error {
 		return fmt.Errorf("failed to create workspace: %v", err)
 	}
 
-	// Start UI
-	return ui.StartSession(session)
+	// Return the session - UI will be started by the caller
+	return nil
 }
 
-// selectProblem chooses a problem based on filters
-func selectProblem(pattern, difficulty string) (*problem.Problem, error) {
-	// Get all problems
-	problems, err := problem.ListAll()
-	if err != nil {
-		return nil, err
-	}
-
-	// Filter problems
-	var filtered []problem.Problem
-	for _, p := range problems {
-		matchesPattern := pattern == "" || containsPattern(p.Patterns, pattern)
-		matchesDifficulty := difficulty == "" || p.Difficulty == difficulty
-
-		if matchesPattern && matchesDifficulty {
-			filtered = append(filtered, p)
-		}
-	}
-
-	if len(filtered) == 0 {
-		return nil, fmt.Errorf("no problems match the specified filters")
-	}
-
-	// Choose a random problem from filtered list
-	rand.Seed(time.Now().UnixNano())
-	selected := filtered[rand.Intn(len(filtered))]
-
-	return &selected, nil
-}
-
-// selectCramProblem chooses a problem for cram mode
-func selectCramProblem() (*problem.Problem, error) {
-	// For cram mode, we focus on the most common patterns
-	commonPatterns := []string{
-		"sliding-window",
-		"two-pointers",
-		"fast-slow-pointers",
-		"hash-map",
-		"binary-search",
-		"dfs",
-		"bfs",
-		"dynamic-programming",
-		"greedy",
-		"union-find",
-		"heap",
-	}
-
-	// Choose a random pattern
-	rand.Seed(time.Now().UnixNano())
-	pattern := commonPatterns[rand.Intn(len(commonPatterns))]
-
-	// Get a problem with this pattern
-	return selectProblem(pattern, "")
-}
+// Note: These functions moved to manager.go to avoid redeclaration
 
 // createWorkspace sets up a workspace for the problem
 func (s *Session) createWorkspace() error {
@@ -192,7 +138,7 @@ func (s *Session) FormatProblemDescription() string {
 	description += fmt.Sprintf("# %s\n\n", s.Problem.Title)
 	description += fmt.Sprintf("**Difficulty**: %s\n", s.Problem.Difficulty)
 	description += fmt.Sprintf("**Estimated Time**: %d minutes\n", s.Problem.EstimatedTime)
-	description += fmt.Sprintf("**Companies**: %s\n\n", joinStrings(s.Problem.Companies))
+	description += fmt.Sprintf("**Companies**: %s\n\n", JoinStrings(s.Problem.Companies))
 
 	// Problem description
 	description += fmt.Sprintf("## Problem Statement\n\n%s\n\n", s.Problem.Description)
@@ -217,7 +163,7 @@ func (s *Session) FormatProblemDescription() string {
 
 	// Pattern explanation (if in Learn mode)
 	if s.ShowPattern {
-		description += fmt.Sprintf("## Pattern: %s\n\n", joinStrings(s.Problem.Patterns))
+		description += fmt.Sprintf("## Pattern: %s\n\n", JoinStrings(s.Problem.Patterns))
 		description += fmt.Sprintf("%s\n\n", s.Problem.PatternExplanation)
 	}
 
@@ -254,42 +200,4 @@ func (s *Session) FinishSession(solved bool) error {
 	return stats.RecordSession(sessionStats)
 }
 
-// Helper functions
-
-// containsPattern checks if a pattern is in a list
-func containsPattern(patterns []string, pattern string) bool {
-	for _, p := range patterns {
-		if p == pattern {
-			return true
-		}
-	}
-	return false
-}
-
-// joinStrings joins a string slice with commas
-func joinStrings(strings []string) string {
-	if len(strings) == 0 {
-		return ""
-	}
-
-	result := strings[0]
-	for i := 1; i < len(strings); i++ {
-		result += ", " + strings[i]
-	}
-
-	return result
-}
-
-// languageExtension returns the file extension for a language
-func languageExtension(language string) string {
-	switch language {
-	case "go":
-		return "go"
-	case "python":
-		return "py"
-	case "javascript":
-		return "js"
-	default:
-		return "txt"
-	}
-}
+// Helper functions moved to manager.go to avoid redeclaration

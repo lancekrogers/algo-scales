@@ -18,13 +18,13 @@ var listCmd = &cobra.Command{
 		// Default behavior when no subcommand is specified
 		problems, err := problem.ListAll()
 		if err != nil {
-			fmt.Printf("Error listing problems: %v\n", err)
+			fmt.Fprintf(cmd.ErrOrStderr(), "Error listing problems: %v\n", err)
 			return
 		}
 
-		fmt.Println("Available Problems:")
+		fmt.Fprintln(cmd.OutOrStdout(), "Available Problems:")
 		for _, p := range problems {
-			fmt.Printf("- %s (%s): %s\n", p.ID, p.Difficulty, p.Title)
+			fmt.Fprintf(cmd.OutOrStdout(), "- %s (%s): %s\n", p.ID, p.Difficulty, p.Title)
 		}
 	},
 }
@@ -37,15 +37,15 @@ var patternsCmd = &cobra.Command{
 	Run: func(cmd *cobra.Command, args []string) {
 		patterns, err := problem.ListPatterns()
 		if err != nil {
-			fmt.Printf("Error listing patterns: %v\n", err)
+			fmt.Fprintf(cmd.ErrOrStderr(), "Error listing patterns: %v\n", err)
 			return
 		}
 
-		fmt.Println("Algorithm Patterns:")
+		fmt.Fprintln(cmd.OutOrStdout(), "Algorithm Patterns:")
 		for pattern, problems := range patterns {
-			fmt.Printf("\n%s:\n", pattern)
+			fmt.Fprintf(cmd.OutOrStdout(), "\n%s:\n", pattern)
 			for _, p := range problems {
-				fmt.Printf("  - %s (%s): %s\n", p.ID, p.Difficulty, p.Title)
+				fmt.Fprintf(cmd.OutOrStdout(), "  - %s (%s): %s\n", p.ID, p.Difficulty, p.Title)
 			}
 		}
 	},
@@ -59,15 +59,15 @@ var difficultiesCmd = &cobra.Command{
 	Run: func(cmd *cobra.Command, args []string) {
 		difficulties, err := problem.ListByDifficulty()
 		if err != nil {
-			fmt.Printf("Error listing by difficulty: %v\n", err)
+			fmt.Fprintf(cmd.ErrOrStderr(), "Error listing by difficulty: %v\n", err)
 			return
 		}
 
-		fmt.Println("Problems by Difficulty:")
+		fmt.Fprintln(cmd.OutOrStdout(), "Problems by Difficulty:")
 		for difficulty, problems := range difficulties {
-			fmt.Printf("\n%s:\n", difficulty)
+			fmt.Fprintf(cmd.OutOrStdout(), "\n%s:\n", difficulty)
 			for _, p := range problems {
-				fmt.Printf("  - %s: %s\n", p.ID, p.Title)
+				fmt.Fprintf(cmd.OutOrStdout(), "  - %s: %s\n", p.ID, p.Title)
 			}
 		}
 	},
@@ -81,15 +81,15 @@ var companiesCmd = &cobra.Command{
 	Run: func(cmd *cobra.Command, args []string) {
 		companies, err := problem.ListByCompany()
 		if err != nil {
-			fmt.Printf("Error listing by company: %v\n", err)
+			fmt.Fprintf(cmd.ErrOrStderr(), "Error listing by company: %v\n", err)
 			return
 		}
 
-		fmt.Println("Problems by Company:")
+		fmt.Fprintln(cmd.OutOrStdout(), "Problems by Company:")
 		for company, problems := range companies {
-			fmt.Printf("\n%s:\n", company)
+			fmt.Fprintf(cmd.OutOrStdout(), "\n%s:\n", company)
 			for _, p := range problems {
-				fmt.Printf("  - %s (%s): %s\n", p.ID, p.Difficulty, p.Title)
+				fmt.Fprintf(cmd.OutOrStdout(), "  - %s (%s): %s\n", p.ID, p.Difficulty, p.Title)
 			}
 		}
 	},

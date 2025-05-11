@@ -21,7 +21,8 @@ type License struct {
 }
 
 // ValidateLicense checks if the license is valid
-func ValidateLicense() (bool, error) {
+// Exported as variable for testing
+var ValidateLicense = func() (bool, error) {
 	licenseFile := filepath.Join(getConfigDir(), "license.json")
 
 	// Check if license file exists
@@ -87,15 +88,15 @@ func RequestLicense() error {
 	return ioutil.WriteFile(licenseFile, licenseData, 0644)
 }
 
-// Helper functions
-func getConfigDir() string {
+// Helper functions - exported as variables for testing
+var getConfigDir = func() string {
 	homeDir, _ := os.UserHomeDir()
 	return filepath.Join(homeDir, ".algo-scales")
 }
 
 // verifySignature checks if a license signature is valid
-// This is a simplified version for MVP
-func verifySignature(license License) bool {
+// This is a simplified version for MVP - exported as variable for testing
+var verifySignature = func(license License) bool {
 	// In a real implementation, this would use public key cryptography
 	// For MVP, we'll just check if the signature exists
 	return license.Signature != ""

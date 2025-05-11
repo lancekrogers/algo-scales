@@ -2,9 +2,8 @@
 package ui
 
 import (
-	"fmt"
-
 	tea "github.com/charmbracelet/bubbletea"
+	"github.com/lancekrogers/algo-scales/internal/problem"
 	"github.com/lancekrogers/algo-scales/internal/ui/controller"
 	"github.com/lancekrogers/algo-scales/internal/ui/model"
 	"github.com/lancekrogers/algo-scales/internal/ui/view"
@@ -47,7 +46,7 @@ func (a *App) Start() error {
 
 // Init initializes the application
 func (a *App) Init() tea.Cmd {
-	return a.controller.Init()
+	return a.controller.Initialize()
 }
 
 // Update handles updates to the application
@@ -69,7 +68,7 @@ type (
 
 	// problemsLoadedMsg is sent when the problem list is loaded
 	problemsLoadedMsg struct {
-		Problems []model.Problem
+		Problems []problem.Problem
 	}
 
 	// tickMsg is sent every second for timers
