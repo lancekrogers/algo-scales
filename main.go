@@ -11,24 +11,33 @@ import (
 )
 
 func main() {
-	// Check if UI flag is provided
-	useUI := false
+	// Check if CLI mode is explicitly requested via flag
+	useLegacyCLI := false
 	for _, arg := range os.Args {
-		if arg == "--ui" || arg == "-u" {
-			useUI = true
+		if arg == "--cli" || arg == "--legacy" {
+			useLegacyCLI = true
 			break
 		}
 	}
 
-	if useUI {
-		// Launch the interactive TUI
+	// Check if this is being run from Neovim via the vim plugin
+	fromVim := false
+	for _, arg := range os.Args {
+		if arg == "--vim-mode" {
+			fromVim = true
+			break
+		}
+	}
+
+	if useLegacyCLI || fromVim {
+		// Use traditional CLI for legacy mode or Neovim integration
+		cmd.Execute()
+	} else {
+		// Launch the enhanced interactive TUI by default
 		app := ui.NewApp()
 		if err := app.Start(); err != nil {
 			fmt.Printf("Error launching UI: %v\n", err)
 			os.Exit(1)
 		}
-	} else {
-		// Use traditional CLI
-		cmd.Execute()
 	}
 }

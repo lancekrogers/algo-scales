@@ -5,13 +5,13 @@ package session
 import (
 	"fmt"
 
-	"github.com/lancekrogers/algo-scales/internal/ui"
+	"github.com/lancekrogers/algo-scales/internal/common/highlight"
 )
 
 // FormatProblemDescriptionWithHighlighting creates a formatted markdown description with syntax highlighting
 func (s *Session) FormatProblemDescriptionWithHighlighting() string {
 	// Create a syntax highlighter
-	highlighter := ui.NewSyntaxHighlighter()
+	highlighter := highlight.NewSyntaxHighlighter("monokai")
 
 	var description string
 

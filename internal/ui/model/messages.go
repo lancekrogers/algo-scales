@@ -1,5 +1,9 @@
 package model
 
+import (
+	"github.com/lancekrogers/algo-scales/internal/problem"
+)
+
 // Message types for communication between components
 
 // ErrorMsg is sent when an error occurs
@@ -7,7 +11,7 @@ type ErrorMsg string
 
 // ProblemsLoadedMsg is sent when the problem list is loaded
 type ProblemsLoadedMsg struct {
-	Problems []Problem
+	Problems []problem.Problem
 }
 
 // TickMsg is sent every second for timers
