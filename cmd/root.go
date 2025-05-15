@@ -20,6 +20,14 @@ var rootCmd = &cobra.Command{
 	Long: `Algo Scales is a terminal-based algorithm study tool designed to help developers
 prepare for coding interviews efficiently. It focuses on teaching common algorithm
 patterns through curated problems and features different learning modes.`,
+	
+	// Run the TUI by default
+	Run: func(cmd *cobra.Command, args []string) {
+		// Forward to TUI command when it's available
+		if tuiCmd != nil {
+			tuiCmd.Run(tuiCmd, args)
+		}
+	},
 }
 
 // Execute adds all child commands to the root command and sets flags appropriately.

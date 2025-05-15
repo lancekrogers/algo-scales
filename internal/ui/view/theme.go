@@ -174,61 +174,131 @@ var (
 
 	TitleStyle = lipgloss.NewStyle().
 		Bold(true).
-		Foreground(defaultFg).
-		Background(defaultBg).
-		MarginBottom(1)
+		Foreground(lipgloss.Color("#FFFFFF")).
+		Background(lipgloss.Color("#7D56F4")).
+		Padding(0, 1).
+		MarginBottom(1).
+		Width(60).
+		Align(lipgloss.Center)
 
 	SubtitleStyle = lipgloss.NewStyle().
-		Foreground(defaultFg).
-		Background(defaultBg).
+		Foreground(lipgloss.Color("#BBDEFB")).
 		Italic(true).
 		MarginBottom(1)
 
 	HelpStyle = lipgloss.NewStyle().
-		Foreground(subtleGray).
-		Background(defaultBg)
+		Foreground(lipgloss.Color("#A5D6A7")).
+		Background(lipgloss.Color("#1B5E20")).
+		Padding(0, 1).
+		MarginTop(1)
 
 	SuccessStyle = lipgloss.NewStyle().
-		Foreground(successGreen)
+		Foreground(lipgloss.Color("#FFFFFF")).
+		Background(lipgloss.Color("#2E7D32")).
+		Bold(true).
+		Padding(0, 1)
 
 	ErrorStyle = lipgloss.NewStyle().
-		Foreground(errorRed)
+		Foreground(lipgloss.Color("#FFFFFF")).
+		Background(lipgloss.Color("#C62828")).
+		Bold(true).
+		Padding(0, 1)
 
 	WarningStyle = lipgloss.NewStyle().
-		Foreground(warningYellow)
+		Foreground(lipgloss.Color("#000000")).
+		Background(lipgloss.Color("#F9A825")).
+		Bold(true).
+		Padding(0, 1)
 
 	InfoStyle = lipgloss.NewStyle().
-		Foreground(infoBlue)
+		Foreground(lipgloss.Color("#FFFFFF")).
+		Background(lipgloss.Color("#1565C0")).
+		Padding(0, 1)
 
 	// Box styles
 	BorderedBoxStyle = lipgloss.NewStyle().
 		BorderStyle(lipgloss.RoundedBorder()).
-		BorderForeground(subtleGray).
+		BorderForeground(lipgloss.Color("#64B5F6")).
+		Padding(1).
+		MarginTop(1).
+		MarginBottom(1)
+
+	CodeBoxStyle = lipgloss.NewStyle().
+		BorderStyle(lipgloss.RoundedBorder()).
+		BorderForeground(lipgloss.Color("#FF9800")).
+		Background(lipgloss.Color("#263238")).
+		Foreground(lipgloss.Color("#ECEFF1")).
+		Padding(1).
+		MarginTop(1).
+		MarginBottom(1)
+
+	ProblemBoxStyle = lipgloss.NewStyle().
+		BorderStyle(lipgloss.RoundedBorder()).
+		BorderForeground(lipgloss.Color("#64B5F6")).
+		Background(lipgloss.Color("#1A237E")).
+		Foreground(lipgloss.Color("#E8EAF6")).
 		Padding(1).
 		MarginTop(1).
 		MarginBottom(1)
 
 	HorizontalLine = lipgloss.NewStyle().
-		Foreground(subtleGray).
+		Foreground(lipgloss.Color("#64B5F6")).
 		Render("─────────────────────────────────────")
 
 	// Menu styles
 	FocusedItemStyle = lipgloss.NewStyle().
-		Foreground(lipgloss.Color("#ffffff")).
-		Background(lipgloss.Color("#3498db")).
+		Foreground(lipgloss.Color("#FFFFFF")).
+		Background(lipgloss.Color("#6200EA")).
 		Bold(true).
 		Padding(0, 1)
 
 	UnfocusedItemStyle = lipgloss.NewStyle().
-		Foreground(lipgloss.Color("#dddddd")).
+		Foreground(lipgloss.Color("#E1F5FE")).
 		Padding(0, 1)
+
+	MenuBoxStyle = lipgloss.NewStyle().
+		BorderStyle(lipgloss.RoundedBorder()).
+		BorderForeground(lipgloss.Color("#B39DDB")).
+		Padding(1).
+		Width(60)
 
 	// Status bar style
 	StatusBarStyle = lipgloss.NewStyle().
-		Foreground(lipgloss.Color("#ffffff")).
-		Background(lipgloss.Color("#333333")).
+		Foreground(lipgloss.Color("#FFFFFF")).
+		Background(lipgloss.Color("#303F9F")).
 		Bold(true).
 		Padding(0, 1)
+		
+	TimerStyle = lipgloss.NewStyle().
+		Foreground(lipgloss.Color("#FFFFFF")).
+		Background(lipgloss.Color("#F57C00")).
+		Bold(true).
+		Padding(0, 1)
+		
+	TimerWarningStyle = lipgloss.NewStyle().
+		Foreground(lipgloss.Color("#FFFFFF")).
+		Background(lipgloss.Color("#D32F2F")).
+		Bold(true).
+		Padding(0, 1)
+	
+	// Button styles	
+	ButtonStyle = lipgloss.NewStyle().
+		Foreground(lipgloss.Color("#FFFFFF")).
+		Background(lipgloss.Color("#1976D2")).
+		Padding(0, 2).
+		MarginRight(1).
+		Bold(true)
+		
+	ActiveButtonStyle = lipgloss.NewStyle().
+		Foreground(lipgloss.Color("#FFFFFF")).
+		Background(lipgloss.Color("#673AB7")).
+		Padding(0, 2).
+		MarginRight(1).
+		Bold(true)
+		
+	HeaderStyle = lipgloss.NewStyle().
+		Foreground(lipgloss.Color("#B3E5FC")).
+		Bold(true)
 )
 
 // GetPatternStyle returns styles for a specific algorithm pattern
