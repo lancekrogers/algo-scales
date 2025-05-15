@@ -1,0 +1,70 @@
+{
+  "id": "pair_with_target_sum",
+  "title": "Pair with Target Sum",
+  "difficulty": "easy",
+  "patterns": ["two-pointers"],
+  "estimated_time": 15,
+  "companies": ["Amazon", "Facebook", "Apple"],
+  "description": "Given an array of sorted numbers and a target sum, find a pair in the array whose sum is equal to the given target.\n\nThe two-pointers pattern is ideal for this problem because the array is sorted, allowing us to efficiently find the pair by moving two pointers based on the comparison of their sum with the target.",
+  "examples": [
+    {
+      "input": "arr = [1, 2, 3, 4, 6], target = 6",
+      "output": "[1, 3]",
+      "explanation": "The numbers at index 1 (value 2) and index 3 (value 4) add up to 6."
+    },
+    {
+      "input": "arr = [2, 5, 9, 11], target = 11",
+      "output": "[0, 2]",
+      "explanation": "The numbers at index 0 (value 2) and index 2 (value 9) add up to 11."
+    }
+  ],
+  "constraints": [
+    "2 <= arr.length <= 10^5",
+    "-10^9 <= arr[i] <= 10^9",
+    "-10^9 <= target <= 10^9",
+    "The array is sorted in ascending order",
+    "The array may contain duplicate elements"
+  ],
+  "pattern_explanation": "The two-pointers technique involves having two pointers that start at different positions of an array and move towards each other or in the same direction based on certain conditions. This pattern is especially useful when dealing with sorted arrays or when searching for pairs of elements in an array.",
+  "solution_walkthrough": [
+    "Initialize two pointers: left pointing to the start of the array and right pointing to the end.",
+    "Calculate the sum of the elements at the left and right pointers.",
+    "If the sum equals the target, return the indices of the two pointers.",
+    "If the sum is greater than the target, decrement the right pointer to try a smaller sum.",
+    "If the sum is less than the target, increment the left pointer to try a larger sum.",
+    "Repeat steps 2-5 until the pointers meet or the pair is found.",
+    "If the pointers meet without finding a pair, return an empty array or appropriate indicator."
+  ],
+  "starter_code": {
+    "go": "func pairWithTargetSum(arr []int, target int) []int {\n    // Your code here\n    return []int{}\n}",
+    "python": "def pair_with_target_sum(arr, target):\n    # Your code here\n    return []",
+    "java": "public class Solution {\n    public int[] pairWithTargetSum(int[] arr, int target) {\n        // Your code here\n        return new int[] {};\n    }\n}"
+  },
+  "solutions": {
+    "go": "func pairWithTargetSum(arr []int, target int) []int {\n    left, right := 0, len(arr)-1\n    \n    for left < right {\n        sum := arr[left] + arr[right]\n        \n        // Found the pair\n        if sum == target {\n            return []int{left, right}\n        }\n        \n        if sum > target {\n            // Sum too large, try a smaller value\n            right--\n        } else {\n            // Sum too small, try a larger value\n            left++\n        }\n    }\n    \n    // No pair found\n    return []int{}\n}",
+    "python": "def pair_with_target_sum(arr, target):\n    left, right = 0, len(arr) - 1\n    \n    while left < right:\n        current_sum = arr[left] + arr[right]\n        \n        # Found the pair\n        if current_sum == target:\n            return [left, right]\n        \n        if current_sum > target:\n            # Sum too large, try a smaller value\n            right -= 1\n        else:\n            # Sum too small, try a larger value\n            left += 1\n    \n    # No pair found\n    return []",
+    "java": "public class Solution {\n    public int[] pairWithTargetSum(int[] arr, int target) {\n        int left = 0, right = arr.length - 1;\n        \n        while (left < right) {\n            int currentSum = arr[left] + arr[right];\n            \n            // Found the pair\n            if (currentSum == target) {\n                return new int[] { left, right };\n            }\n            \n            if (currentSum > target) {\n                // Sum too large, try a smaller value\n                right--;\n            } else {\n                // Sum too small, try a larger value\n                left++;\n            }\n        }\n        \n        // No pair found\n        return new int[] {};\n    }\n}"
+  },
+  "test_cases": [
+    {
+      "input": "[1, 2, 3, 4, 6], 6",
+      "expected": "[1, 3]"
+    },
+    {
+      "input": "[2, 5, 9, 11], 11",
+      "expected": "[0, 2]"
+    },
+    {
+      "input": "[1, 3, 4, 5, 7, 10, 11], 9",
+      "expected": "[1, 4]"
+    },
+    {
+      "input": "[1, 2, 3, 4, 5], 10",
+      "expected": "[0, 4]"
+    },
+    {
+      "input": "[1, 2, 3, 4, 5], 100",
+      "expected": "[]"
+    }
+  ]
+}

@@ -1,0 +1,89 @@
+{
+  "id": "search_in_rotated_array",
+  "title": "Search in Rotated Sorted Array",
+  "difficulty": "medium",
+  "patterns": ["binary-search"],
+  "estimated_time": 25,
+  "companies": ["Amazon", "Microsoft", "Facebook", "Google", "Apple"],
+  "description": "There is an integer array nums sorted in ascending order (with distinct values).\n\nPrior to being passed to your function, nums is possibly rotated at an unknown pivot index k (1 <= k < nums.length) such that the resulting array is [nums[k], nums[k+1], ..., nums[n-1], nums[0], nums[1], ..., nums[k-1]] (0-indexed).\n\nFor example, [0,1,2,4,5,6,7] might be rotated at pivot index 3 and become [4,5,6,7,0,1,2].\n\nGiven the array nums after the possible rotation and an integer target, return the index of target if it is in nums, or -1 if it is not in nums.",
+  "examples": [
+    {
+      "input": "nums = [4,5,6,7,0,1,2], target = 0",
+      "output": "4",
+      "explanation": "Target 0 is at index 4 in the rotated array."
+    },
+    {
+      "input": "nums = [4,5,6,7,0,1,2], target = 3",
+      "output": "-1",
+      "explanation": "Target 3 is not in the array."
+    },
+    {
+      "input": "nums = [1], target = 0",
+      "output": "-1",
+      "explanation": "Target 0 is not in the array."
+    }
+  ],
+  "constraints": [
+    "1 <= nums.length <= 5000",
+    "-10^4 <= nums[i] <= 10^4",
+    "All values of nums are unique",
+    "nums is an ascending array that is possibly rotated",
+    "-10^4 <= target <= 10^4"
+  ],
+  "pattern_explanation": "Binary search is an efficient divide-and-conquer algorithm for finding an element in a sorted array. It reduces the search space by half in each step, giving it a time complexity of O(log n). For this problem, although the array is rotated, we can still apply a modified binary search by determining which half of the array is properly sorted and then checking if the target lies within that sorted half.",
+  "solution_walkthrough": [
+    "Initialize left = 0 and right = length - 1.",
+    "While left <= right:",
+    "  1. Calculate mid = left + (right - left) / 2.",
+    "  2. If nums[mid] == target, return mid.",
+    "  3. Check which half is sorted:",
+    "     a. If nums[left] <= nums[mid], the left half is sorted.",
+    "        i. If target is in the sorted left half (nums[left] <= target < nums[mid]), set right = mid - 1.",
+    "        ii. Otherwise, search the right half by setting left = mid + 1.",
+    "     b. If nums[mid] <= nums[right], the right half is sorted.",
+    "        i. If target is in the sorted right half (nums[mid] < target <= nums[right]), set left = mid + 1.",
+    "        ii. Otherwise, search the left half by setting right = mid - 1.",
+    "If the target is not found, return -1.",
+    "Time complexity: O(log n), where n is the length of the array."
+  ],
+  "starter_code": {
+    "go": "func search(nums []int, target int) int {\n    // Your code here\n    return -1\n}",
+    "python": "def search(nums, target):\n    # Your code here\n    return -1",
+    "java": "public class Solution {\n    public int search(int[] nums, int target) {\n        // Your code here\n        return -1;\n    }\n}"
+  },
+  "solutions": {
+    "go": "func search(nums []int, target int) int {\n    left, right := 0, len(nums)-1\n    \n    for left <= right {\n        mid := left + (right - left) / 2\n        \n        if nums[mid] == target {\n            return mid\n        }\n        \n        // Check which half is sorted\n        if nums[left] <= nums[mid] {\n            // Left half is sorted\n            if nums[left] <= target && target < nums[mid] {\n                // Target is in the sorted left half\n                right = mid - 1\n            } else {\n                // Target is in the right half\n                left = mid + 1\n            }\n        } else {\n            // Right half is sorted\n            if nums[mid] < target && target <= nums[right] {\n                // Target is in the sorted right half\n                left = mid + 1\n            } else {\n                // Target is in the left half\n                right = mid - 1\n            }\n        }\n    }\n    \n    return -1  // Target not found\n}",
+    "python": "def search(nums, target):\n    left, right = 0, len(nums) - 1\n    \n    while left <= right:\n        mid = left + (right - left) // 2\n        \n        if nums[mid] == target:\n            return mid\n        \n        # Check which half is sorted\n        if nums[left] <= nums[mid]:\n            # Left half is sorted\n            if nums[left] <= target < nums[mid]:\n                # Target is in the sorted left half\n                right = mid - 1\n            else:\n                # Target is in the right half\n                left = mid + 1\n        else:\n            # Right half is sorted\n            if nums[mid] < target <= nums[right]:\n                # Target is in the sorted right half\n                left = mid + 1\n            else:\n                # Target is in the left half\n                right = mid - 1\n    \n    return -1  # Target not found",
+    "java": "public class Solution {\n    public int search(int[] nums, int target) {\n        int left = 0;\n        int right = nums.length - 1;\n        \n        while (left <= right) {\n            int mid = left + (right - left) / 2;\n            \n            if (nums[mid] == target) {\n                return mid;\n            }\n            \n            // Check which half is sorted\n            if (nums[left] <= nums[mid]) {\n                // Left half is sorted\n                if (nums[left] <= target && target < nums[mid]) {\n                    // Target is in the sorted left half\n                    right = mid - 1;\n                } else {\n                    // Target is in the right half\n                    left = mid + 1;\n                }\n            } else {\n                // Right half is sorted\n                if (nums[mid] < target && target <= nums[right]) {\n                    // Target is in the sorted right half\n                    left = mid + 1;\n                } else {\n                    // Target is in the left half\n                    right = mid - 1;\n                }\n            }\n        }\n        \n        return -1;  // Target not found\n    }\n}"
+  },
+  "test_cases": [
+    {
+      "input": "[4,5,6,7,0,1,2], 0",
+      "expected": "4"
+    },
+    {
+      "input": "[4,5,6,7,0,1,2], 3",
+      "expected": "-1"
+    },
+    {
+      "input": "[1], 0",
+      "expected": "-1"
+    },
+    {
+      "input": "[1], 1",
+      "expected": "0"
+    },
+    {
+      "input": "[3,1], 1",
+      "expected": "1"
+    },
+    {
+      "input": "[5,1,3], 5",
+      "expected": "0"
+    },
+    {
+      "input": "[4,5,6,7,8,1,2,3], 8",
+      "expected": "4"
+    }
+  ]
+}

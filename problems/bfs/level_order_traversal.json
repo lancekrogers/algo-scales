@@ -1,0 +1,79 @@
+{
+  "id": "level_order_traversal",
+  "title": "Binary Tree Level Order Traversal",
+  "difficulty": "medium",
+  "patterns": ["bfs"],
+  "estimated_time": 20,
+  "companies": ["Amazon", "Microsoft", "Facebook", "Google", "Apple"],
+  "description": "Given the root of a binary tree, return the level order traversal of its nodes' values. (i.e., from left to right, level by level).\n\nThe BFS pattern is ideal for this problem because we need to process the nodes level by level, which naturally aligns with the breadth-first search algorithm.",
+  "examples": [
+    {
+      "input": "root = [3,9,20,null,null,15,7]",
+      "output": "[[3],[9,20],[15,7]]",
+      "explanation": "The level order traversal is:\nLevel 0: [3]\nLevel 1: [9,20]\nLevel 2: [15,7]"
+    },
+    {
+      "input": "root = [1]",
+      "output": "[[1]]",
+      "explanation": "The tree has only one node, so there's only one level."
+    },
+    {
+      "input": "root = []",
+      "output": "[]",
+      "explanation": "The tree is empty, so the result is an empty list."
+    }
+  ],
+  "constraints": [
+    "The number of nodes in the tree is in the range [0, 2000]",
+    "-1000 <= Node.val <= 1000"
+  ],
+  "pattern_explanation": "Breadth-First Search (BFS) is an algorithm for traversing or searching tree or graph data structures. It starts at a selected node (root in trees) and explores all its neighbors at the present depth before moving on to nodes at the next depth level. This makes it ideal for problems that require processing nodes level by level, like in this level order traversal.",
+  "solution_walkthrough": [
+    "Create an empty result list to store the level order traversal.",
+    "If the root is null, return the empty result.",
+    "Create a queue and add the root node to it.",
+    "While the queue is not empty:",
+    "  1. Get the size of the queue, which represents the number of nodes at the current level.",
+    "  2. Create a list to store the values of nodes at the current level.",
+    "  3. For each node at the current level:",
+    "     a. Dequeue a node from the queue.",
+    "     b. Add its value to the current level list.",
+    "     c. Enqueue its left child if it exists.",
+    "     d. Enqueue its right child if it exists.",
+    "  4. Add the current level list to the result.",
+    "Return the result list.",
+    "Time complexity: O(n) where n is the number of nodes in the tree."
+  ],
+  "starter_code": {
+    "go": "type TreeNode struct {\n    Val int\n    Left *TreeNode\n    Right *TreeNode\n}\n\nfunc levelOrder(root *TreeNode) [][]int {\n    // Your code here\n    return [][]int{}\n}",
+    "python": "class TreeNode:\n    def __init__(self, val=0, left=None, right=None):\n        self.val = val\n        self.left = left\n        self.right = right\n\ndef level_order(root):\n    # Your code here\n    return []",
+    "java": "public class TreeNode {\n    int val;\n    TreeNode left;\n    TreeNode right;\n    TreeNode() {}\n    TreeNode(int val) { this.val = val; }\n    TreeNode(int val, TreeNode left, TreeNode right) {\n        this.val = val;\n        this.left = left;\n        this.right = right;\n    }\n}\n\npublic class Solution {\n    public List<List<Integer>> levelOrder(TreeNode root) {\n        // Your code here\n        return new ArrayList<>();\n    }\n}"
+  },
+  "solutions": {
+    "go": "type TreeNode struct {\n    Val int\n    Left *TreeNode\n    Right *TreeNode\n}\n\nfunc levelOrder(root *TreeNode) [][]int {\n    result := [][]int{}\n    \n    if root == nil {\n        return result\n    }\n    \n    queue := []*TreeNode{root}\n    \n    for len(queue) > 0 {\n        levelSize := len(queue)\n        currentLevel := []int{}\n        \n        for i := 0; i < levelSize; i++ {\n            // Dequeue\n            node := queue[0]\n            queue = queue[1:]\n            \n            // Add value to current level\n            currentLevel = append(currentLevel, node.Val)\n            \n            // Enqueue children\n            if node.Left != nil {\n                queue = append(queue, node.Left)\n            }\n            if node.Right != nil {\n                queue = append(queue, node.Right)\n            }\n        }\n        \n        // Add current level to result\n        result = append(result, currentLevel)\n    }\n    \n    return result\n}",
+    "python": "from collections import deque\n\nclass TreeNode:\n    def __init__(self, val=0, left=None, right=None):\n        self.val = val\n        self.left = left\n        self.right = right\n\ndef level_order(root):\n    result = []\n    \n    if not root:\n        return result\n    \n    queue = deque([root])\n    \n    while queue:\n        level_size = len(queue)\n        current_level = []\n        \n        for _ in range(level_size):\n            # Dequeue\n            node = queue.popleft()\n            \n            # Add value to current level\n            current_level.append(node.val)\n            \n            # Enqueue children\n            if node.left:\n                queue.append(node.left)\n            if node.right:\n                queue.append(node.right)\n        \n        # Add current level to result\n        result.append(current_level)\n    \n    return result",
+    "java": "import java.util.*;\n\npublic class TreeNode {\n    int val;\n    TreeNode left;\n    TreeNode right;\n    TreeNode() {}\n    TreeNode(int val) { this.val = val; }\n    TreeNode(int val, TreeNode left, TreeNode right) {\n        this.val = val;\n        this.left = left;\n        this.right = right;\n    }\n}\n\npublic class Solution {\n    public List<List<Integer>> levelOrder(TreeNode root) {\n        List<List<Integer>> result = new ArrayList<>();\n        \n        if (root == null) {\n            return result;\n        }\n        \n        Queue<TreeNode> queue = new LinkedList<>();\n        queue.offer(root);\n        \n        while (!queue.isEmpty()) {\n            int levelSize = queue.size();\n            List<Integer> currentLevel = new ArrayList<>();\n            \n            for (int i = 0; i < levelSize; i++) {\n                // Dequeue\n                TreeNode node = queue.poll();\n                \n                // Add value to current level\n                currentLevel.add(node.val);\n                \n                // Enqueue children\n                if (node.left != null) {\n                    queue.offer(node.left);\n                }\n                if (node.right != null) {\n                    queue.offer(node.right);\n                }\n            }\n            \n            // Add current level to result\n            result.add(currentLevel);\n        }\n        \n        return result;\n    }\n}"
+  },
+  "test_cases": [
+    {
+      "input": "[3,9,20,null,null,15,7]",
+      "expected": "[[3],[9,20],[15,7]]"
+    },
+    {
+      "input": "[1]",
+      "expected": "[[1]]"
+    },
+    {
+      "input": "[]",
+      "expected": "[]"
+    },
+    {
+      "input": "[1,2,3,4,5]",
+      "expected": "[[1],[2,3],[4,5]]"
+    },
+    {
+      "input": "[1,null,2,null,3,null,4,null,5]",
+      "expected": "[[1],[2],[3],[4],[5]]"
+    }
+  ]
+}

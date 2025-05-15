@@ -1,0 +1,73 @@
+{
+  "id": "number_of_connected_components",
+  "title": "Number of Connected Components in an Undirected Graph",
+  "difficulty": "medium",
+  "patterns": ["union-find"],
+  "estimated_time": 25,
+  "companies": ["Amazon", "Facebook", "Google", "Microsoft", "Bloomberg"],
+  "description": "You have a graph of n nodes. You are given an integer n and an array edges where edges[i] = [ai, bi] indicates that there is an edge between ai and bi in the graph.\n\nReturn the number of connected components in the undirected graph.",
+  "examples": [
+    {
+      "input": "n = 5, edges = [[0,1],[1,2],[3,4]]",
+      "output": "2",
+      "explanation": "There are two connected components: [0,1,2] and [3,4]."
+    },
+    {
+      "input": "n = 5, edges = [[0,1],[1,2],[2,3],[3,4]]",
+      "output": "1",
+      "explanation": "There is one connected component: [0,1,2,3,4]."
+    }
+  ],
+  "constraints": [
+    "1 <= n <= 2000",
+    "1 <= edges.length <= 5000",
+    "edges[i].length == 2",
+    "0 <= ai <= bi < n",
+    "ai != bi",
+    "There are no repeated edges."
+  ],
+  "pattern_explanation": "The Union-Find (Disjoint Set) data structure efficiently tracks a set of elements partitioned into a number of disjoint subsets. It provides near-constant-time operations to add new sets, merge existing sets, and determine whether elements are in the same set. In this problem, we use Union-Find to track connected components in the graph as we process the edges.",
+  "solution_walkthrough": [
+    "Initialize a Union-Find data structure for n nodes.",
+    "For each edge (a, b):",
+    "  1. Perform a union operation of node a and node b, which merges their components.",
+    "After processing all edges, count the number of unique representatives (roots) in the Union-Find structure, which will give us the number of connected components.",
+    "The Union-Find implementation should include:",
+    "  1. A 'find' operation that returns the representative of a set.",
+    "  2. A 'union' operation that merges two sets.",
+    "  3. Path compression and union by rank/size optimizations for efficiency.",
+    "Time complexity: O(n + m * α(n)), where n is the number of nodes, m is the number of edges, and α(n) is the inverse Ackermann function, which grows very slowly and is practically constant for all reasonable values of n."
+  ],
+  "starter_code": {
+    "go": "func countComponents(n int, edges [][]int) int {\n    // Your code here\n    return 0\n}",
+    "python": "def count_components(n, edges):\n    # Your code here\n    return 0",
+    "java": "public class Solution {\n    public int countComponents(int n, int[][] edges) {\n        // Your code here\n        return 0;\n    }\n}"
+  },
+  "solutions": {
+    "go": "func countComponents(n int, edges [][]int) int {\n    // Initialize parent and rank arrays\n    parent := make([]int, n)\n    rank := make([]int, n)\n    \n    // Initialize each node as its own parent\n    for i := 0; i < n; i++ {\n        parent[i] = i\n        rank[i] = 0\n    }\n    \n    // Find operation with path compression\n    var find func(int) int\n    find = func(x int) int {\n        if parent[x] != x {\n            parent[x] = find(parent[x])\n        }\n        return parent[x]\n    }\n    \n    // Union operation with rank optimization\n    union := func(x, y int) {\n        rootX := find(x)\n        rootY := find(y)\n        \n        if rootX == rootY {\n            return\n        }\n        \n        // Merge smaller rank tree under the larger rank tree\n        if rank[rootX] < rank[rootY] {\n            parent[rootX] = rootY\n        } else if rank[rootX] > rank[rootY] {\n            parent[rootY] = rootX\n        } else {\n            parent[rootY] = rootX\n            rank[rootX]++\n        }\n    }\n    \n    // Process all edges\n    for _, edge := range edges {\n        union(edge[0], edge[1])\n    }\n    \n    // Count unique components\n    componentCount := 0\n    for i := 0; i < n; i++ {\n        if parent[i] == i {\n            componentCount++\n        }\n    }\n    \n    return componentCount\n}",
+    "python": "def count_components(n, edges):\n    # Initialize parent and rank arrays\n    parent = list(range(n))\n    rank = [0] * n\n    \n    # Find operation with path compression\n    def find(x):\n        if parent[x] != x:\n            parent[x] = find(parent[x])\n        return parent[x]\n    \n    # Union operation with rank optimization\n    def union(x, y):\n        root_x = find(x)\n        root_y = find(y)\n        \n        if root_x == root_y:\n            return\n        \n        # Merge smaller rank tree under the larger rank tree\n        if rank[root_x] < rank[root_y]:\n            parent[root_x] = root_y\n        elif rank[root_x] > rank[root_y]:\n            parent[root_y] = root_x\n        else:\n            parent[root_y] = root_x\n            rank[root_x] += 1\n    \n    # Process all edges\n    for a, b in edges:\n        union(a, b)\n    \n    # Count unique components\n    return sum(1 for i in range(n) if parent[i] == i)",
+    "java": "public class Solution {\n    public int countComponents(int n, int[][] edges) {\n        // Initialize parent and rank arrays\n        int[] parent = new int[n];\n        int[] rank = new int[n];\n        \n        // Initialize each node as its own parent\n        for (int i = 0; i < n; i++) {\n            parent[i] = i;\n            rank[i] = 0;\n        }\n        \n        // Process all edges\n        for (int[] edge : edges) {\n            union(edge[0], edge[1], parent, rank);\n        }\n        \n        // Count unique components\n        int componentCount = 0;\n        for (int i = 0; i < n; i++) {\n            if (parent[i] == i) {\n                componentCount++;\n            }\n        }\n        \n        return componentCount;\n    }\n    \n    // Find operation with path compression\n    private int find(int x, int[] parent) {\n        if (parent[x] != x) {\n            parent[x] = find(parent[x], parent);\n        }\n        return parent[x];\n    }\n    \n    // Union operation with rank optimization\n    private void union(int x, int y, int[] parent, int[] rank) {\n        int rootX = find(x, parent);\n        int rootY = find(y, parent);\n        \n        if (rootX == rootY) {\n            return;\n        }\n        \n        // Merge smaller rank tree under the larger rank tree\n        if (rank[rootX] < rank[rootY]) {\n            parent[rootX] = rootY;\n        } else if (rank[rootX] > rank[rootY]) {\n            parent[rootY] = rootX;\n        } else {\n            parent[rootY] = rootX;\n            rank[rootX]++;\n        }\n    }\n}"
+  },
+  "test_cases": [
+    {
+      "input": "5, [[0,1],[1,2],[3,4]]",
+      "expected": "2"
+    },
+    {
+      "input": "5, [[0,1],[1,2],[2,3],[3,4]]",
+      "expected": "1"
+    },
+    {
+      "input": "5, []",
+      "expected": "5"
+    },
+    {
+      "input": "3, [[0,1],[0,2]]",
+      "expected": "1"
+    },
+    {
+      "input": "6, [[0,1],[0,2],[3,4],[4,5]]",
+      "expected": "2"
+    }
+  ]
+}

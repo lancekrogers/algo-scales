@@ -1,0 +1,77 @@
+{
+  "id": "jump_game",
+  "title": "Jump Game",
+  "difficulty": "medium",
+  "patterns": ["greedy"],
+  "estimated_time": 20,
+  "companies": ["Amazon", "Microsoft", "Google", "Apple", "Facebook"],
+  "description": "You are given an integer array nums. You are initially positioned at the array's first index, and each element in the array represents your maximum jump length at that position.\n\nReturn true if you can reach the last index, or false otherwise.",
+  "examples": [
+    {
+      "input": "nums = [2,3,1,1,4]",
+      "output": "true",
+      "explanation": "Jump 1 step from index 0 to 1, then 3 steps to the last index."
+    },
+    {
+      "input": "nums = [3,2,1,0,4]",
+      "output": "false",
+      "explanation": "You will always arrive at index 3 no matter what. Its maximum jump length is 0, which makes it impossible to reach the last index."
+    }
+  ],
+  "constraints": [
+    "1 <= nums.length <= 10^4",
+    "0 <= nums[i] <= 10^5"
+  ],
+  "pattern_explanation": "The Greedy approach is a problem-solving strategy where you make the locally optimal choice at each step with the hope of finding a global optimum. In this problem, we use a greedy approach to keep track of the furthest index we can reach at any point while iterating through the array.",
+  "solution_walkthrough": [
+    "Define a variable 'maxReach' to keep track of the furthest index we can reach.",
+    "Initialize 'maxReach' to 0.",
+    "Iterate through the array. For each position i:",
+    "  1. If i > maxReach, return false (because we can't reach this position).",
+    "  2. Update maxReach = max(maxReach, i + nums[i]).",
+    "  3. If maxReach >= last index, return true (we can reach the end).",
+    "After the loop, if we haven't returned already, return true only if maxReach is greater than or equal to the last index.",
+    "Time complexity: O(n) - we only need to scan the array once.",
+    "Space complexity: O(1) - we only use a constant amount of extra space."
+  ],
+  "starter_code": {
+    "go": "func canJump(nums []int) bool {\n    // Your code here\n    return false\n}",
+    "python": "def can_jump(nums):\n    # Your code here\n    return False",
+    "java": "public class Solution {\n    public boolean canJump(int[] nums) {\n        // Your code here\n        return false;\n    }\n}"
+  },
+  "solutions": {
+    "go": "func canJump(nums []int) bool {\n    maxReach := 0\n    \n    for i := 0; i < len(nums); i++ {\n        // If we can't reach the current position, return false\n        if i > maxReach {\n            return false\n        }\n        \n        // Update the furthest position we can reach\n        maxReach = max(maxReach, i + nums[i])\n        \n        // If we can reach the end, return true\n        if maxReach >= len(nums) - 1 {\n            return true\n        }\n    }\n    \n    return maxReach >= len(nums) - 1\n}\n\nfunc max(a, b int) int {\n    if a > b {\n        return a\n    }\n    return b\n}",
+    "python": "def can_jump(nums):\n    max_reach = 0\n    \n    for i in range(len(nums)):\n        # If we can't reach the current position, return False\n        if i > max_reach:\n            return False\n        \n        # Update the furthest position we can reach\n        max_reach = max(max_reach, i + nums[i])\n        \n        # If we can reach the end, return True\n        if max_reach >= len(nums) - 1:\n            return True\n    \n    return max_reach >= len(nums) - 1",
+    "java": "public class Solution {\n    public boolean canJump(int[] nums) {\n        int maxReach = 0;\n        \n        for (int i = 0; i < nums.length; i++) {\n            // If we can't reach the current position, return false\n            if (i > maxReach) {\n                return false;\n            }\n            \n            // Update the furthest position we can reach\n            maxReach = Math.max(maxReach, i + nums[i]);\n            \n            // If we can reach the end, return true\n            if (maxReach >= nums.length - 1) {\n                return true;\n            }\n        }\n        \n        return maxReach >= nums.length - 1;\n    }\n}"
+  },
+  "test_cases": [
+    {
+      "input": "[2,3,1,1,4]",
+      "expected": "true"
+    },
+    {
+      "input": "[3,2,1,0,4]",
+      "expected": "false"
+    },
+    {
+      "input": "[0]",
+      "expected": "true"
+    },
+    {
+      "input": "[2,0,0]",
+      "expected": "true"
+    },
+    {
+      "input": "[2,5,0,0]",
+      "expected": "true"
+    },
+    {
+      "input": "[3,0,0,0]",
+      "expected": "true"
+    },
+    {
+      "input": "[1,1,1,0]",
+      "expected": "true"
+    }
+  ]
+}

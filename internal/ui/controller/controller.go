@@ -61,16 +61,20 @@ func (c *Controller) Initialize() tea.Cmd {
 
 // Update handles messages and updates the model accordingly
 func (c *Controller) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
+	var cmd tea.Cmd
+
 	switch msg := msg.(type) {
 	case model.ProblemsLoadedMsg:
 		// Update model with loaded problems
 		c.Model.AvailableProblems = msg.Problems
 		c.Model.Loading = false
+		// No command needed
 
 	case model.ErrorMsg:
 		// Handle error messages
 		c.Model.ErrorMessage = string(msg)
 		c.Model.Loading = false
+		// No command needed
 
 	case model.TickMsg:
 		// Handle timer ticks
@@ -78,7 +82,7 @@ func (c *Controller) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			// Update model with remaining time from session
 			remaining := c.activeSession.GetTimeRemaining()
 			c.Model.Session.TimeRemaining = remaining
-			return c.Model, c.tickTimer()
+			cmd = c.tickTimer()
 		}
 
 	case model.ProblemSelectedMsg:
@@ -86,7 +90,8 @@ func (c *Controller) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		for _, p := range c.Model.AvailableProblems {
 			if p.ID == msg.ProblemID {
 				// Start a session with this problem
-				return c.Model, c.startSession(p, msg.Mode)
+				cmd = c.startSession(p, msg.Mode)
+				break
 			}
 		}
 
@@ -96,6 +101,7 @@ func (c *Controller) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			c.activeSession.ShowHints(msg.Show)
 			c.Model.Session.ShowHints = msg.Show
 		}
+		// No command needed
 
 	case model.ShowSolutionMsg:
 		// Toggle solution visibility
@@ -103,9 +109,11 @@ func (c *Controller) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			c.activeSession.ShowSolution(msg.Show)
 			c.Model.Session.ShowSolution = msg.Show
 		}
+		// No command needed
 
 	case model.CodeUpdatedMsg:
 		// Code has been updated, refresh the view
+		// No command needed
 		
 	case model.TestResultsMsg:
 		// Handle test results
@@ -114,21 +122,25 @@ func (c *Controller) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			// Problem solved!
 			c.activeSession.Finish(true)
 			c.updateStatistics()
-			return c.Model, c.checkAchievements()
+			cmd = c.checkAchievements()
 		}
 		
 	case model.SelectionMsg:
 		// Handle selection changes based on app state
-		return c.Model, c.handleSelection(msg.Index)
+		cmd = c.handleSelection(msg.Index)
 		
 	case model.EditCodeMsg:
 		// User wants to edit code in external editor
-		return c.Model, func() tea.Msg {
+		cmd = func() tea.Msg {
 			return c.openEditor()
 		}
+
+	case model.QuitMsg:
+		// Quit the application
+		return c.Model, tea.Quit
 	}
 	
-	return c.Model, nil
+	return c.Model, cmd
 }
 
 // handleSelection processes a selection based on current state
@@ -156,6 +168,8 @@ func (c *Controller) handleSelection(index int) tea.Cmd {
 			case 3: // Quit
 				return model.QuitMsg{}
 			}
+			// Default return for any other index
+			return nil
 			
 		case model.StateModeSelection:
 			// Practice mode selection
@@ -209,8 +223,42 @@ func (c *Controller) handleSelection(index int) tea.Cmd {
 				c.Model.AvailableProblems = filtered
 				return nil
 			}
+			// Default return if index is out of range
+			return nil
+			
+		case model.StateProblemSelection:
+			// Problem selection
+			if index >= 0 && index < len(c.Model.AvailableProblems) {
+				problem := c.Model.AvailableProblems[index]
+				return model.ProblemSelectedMsg{
+					ProblemID: problem.ID,
+					Mode:      c.Model.Session.Mode,
+				}
+			}
+			// Default return if no valid problem selected
+			return nil
+			
+		case model.StateSession:
+			// Session controls
+			// Default no-op for session state
+			return nil
+			
+		case model.StateStatistics:
+			// Statistics view controls
+			// Return to main menu on any selection
+			c.Model.AppState = model.StateInitial
+			c.Model.SelectedIndex = 0
+			return nil
+			
+		case model.StateSettings:
+			// Settings controls
+			// Return to main menu on any selection
+			c.Model.AppState = model.StateInitial
+			c.Model.SelectedIndex = 0
+			return nil
 		}
 		
+		// Default return for any state not explicitly handled
 		return nil
 	}
 }

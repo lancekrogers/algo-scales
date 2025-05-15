@@ -1,0 +1,71 @@
+{
+  "id": "linked_list_cycle",
+  "title": "Linked List Cycle",
+  "difficulty": "easy",
+  "patterns": ["fast-slow-pointers"],
+  "estimated_time": 20,
+  "companies": ["Amazon", "Microsoft", "Google"],
+  "description": "Given the head of a Singly LinkedList, determine if the LinkedList has a cycle in it or not.\n\nThe fast-slow pointers pattern is perfect for this problem because we can use two pointers moving at different speeds to detect a cycle efficiently.",
+  "examples": [
+    {
+      "input": "head = [3,2,0,-4], pos = 1",
+      "output": "true",
+      "explanation": "There is a cycle in the linked list, where the tail connects to the 1st node (0-indexed)."
+    },
+    {
+      "input": "head = [1,2], pos = 0",
+      "output": "true",
+      "explanation": "There is a cycle in the linked list, where the tail connects to the 0th node."
+    },
+    {
+      "input": "head = [1], pos = -1",
+      "output": "false",
+      "explanation": "There is no cycle in the linked list."
+    }
+  ],
+  "constraints": [
+    "The number of nodes in the list is in the range [0, 10^4]",
+    "-10^5 <= Node.val <= 10^5",
+    "pos is -1 or a valid index in the linked-list"
+  ],
+  "pattern_explanation": "The fast-slow pointers pattern (also known as Floyd's Tortoise and Hare algorithm) uses two pointers that move through the sequence at different speeds. This approach is particularly useful for detecting cycles in a linked list, finding the middle of a linked list, or finding the start of a cycle.",
+  "solution_walkthrough": [
+    "Initialize two pointers, 'slow' and 'fast', both pointing to the head of the linked list.",
+    "Move the slow pointer one step and the fast pointer two steps at a time.",
+    "If the linked list has a cycle, the fast pointer will eventually catch up to the slow pointer and they will meet at some point.",
+    "If the fast pointer reaches null or a node whose next pointer is null, then there is no cycle in the linked list.",
+    "The time complexity is O(n) where n is the number of nodes in the linked list."
+  ],
+  "starter_code": {
+    "go": "type ListNode struct {\n    Val int\n    Next *ListNode\n}\n\nfunc hasCycle(head *ListNode) bool {\n    // Your code here\n    return false\n}",
+    "python": "class ListNode:\n    def __init__(self, x):\n        self.val = x\n        self.next = None\n\ndef has_cycle(head):\n    # Your code here\n    return False",
+    "java": "public class ListNode {\n    int val;\n    ListNode next;\n    ListNode(int x) {\n        val = x;\n        next = null;\n    }\n}\n\npublic class Solution {\n    public boolean hasCycle(ListNode head) {\n        // Your code here\n        return false;\n    }\n}"
+  },
+  "solutions": {
+    "go": "type ListNode struct {\n    Val int\n    Next *ListNode\n}\n\nfunc hasCycle(head *ListNode) bool {\n    if head == nil || head.Next == nil {\n        return false\n    }\n    \n    slow, fast := head, head\n    \n    for fast != nil && fast.Next != nil {\n        slow = slow.Next         // Move slow pointer by 1 step\n        fast = fast.Next.Next    // Move fast pointer by 2 steps\n        \n        if slow == fast {        // If pointers meet, cycle detected\n            return true\n        }\n    }\n    \n    return false  // If fast reaches end, no cycle exists\n}",
+    "python": "class ListNode:\n    def __init__(self, x):\n        self.val = x\n        self.next = None\n\ndef has_cycle(head):\n    if not head or not head.next:\n        return False\n    \n    slow = head\n    fast = head\n    \n    while fast and fast.next:\n        slow = slow.next       # Move slow pointer by 1 step\n        fast = fast.next.next  # Move fast pointer by 2 steps\n        \n        if slow == fast:       # If pointers meet, cycle detected\n            return True\n    \n    return False  # If fast reaches end, no cycle exists",
+    "java": "public class ListNode {\n    int val;\n    ListNode next;\n    ListNode(int x) {\n        val = x;\n        next = null;\n    }\n}\n\npublic class Solution {\n    public boolean hasCycle(ListNode head) {\n        if (head == null || head.next == null) {\n            return false;\n        }\n        \n        ListNode slow = head;\n        ListNode fast = head;\n        \n        while (fast != null && fast.next != null) {\n            slow = slow.next;         // Move slow pointer by 1 step\n            fast = fast.next.next;     // Move fast pointer by 2 steps\n            \n            if (slow == fast) {        // If pointers meet, cycle detected\n                return true;\n            }\n        }\n        \n        return false;  // If fast reaches end, no cycle exists\n    }\n}"
+  },
+  "test_cases": [
+    {
+      "input": "[3,2,0,-4], 1",
+      "expected": "true"
+    },
+    {
+      "input": "[1,2], 0",
+      "expected": "true"
+    },
+    {
+      "input": "[1], -1",
+      "expected": "false"
+    },
+    {
+      "input": "[1,2,3,4,5], -1",
+      "expected": "false"
+    },
+    {
+      "input": "[1,2,3,4,5,6,7,8,9,10], 4",
+      "expected": "true"
+    }
+  ]
+}

@@ -1,0 +1,64 @@
+{
+  "id": "max_sum_subarray",
+  "title": "Maximum Sum Subarray of Size K",
+  "difficulty": "easy",
+  "patterns": ["sliding-window"],
+  "estimated_time": 15,
+  "companies": ["Amazon", "Facebook", "Google"],
+  "description": "Given an array of positive integers and a positive number k, find the maximum sum of any contiguous subarray of size k.\n\nA sliding window approach is ideal for this problem because we want to efficiently examine all subarrays of a fixed size.",
+  "examples": [
+    {
+      "input": "arr = [2, 1, 5, 1, 3, 2], k = 3",
+      "output": "9",
+      "explanation": "The subarray with the maximum sum of size 3 is [5, 1, 3]."
+    },
+    {
+      "input": "arr = [1, 4, 2, 10, 23, 3, 1, 0, 20], k = 4",
+      "output": "39",
+      "explanation": "The subarray with the maximum sum of size 4 is [4, 2, 10, 23]."
+    }
+  ],
+  "constraints": [
+    "1 <= arr.length <= 10^5",
+    "1 <= arr[i] <= 10^4",
+    "1 <= k <= arr.length"
+  ],
+  "pattern_explanation": "The sliding window pattern is useful for solving problems that involve finding a subarray or substring that satisfies certain conditions. In a sliding window approach, we maintain a 'window' of elements and slide this window through the array to efficiently evaluate all possible subarrays of a given size without recomputing the entire sum each time.",
+  "solution_walkthrough": [
+    "Initialize maxSum and currentSum to 0.",
+    "First, calculate the sum of the first k elements.",
+    "Set maxSum to this initial sum.",
+    "Slide the window: remove the first element and add the next element to currentSum.",
+    "Update maxSum if currentSum is greater.",
+    "Repeat steps 4-5 until we reach the end of the array.",
+    "Return maxSum."
+  ],
+  "starter_code": {
+    "go": "func findMaxSumSubarray(arr []int, k int) int {\n    // Your code here\n    return 0\n}",
+    "python": "def find_max_sum_subarray(arr, k):\n    # Your code here\n    return 0",
+    "java": "public class Solution {\n    public int findMaxSumSubarray(int[] arr, int k) {\n        // Your code here\n        return 0;\n    }\n}"
+  },
+  "solutions": {
+    "go": "func findMaxSumSubarray(arr []int, k int) int {\n    n := len(arr)\n    if n < k {\n        return 0\n    }\n    \n    // Calculate sum of first window of size k\n    currentSum := 0\n    for i := 0; i < k; i++ {\n        currentSum += arr[i]\n    }\n    \n    maxSum := currentSum\n    \n    // Slide the window and calculate the maximum sum\n    for i := k; i < n; i++ {\n        currentSum = currentSum - arr[i-k] + arr[i]\n        if currentSum > maxSum {\n            maxSum = currentSum\n        }\n    }\n    \n    return maxSum\n}",
+    "python": "def find_max_sum_subarray(arr, k):\n    n = len(arr)\n    if n < k:\n        return 0\n    \n    # Calculate sum of first window of size k\n    current_sum = sum(arr[:k])\n    max_sum = current_sum\n    \n    # Slide the window and calculate the maximum sum\n    for i in range(k, n):\n        current_sum = current_sum - arr[i-k] + arr[i]\n        max_sum = max(max_sum, current_sum)\n    \n    return max_sum",
+    "java": "public class Solution {\n    public int findMaxSumSubarray(int[] arr, int k) {\n        int n = arr.length;\n        if (n < k) {\n            return 0;\n        }\n        \n        // Calculate sum of first window of size k\n        int currentSum = 0;\n        for (int i = 0; i < k; i++) {\n            currentSum += arr[i];\n        }\n        \n        int maxSum = currentSum;\n        \n        // Slide the window and calculate the maximum sum\n        for (int i = k; i < n; i++) {\n            currentSum = currentSum - arr[i-k] + arr[i];\n            maxSum = Math.max(maxSum, currentSum);\n        }\n        \n        return maxSum;\n    }\n}"
+  },
+  "test_cases": [
+    {
+      "input": "[2, 1, 5, 1, 3, 2], 3",
+      "expected": "9"
+    },
+    {
+      "input": "[1, 4, 2, 10, 23, 3, 1, 0, 20], 4",
+      "expected": "39"
+    },
+    {
+      "input": "[3, 4, 5, 6, 7, 2, 9, 8, 1], 2",
+      "expected": "17"
+    },
+    {
+      "input": "[1, 1, 1, 1, 1], 3",
+      "expected": "3"
+    }
+  ]
+}

@@ -1,0 +1,73 @@
+{
+  "id": "two_sum",
+  "title": "Two Sum",
+  "difficulty": "easy",
+  "patterns": ["hash-map"],
+  "estimated_time": 15,
+  "companies": ["Amazon", "Google", "Facebook", "Microsoft", "Apple"],
+  "description": "Given an array of integers nums and an integer target, return indices of the two numbers such that they add up to target.\n\nYou may assume that each input would have exactly one solution, and you may not use the same element twice.\n\nYou can return the answer in any order.",
+  "examples": [
+    {
+      "input": "nums = [2,7,11,15], target = 9",
+      "output": "[0,1]",
+      "explanation": "Because nums[0] + nums[1] == 9, we return [0, 1]."
+    },
+    {
+      "input": "nums = [3,2,4], target = 6",
+      "output": "[1,2]",
+      "explanation": "Because nums[1] + nums[2] == 6, we return [1, 2]."
+    },
+    {
+      "input": "nums = [3,3], target = 6",
+      "output": "[0,1]",
+      "explanation": "Because nums[0] + nums[1] == 6, we return [0, 1]."
+    }
+  ],
+  "constraints": [
+    "2 <= nums.length <= 10^4",
+    "-10^9 <= nums[i] <= 10^9",
+    "-10^9 <= target <= 10^9",
+    "Only one valid answer exists"
+  ],
+  "pattern_explanation": "The hash map pattern is extremely useful when you need to keep track of elements and their indices, or when you need to look up values in constant time. In this problem, a hash map allows us to store each number and its index, which enables us to quickly determine if the complement of a given number exists in the array.",
+  "solution_walkthrough": [
+    "Create a hash map to store numbers and their indices.",
+    "Iterate through the array.",
+    "For each element nums[i], calculate the complement: target - nums[i].",
+    "If the complement exists in the hash map, return [map[complement], i].",
+    "Otherwise, add the current number and its index to the hash map.",
+    "Time complexity: O(n), Space complexity: O(n), where n is the length of the array."
+  ],
+  "starter_code": {
+    "go": "func twoSum(nums []int, target int) []int {\n    // Your code here\n    return []int{}\n}",
+    "python": "def two_sum(nums, target):\n    # Your code here\n    return []",
+    "java": "public class Solution {\n    public int[] twoSum(int[] nums, int target) {\n        // Your code here\n        return new int[] {};\n    }\n}"
+  },
+  "solutions": {
+    "go": "func twoSum(nums []int, target int) []int {\n    numMap := make(map[int]int)\n    \n    for i, num := range nums {\n        complement := target - num\n        \n        // Check if the complement exists in the map\n        if idx, found := numMap[complement]; found {\n            return []int{idx, i}\n        }\n        \n        // Add the current number to the map\n        numMap[num] = i\n    }\n    \n    // No solution found\n    return []int{}\n}",
+    "python": "def two_sum(nums, target):\n    num_map = {}\n    \n    for i, num in enumerate(nums):\n        complement = target - num\n        \n        # Check if the complement exists in the map\n        if complement in num_map:\n            return [num_map[complement], i]\n        \n        # Add the current number to the map\n        num_map[num] = i\n    \n    # No solution found\n    return []",
+    "java": "public class Solution {\n    public int[] twoSum(int[] nums, int target) {\n        Map<Integer, Integer> numMap = new HashMap<>();\n        \n        for (int i = 0; i < nums.length; i++) {\n            int complement = target - nums[i];\n            \n            // Check if the complement exists in the map\n            if (numMap.containsKey(complement)) {\n                return new int[] {numMap.get(complement), i};\n            }\n            \n            // Add the current number to the map\n            numMap.put(nums[i], i);\n        }\n        \n        // No solution found\n        return new int[] {};\n    }\n}"
+  },
+  "test_cases": [
+    {
+      "input": "[2,7,11,15], 9",
+      "expected": "[0,1]"
+    },
+    {
+      "input": "[3,2,4], 6",
+      "expected": "[1,2]"
+    },
+    {
+      "input": "[3,3], 6",
+      "expected": "[0,1]"
+    },
+    {
+      "input": "[1,5,8,3,9,2], 10",
+      "expected": "[2,5]"
+    },
+    {
+      "input": "[-1,-2,-3,-4,-5], -8",
+      "expected": "[2,4]"
+    }
+  ]
+}
