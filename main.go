@@ -3,7 +3,6 @@
 package main
 
 import (
-	"bufio"
 	"fmt"
 	"os"
 	"os/exec"
@@ -13,8 +12,6 @@ import (
 	"time"
 
 	"github.com/lancekrogers/algo-scales/cmd"
-	"github.com/lancekrogers/algo-scales/internal/problem"
-	"github.com/lancekrogers/algo-scales/internal/session"
 	"github.com/lancekrogers/algo-scales/internal/ui"
 	"github.com/lancekrogers/algo-scales/internal/ui/splitscreen"
 )
@@ -42,8 +39,7 @@ func main() {
 	// Check command line flags
 	useLegacyCLI := false
 	fromVim := false
-	simpleUI := false     // A simple UI mode for limited terminals
-	splitScreenUI := false // New split-screen UI mode
+	splitScreenUI := false // Split-screen UI mode
 
 	for _, arg := range os.Args {
 		switch arg {
@@ -54,8 +50,6 @@ func main() {
 			os.Setenv("DEBUG", "1")
 		case "--vim-mode":
 			fromVim = true
-		case "--simple":
-			simpleUI = true
 		case "--split", "--tui", "--splitscreen":
 			splitScreenUI = true
 		}
@@ -72,8 +66,7 @@ func main() {
 	filteredArgs := make([]string, 0)
 	for _, arg := range os.Args {
 		if arg != "--cli" && arg != "--legacy" && arg != "--debug" &&
-		   arg != "--vim-mode" && arg != "--simple" && 
-		   arg != "--split" && arg != "--tui" && arg != "--splitscreen" {
+		   arg != "--vim-mode" && arg != "--split" && arg != "--tui" && arg != "--splitscreen" {
 			filteredArgs = append(filteredArgs, arg)
 		}
 	}
@@ -83,25 +76,22 @@ func main() {
 	if useLegacyCLI || fromVim {
 		// Use traditional CLI for legacy mode or Neovim integration
 		cmd.Execute()
-	} else if simpleUI {
-		// Use a simple text-based UI that works in most terminals
-		runSimpleTextUI()
 	} else if splitScreenUI {
-		// Use the new split-screen UI
+		// Use the split-screen UI
 		fmt.Println("Starting AlgoScales split-screen UI...")
 		
 		// Try to start the UI with a sample problem
 		err := splitscreen.StartWithSampleProblem()
 		if err != nil {
 			fmt.Printf("Error launching split-screen UI: %v\n", err)
-			fmt.Println("Falling back to CLI mode. Use --cli for command line or --simple for basic UI.")
+			fmt.Println("Falling back to CLI mode. Use --cli for command line.")
 			cmd.Execute()
 		}
 	} else {
 		// Launch the original interactive TUI by default
 		// With improved error handling and terminal recovery
 		fmt.Println("Starting AlgoScales interactive UI...")
-		fmt.Println("If your terminal freezes, press Ctrl+C and restart with --simple or --split")
+		fmt.Println("If your terminal freezes, press Ctrl+C and restart with --split")
 
 		// Add an extra debug message if in debug mode
 		if os.Getenv("DEBUG") == "1" {
@@ -147,7 +137,7 @@ func main() {
 			fmt.Print("\033c") // Terminal reset escape code
 			time.Sleep(200 * time.Millisecond)
 			
-			// Try the split-screen UI as first fallback - it has better terminal compatibility
+			// Try the split-screen UI as fallback - it has better terminal compatibility
 			err = splitscreen.StartWithSampleProblem()
 			if err != nil {
 				if os.Getenv("DEBUG") == "1" {
@@ -155,8 +145,8 @@ func main() {
 				} else {
 					fmt.Printf("Split-screen UI also failed: %v\n", err)
 				}
-				fmt.Println("Falling back to simple text mode...")
-				runSimpleTextUI()
+				fmt.Println("Falling back to CLI mode.")
+				cmd.Execute()
 			}
 		
 		case <-time.After(3 * time.Second): // Reduced timeout for faster feedback
@@ -172,8 +162,8 @@ func main() {
 			err := splitscreen.StartWithSampleProblem()
 			if err != nil {
 				fmt.Printf("Split-screen UI also failed: %v\n", err)
-				fmt.Println("Falling back to simple mode which works in almost all terminals...")
-				runSimpleTextUI()
+				fmt.Println("Falling back to CLI mode.")
+				cmd.Execute()
 			}
 		}
 	}
@@ -228,252 +218,4 @@ func isInteractiveTerminal() bool {
 	}
 	
 	return true
-}
-
-// runSimpleTextUI runs a simple text-based UI that works in most terminals
-func runSimpleTextUI() {
-	// Reset signal handling specifically for the simple UI
-	sigChan := make(chan os.Signal, 1)
-	signal.Notify(sigChan, os.Interrupt, syscall.SIGTERM)
-	
-	// Create a reader with a timeout to allow checking for signals
-	reader := bufio.NewReader(os.Stdin)
-
-	// Print welcome banner
-	fmt.Println("╭───────────────────────────────────────────────────────────────╮")
-	fmt.Println("│         🎵  Welcome to AlgoScales - Simple Mode  🎵           │")
-	fmt.Println("╰───────────────────────────────────────────────────────────────╯")
-	fmt.Println()
-	fmt.Println("Press Ctrl+C at any time to exit.")
-
-	// Function to safely read user input with interrupt detection
-	readInput := func() string {
-		inputCh := make(chan string, 1)
-		interruptCh := make(chan bool, 1)
-
-		// Start a goroutine to read input
-		go func() {
-			text, err := reader.ReadString('\n')
-			if err != nil {
-				inputCh <- ""
-				return
-			}
-			inputCh <- strings.TrimSpace(text)
-		}()
-
-		// Another goroutine to monitor for ctrl+c
-		go func() {
-			<-sigChan
-			interruptCh <- true
-		}()
-
-		// Wait for either input or interrupt
-		select {
-		case input := <-inputCh:
-			return input
-		case <-interruptCh:
-			fmt.Println("\nExiting AlgoScales. Thanks for practicing!")
-			os.Exit(0)
-			return ""
-		}
-	}
-
-	for {
-		// Show main menu
-		fmt.Println("What would you like to do?")
-		fmt.Println("1. Start Practice")
-		fmt.Println("2. List Problems")
-		fmt.Println("3. View Statistics")
-		fmt.Println("4. Exit")
-		fmt.Print("> ")
-
-		// Use our custom input reader that handles interrupts
-		choice := readInput()
-
-		switch choice {
-		case "1":
-			startPractice(reader)
-		case "2":
-			listProblems()
-		case "3":
-			viewStats()
-		case "4", "q", "quit", "exit":
-			fmt.Println("Thanks for practicing with AlgoScales!")
-			return
-		default:
-			if choice != "" {
-				fmt.Println("Invalid choice. Please try again.")
-			}
-		}
-
-		fmt.Println() // Add a blank line for spacing
-	}
-}
-
-// startPractice handles the practice workflow in simple UI mode
-func startPractice(reader *bufio.Reader) {
-	// Set up local signal handling for the practice session
-	sigChan := make(chan os.Signal, 1)
-	signal.Notify(sigChan, os.Interrupt, syscall.SIGTERM)
-	
-	// Function to safely read input with interrupt handling
-	readInput := func() string {
-		inputCh := make(chan string, 1)
-		interruptCh := make(chan bool, 1)
-
-		// Start a goroutine to read input
-		go func() {
-			text, err := reader.ReadString('\n')
-			if err != nil {
-				inputCh <- ""
-				return
-			}
-			inputCh <- strings.TrimSpace(text)
-		}()
-
-		// Another goroutine to monitor for ctrl+c
-		go func() {
-			<-sigChan
-			interruptCh <- true
-		}()
-
-		// Wait for either input or interrupt
-		select {
-		case input := <-inputCh:
-			return input
-		case <-interruptCh:
-			fmt.Println("\nExiting AlgoScales. Thanks for practicing!")
-			os.Exit(0)
-			return ""
-		}
-	}
-	
-	// Choose practice mode
-	fmt.Println("\nSelect practice mode:")
-	fmt.Println("1. Learn Mode (with guidance)")
-	fmt.Println("2. Practice Mode (test yourself)")
-	fmt.Println("3. Cram Mode (rapid fire practice)")
-	fmt.Println("4. Back to Main Menu")
-	fmt.Print("> ")
-
-	choice := readInput()
-
-	var mode session.Mode
-	switch choice {
-	case "1":
-		mode = session.LearnMode
-	case "2":
-		mode = session.PracticeMode
-	case "3":
-		mode = session.CramMode
-	case "4", "back", "b":
-		return
-	default:
-		fmt.Println("Invalid choice. Going back to main menu.")
-		return
-	}
-
-	// Choose programming language
-	fmt.Println("\nSelect programming language:")
-	fmt.Println("1. Go")
-	fmt.Println("2. Python")
-	fmt.Println("3. JavaScript")
-	fmt.Println("4. Back to Main Menu")
-	fmt.Print("> ")
-
-	choice = readInput()
-
-	var language string
-	switch choice {
-	case "1":
-		language = "go"
-	case "2":
-		language = "python"
-	case "3":
-		language = "javascript"
-	case "4", "back", "b":
-		return
-	default:
-		fmt.Println("Invalid choice. Using Go as default.")
-		language = "go"
-	}
-
-	// Find a problem
-	problems, err := problem.ListAll()
-	if err != nil {
-		fmt.Printf("Error loading problems: %v\n", err)
-		return
-	}
-
-	if len(problems) == 0 {
-		fmt.Println("No problems available. Please check your installation.")
-		return
-	}
-
-	// For simplicity, just pick the first problem
-	// A complete implementation would allow selection from a list
-	selectedProblem := problems[0]
-
-	fmt.Printf("\nSelected problem: %s (%s)\n", selectedProblem.Title, selectedProblem.Difficulty)
-	fmt.Printf("Patterns: %s\n", strings.Join(selectedProblem.Patterns, ", "))
-	fmt.Println("Press Enter to start the practice session...")
-	readInput()
-
-	// Create session options
-	opts := session.Options{
-		Mode:       mode,
-		Language:   language,
-		Timer:      45, // Default timer
-		ProblemID:  selectedProblem.ID,
-	}
-
-	// Set up a goroutine to handle Ctrl+C during the session
-	done := make(chan bool, 1)
-	go func() {
-		// Wait for an interrupt signal
-		<-sigChan
-		fmt.Println("\nSession interrupted. Returning to main menu...")
-		done <- true
-	}()
-
-	// Start the session in a goroutine
-	go func() {
-		if err := session.Start(opts); err != nil {
-			fmt.Printf("Error starting session: %v\n", err)
-		}
-		done <- true
-	}()
-
-	// Wait for either completion or interrupt
-	<-done
-}
-
-// listProblems shows available problems
-func listProblems() {
-	problems, err := problem.ListAll()
-	if err != nil {
-		fmt.Printf("Error listing problems: %v\n", err)
-		return
-	}
-
-	fmt.Println("\nAvailable Problems:")
-	for i, p := range problems {
-		fmt.Printf("%d. %s (%s) - Patterns: %s\n",
-			i+1, p.Title, p.Difficulty, strings.Join(p.Patterns, ", "))
-	}
-}
-
-// viewStats shows user statistics
-func viewStats() {
-	// This would use the stats package in a full implementation
-	fmt.Println("\nStatistics: (Sample data)")
-	fmt.Println("Total Problems Attempted: 10")
-	fmt.Println("Total Problems Solved: 7")
-	fmt.Println("Current Streak: 3 days")
-	fmt.Println("Longest Streak: 5 days")
-
-	fmt.Println("\nPerformance by Pattern:")
-	fmt.Println("- Sliding Window: 80% success rate")
-	fmt.Println("- Two Pointers: 75% success rate")
-	fmt.Println("- Hash Map: 100% success rate")
 }

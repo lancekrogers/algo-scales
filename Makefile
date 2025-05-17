@@ -23,7 +23,7 @@ SERVER_PATH=./server
 # Targets
 .PHONY: all build clean test test-chart test-coverage fix-tests fmt lint run server install vet
 
-all: test build
+all: test-chart build
 
 build:
 	mkdir -p $(BIN_DIR)

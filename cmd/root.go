@@ -23,6 +23,12 @@ patterns through curated problems and features different learning modes.`,
 	
 	// Run the TUI by default
 	Run: func(cmd *cobra.Command, args []string) {
+		// Don't attempt to run TUI in test mode
+		if os.Getenv("TESTING") == "1" {
+			fmt.Fprintln(cmd.OutOrStdout(), "algo-scales - Algorithm study tool for interview preparation")
+			return
+		}
+		
 		// Forward to TUI command when it's available
 		if tuiCmd != nil {
 			tuiCmd.Run(tuiCmd, args)

@@ -25,7 +25,10 @@ func executeCommand(root *cobra.Command, args ...string) (string, error) {
 	root.SetErr(buf)
 	root.SetArgs(args)
 
+	// Execute the command
 	err := root.Execute()
+	
+	// Return buffer content
 	return buf.String(), err
 }
 
