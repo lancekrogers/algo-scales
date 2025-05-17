@@ -3,6 +3,7 @@ package controller
 
 import (
 	"fmt"
+	"log"
 	"os"
 	"time"
 
@@ -51,10 +52,10 @@ func (c *Controller) Initialize() tea.Cmd {
 		if err != nil {
 			return model.ErrorMsg(fmt.Sprintf("Failed to load problems: %v", err))
 		}
-		
+
 		// Load any saved stats
 		// TODO: Implement stats loading
-		
+
 		return model.ProblemsLoadedMsg{Problems: problems}
 	}
 }
@@ -114,21 +115,22 @@ func (c *Controller) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	case model.CodeUpdatedMsg:
 		// Code has been updated, refresh the view
 		// No command needed
-		
+
 	case model.TestResultsMsg:
 		// Handle test results
 		c.Model.Session.TestResults = msg.Results
 		if msg.AllPassed {
 			// Problem solved!
-			c.activeSession.Finish(true)
-			c.updateStatistics()
-			cmd = c.checkAchievements()
+			if c.activeSession.Finish(true) != nil {
+				c.updateStatistics()
+				cmd = c.checkAchievements()
+			}
 		}
-		
+
 	case model.SelectionMsg:
 		// Handle selection changes based on app state
 		cmd = c.handleSelection(msg.Index)
-		
+
 	case model.EditCodeMsg:
 		// User wants to edit code in external editor
 		cmd = func() tea.Msg {
@@ -139,7 +141,7 @@ func (c *Controller) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		// Quit the application
 		return c.Model, tea.Quit
 	}
-	
+
 	return c.Model, cmd
 }
 
@@ -147,7 +149,7 @@ func (c *Controller) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 func (c *Controller) handleSelection(index int) tea.Cmd {
 	return func() tea.Msg {
 		c.Model.SelectedIndex = index
-		
+
 		switch c.Model.AppState {
 		case model.StateInitial:
 			// Initial menu selection
@@ -156,25 +158,25 @@ func (c *Controller) handleSelection(index int) tea.Cmd {
 				c.Model.AppState = model.StateModeSelection
 				c.Model.SelectedIndex = 0
 				return nil
-				
+
 			case 1: // View Stats
 				c.Model.AppState = model.StateStatistics
 				return nil
-				
+
 			case 2: // Settings
 				c.Model.AppState = model.StateSettings
 				return nil
-				
+
 			case 3: // Quit
 				return model.QuitMsg{}
 			}
 			// Default return for any other index
 			return nil
-			
+
 		case model.StateModeSelection:
 			// Practice mode selection
 			mode := interfaces.PracticeMode // Default to practice mode
-			
+
 			switch index {
 			case 0: // Learn mode
 				mode = interfaces.LearnMode
@@ -183,7 +185,7 @@ func (c *Controller) handleSelection(index int) tea.Cmd {
 			case 2: // Cram mode
 				mode = interfaces.CramMode
 			}
-			
+
 			c.Model.AppState = model.StatePatternSelection
 			c.Model.SelectedIndex = 0
 			c.Model.Session.Mode = string(mode)
@@ -207,7 +209,7 @@ func (c *Controller) handleSelection(index int) tea.Cmd {
 				c.Model.Session.CurrentPattern = pattern
 				c.Model.AppState = model.StateProblemSelection
 				c.Model.SelectedIndex = 0
-				
+
 				// Filter problems by pattern
 				var filtered []problem.Problem
 				for _, p := range c.Model.AvailableProblems {
@@ -218,14 +220,14 @@ func (c *Controller) handleSelection(index int) tea.Cmd {
 						}
 					}
 				}
-				
+
 				// Update available problems list
 				c.Model.AvailableProblems = filtered
 				return nil
 			}
 			// Default return if index is out of range
 			return nil
-			
+
 		case model.StateProblemSelection:
 			// Problem selection
 			if index >= 0 && index < len(c.Model.AvailableProblems) {
@@ -237,19 +239,19 @@ func (c *Controller) handleSelection(index int) tea.Cmd {
 			}
 			// Default return if no valid problem selected
 			return nil
-			
+
 		case model.StateSession:
 			// Session controls
 			// Default no-op for session state
 			return nil
-			
+
 		case model.StateStatistics:
 			// Statistics view controls
 			// Return to main menu on any selection
 			c.Model.AppState = model.StateInitial
 			c.Model.SelectedIndex = 0
 			return nil
-			
+
 		case model.StateSettings:
 			// Settings controls
 			// Return to main menu on any selection
@@ -257,7 +259,7 @@ func (c *Controller) handleSelection(index int) tea.Cmd {
 			c.Model.SelectedIndex = 0
 			return nil
 		}
-		
+
 		// Default return for any state not explicitly handled
 		return nil
 	}
@@ -275,7 +277,7 @@ func (c *Controller) startSession(p problem.Problem, mode string) tea.Cmd {
 	case "cram":
 		sessionMode = interfaces.CramMode
 	}
-	
+
 	// Prepare session options
 	options := interfaces.SessionOptions{
 		Mode:      sessionMode,
@@ -283,7 +285,7 @@ func (c *Controller) startSession(p problem.Problem, mode string) tea.Cmd {
 		Language:  c.Model.Session.Language,
 		Pattern:   c.Model.Session.CurrentPattern,
 	}
-	
+
 	// Create session
 	session, err := c.sessionManager.StartSession(options)
 	if err != nil {
@@ -297,23 +299,23 @@ func (c *Controller) startSession(p problem.Problem, mode string) tea.Cmd {
 
 	// Update the model with session info
 	problem := session.GetProblem()
-	
+
 	c.Model.Session = model.Session{
-		Active:        true,
-		Mode:          string(options.Mode),
-		Problem:       problem,
-		StartTime:     session.GetStartTime(),
-		TimeRemaining: session.GetTimeRemaining(),
-		ShowHints:     session.AreHintsShown(),
-		ShowSolution:  session.IsSolutionShown(),
-		Language:      session.GetLanguage(),
-		Code:          session.GetCode(),
+		Active:         true,
+		Mode:           string(options.Mode),
+		Problem:        problem,
+		StartTime:      session.GetStartTime(),
+		TimeRemaining:  session.GetTimeRemaining(),
+		ShowHints:      session.AreHintsShown(),
+		ShowSolution:   session.IsSolutionShown(),
+		Language:       session.GetLanguage(),
+		Code:           session.GetCode(),
 		CurrentPattern: options.Pattern,
 	}
-	
+
 	// Update app state
 	c.Model.AppState = model.StateSession
-	
+
 	// Start the session timer
 	return c.tickTimer()
 }
@@ -332,7 +334,11 @@ func (c *Controller) openEditor() tea.Msg {
 	if err != nil {
 		return model.ErrorMsg(fmt.Sprintf("Failed to create temp file: %v", err))
 	}
-	defer os.Remove(tmpfile.Name())
+	defer func() {
+		if rmErr := os.Remove(tmpfile.Name()); rmErr != nil {
+			log.Printf("tmpfile cleanup failed: %v", rmErr)
+		}
+	}()
 
 	// Write the current code to the file
 	if _, err := tmpfile.Write([]byte(c.Model.Session.Code)); err != nil {
@@ -356,7 +362,9 @@ func (c *Controller) openEditor() tea.Msg {
 		}
 
 		// Update the code in the session and model
-		c.activeSession.SetCode(string(content))
+		if err := c.activeSession.SetCode(string(content)); err != nil {
+			return model.ErrorMsg(fmt.Sprintf("failed updating session: %v", err))
+		}
 		c.Model.Session.Code = string(content)
 		return model.CodeUpdatedMsg{}
 	})
@@ -402,15 +410,15 @@ func (c *Controller) submitSolution() tea.Cmd {
 func (c *Controller) updateStatistics() {
 	// Increment problems solved count
 	c.Model.Stats.ProblemsSolved++
-	
+
 	// Update time spent
 	c.Model.Stats.TotalTime += time.Since(c.activeSession.GetStartTime())
-	
+
 	// Update pattern stats if defined
 	problem := c.activeSession.GetProblem()
 	for _, pattern := range problem.Patterns {
 		c.Model.Stats.PatternCounts[pattern]++
-		
+
 		// Calculate progress for this pattern
 		patternProblems := 0
 		for _, p := range c.Model.AvailableProblems {
@@ -420,20 +428,20 @@ func (c *Controller) updateStatistics() {
 				}
 			}
 		}
-		
+
 		// Update progress (0.0 to 1.0)
 		if patternProblems > 0 {
 			c.Model.Stats.PatternsProgress[pattern] = float64(c.Model.Stats.PatternCounts[pattern]) / float64(patternProblems)
 		}
 	}
-	
+
 	// Update difficulty stats
 	c.Model.Stats.DifficultyCounts[problem.Difficulty]++
-	
+
 	// Update streak
 	today := time.Now().Format("2006-01-02")
 	lastPractice := c.Model.Stats.LastPracticeDate.Format("2006-01-02")
-	
+
 	if lastPractice == "" {
 		// First practice
 		c.Model.Stats.CurrentStreak = 1
@@ -450,7 +458,7 @@ func (c *Controller) updateStatistics() {
 		// Streak broken
 		c.Model.Stats.CurrentStreak = 1
 	}
-	
+
 	c.Model.Stats.LastPracticeDate = time.Now()
 }
 
@@ -466,14 +474,14 @@ func (c *Controller) checkAchievements() tea.Cmd {
 				}
 			}
 		}
-		
+
 		// Check streak achievement
 		if c.Model.Stats.CurrentStreak >= 30 {
 			if achievement, exists := c.Model.Achievements["streak-virtuoso"]; exists && !achievement.Earned {
 				return model.AchievementUnlockedMsg{AchievementID: "streak-virtuoso"}
 			}
 		}
-		
+
 		// Check performance ace achievement (solve hard problem in under 15 min)
 		problem := c.activeSession.GetProblem()
 		if problem.Difficulty == "hard" {
@@ -484,7 +492,8 @@ func (c *Controller) checkAchievements() tea.Cmd {
 				}
 			}
 		}
-		
+
 		return nil
 	}
 }
+

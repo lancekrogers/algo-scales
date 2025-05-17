@@ -4,7 +4,6 @@ package problem
 import (
 	"encoding/json"
 	"fmt"
-	"io/ioutil"
 	"os"
 	"path/filepath"
 	"strings"
@@ -47,7 +46,7 @@ var GetByID = func(id string) (*Problem, error) {
 	configDir := getConfigDir()
 
 	// Search in all pattern directories
-	patternDirs, err := ioutil.ReadDir(filepath.Join(configDir, "problems"))
+	patternDirs, err := os.ReadDir(filepath.Join(configDir, "problems"))
 	if err != nil {
 		return nil, err
 	}
@@ -63,7 +62,7 @@ var GetByID = func(id string) (*Problem, error) {
 		}
 
 		// Found the problem file
-		data, err := ioutil.ReadFile(problemPath)
+		data, err := os.ReadFile(problemPath)
 		if err != nil {
 			return nil, err
 		}
@@ -86,7 +85,7 @@ var ListAll = func() ([]Problem, error) {
 	configDir := getConfigDir()
 
 	// Get all pattern directories
-	patternDirs, err := ioutil.ReadDir(filepath.Join(configDir, "problems"))
+	patternDirs, err := os.ReadDir(filepath.Join(configDir, "problems"))
 	if err != nil {
 		return nil, err
 	}
@@ -100,7 +99,7 @@ var ListAll = func() ([]Problem, error) {
 		}
 
 		// Read all problem files in this pattern directory
-		problemFiles, err := ioutil.ReadDir(filepath.Join(configDir, "problems", patternDir.Name()))
+		problemFiles, err := os.ReadDir(filepath.Join(configDir, "problems", patternDir.Name()))
 		if err != nil {
 			return nil, err
 		}
@@ -111,7 +110,7 @@ var ListAll = func() ([]Problem, error) {
 			}
 
 			// Read problem file
-			data, err := ioutil.ReadFile(filepath.Join(configDir, "problems", patternDir.Name(), problemFile.Name()))
+			data, err := os.ReadFile(filepath.Join(configDir, "problems", patternDir.Name(), problemFile.Name()))
 			if err != nil {
 				return nil, err
 			}

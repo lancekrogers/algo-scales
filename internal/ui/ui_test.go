@@ -293,10 +293,10 @@ func TestFormatDuration(t *testing.T) {
 		duration time.Duration
 		expected string
 	}{
-		{30 * time.Second, "00:30"},
-		{2 * time.Minute, "02:00"},
-		{2*time.Minute + 30*time.Second, "02:30"},
-		{1*time.Hour + 15*time.Minute + 45*time.Second, "75:45"},
+		{30 * time.Second, "00:00:30"},
+		{2 * time.Minute, "00:02:00"},
+		{2*time.Minute + 30*time.Second, "00:02:30"},
+		{1*time.Hour + 15*time.Minute + 45*time.Second, "01:15:45"},
 	}
 
 	for _, tc := range testCases {

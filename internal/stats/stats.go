@@ -5,7 +5,6 @@ package stats
 import (
 	"encoding/json"
 	"fmt"
-	"io/ioutil"
 	"os"
 	"path/filepath"
 	"sort"
@@ -90,7 +89,7 @@ func RecordSession(stats SessionStats) error {
 		return err
 	}
 
-	return ioutil.WriteFile(statsFile, data, 0644)
+	return os.WriteFile(statsFile, data, 0644)
 }
 
 // GetSummary returns summary statistics
@@ -374,7 +373,7 @@ var Reset = func() error {
 	}
 
 	// Remove all files in the directory
-	files, err := ioutil.ReadDir(statsDir)
+	files, err := os.ReadDir(statsDir)
 	if err != nil {
 		return err
 	}
@@ -402,7 +401,7 @@ func loadAllSessions() ([]SessionStats, error) {
 	}
 
 	// Read all stats files
-	files, err := ioutil.ReadDir(statsDir)
+	files, err := os.ReadDir(statsDir)
 	if err != nil {
 		return nil, err
 	}
@@ -413,7 +412,7 @@ func loadAllSessions() ([]SessionStats, error) {
 		}
 
 		// Read file
-		data, err := ioutil.ReadFile(filepath.Join(statsDir, file.Name()))
+		data, err := os.ReadFile(filepath.Join(statsDir, file.Name()))
 		if err != nil {
 			return nil, err
 		}
@@ -437,10 +436,11 @@ func isStatsFile(filename string) bool {
 // formatDuration formats a duration as a string (MM:SS)
 func formatDuration(d time.Duration) string {
 	totalSeconds := int(d.Seconds())
-	minutes := totalSeconds / 60
+	hours := totalSeconds / 3600
+	minutes := (totalSeconds / 60) % 60
 	seconds := totalSeconds % 60
 
-	return fmt.Sprintf("%02d:%02d", minutes, seconds)
+	return fmt.Sprintf("%02d:%02d:%02d", hours, minutes, seconds)
 }
 
 // getYearWeek returns a string representing the year and week

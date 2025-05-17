@@ -6,7 +6,6 @@ package api
 import (
 	"encoding/json"
 	"fmt"
-	"io/ioutil"
 	"os"
 	"path/filepath"
 	"time"
@@ -55,7 +54,7 @@ func DownloadProblems(force bool) error {
 	if err != nil {
 		return err
 	}
-	if err := ioutil.WriteFile(versionFile, versionData, 0644); err != nil {
+	if err := os.WriteFile(versionFile, versionData, 0644); err != nil {
 		return err
 	}
 
@@ -75,7 +74,7 @@ func DownloadProblems(force bool) error {
 			}
 
 			problemFile := filepath.Join(patternDir, fmt.Sprintf("%s.json", p.ID))
-			if err := ioutil.WriteFile(problemFile, problemData, 0644); err != nil {
+			if err := os.WriteFile(problemFile, problemData, 0644); err != nil {
 				return err
 			}
 		}
@@ -95,7 +94,7 @@ func shouldUpdate() bool {
 	}
 
 	// Read version file
-	data, err := ioutil.ReadFile(versionFile)
+	data, err := os.ReadFile(versionFile)
 	if err != nil {
 		return true
 	}

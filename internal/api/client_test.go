@@ -4,7 +4,6 @@ package api
 
 import (
 	"encoding/json"
-	"io/ioutil"
 	"os"
 	"path/filepath"
 	"testing"
@@ -28,7 +27,7 @@ func mockLicenseValidation(valid bool, err error) func() {
 
 func TestDownloadProblems(t *testing.T) {
 	// Create a temporary test directory
-	tempDir, err := ioutil.TempDir("", "algo-scales-test")
+	tempDir, err := os.MkdirTemp("", "algo-scales-test")
 	require.NoError(t, err)
 	defer os.RemoveAll(tempDir)
 
@@ -76,7 +75,7 @@ func TestDownloadProblems(t *testing.T) {
 		assert.NoError(t, err, "Version file should exist")
 
 		// Check version file content
-		data, err := ioutil.ReadFile(versionFile)
+		data, err := os.ReadFile(versionFile)
 		require.NoError(t, err)
 		var version struct {
 			Version     string    `json:"version"`
@@ -99,7 +98,7 @@ func TestDownloadProblems(t *testing.T) {
 			"last_updated": time.Now(),
 		}, "", "  ")
 		require.NoError(t, err)
-		err = ioutil.WriteFile(versionFile, versionData, 0644)
+		err = os.WriteFile(versionFile, versionData, 0644)
 		require.NoError(t, err)
 
 		// Try to download problems without force flag
@@ -115,7 +114,7 @@ func TestDownloadProblems(t *testing.T) {
 
 func TestShouldUpdate(t *testing.T) {
 	// Create a temporary test directory
-	tempDir, err := ioutil.TempDir("", "algo-scales-test")
+	tempDir, err := os.MkdirTemp("", "algo-scales-test")
 	require.NoError(t, err)
 	defer os.RemoveAll(tempDir)
 
@@ -134,7 +133,7 @@ func TestShouldUpdate(t *testing.T) {
 	t.Run("CorruptVersionFile", func(t *testing.T) {
 		// Create a corrupt version file
 		versionFile := filepath.Join(tempDir, "version.json")
-		err = ioutil.WriteFile(versionFile, []byte("corrupt json"), 0644)
+		err = os.WriteFile(versionFile, []byte("corrupt json"), 0644)
 		require.NoError(t, err)
 
 		// With a corrupt version file, we should update
@@ -149,7 +148,7 @@ func TestShouldUpdate(t *testing.T) {
 			"last_updated": time.Now(),
 		}, "", "  ")
 		require.NoError(t, err)
-		err = ioutil.WriteFile(versionFile, versionData, 0644)
+		err = os.WriteFile(versionFile, versionData, 0644)
 		require.NoError(t, err)
 
 		// In MVP, we always return false after initial download

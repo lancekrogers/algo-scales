@@ -319,8 +319,9 @@ func (v *View) renderSessionScreen(width, height int) string {
 	
 	// Format timer
 	timer := fmt.Sprintf(
-		"Time Remaining: %02d:%02d",
-		int(v.Model.Session.TimeRemaining.Minutes()),
+		"Time Remaining: %02d:%02d:%02d",
+		int(v.Model.Session.TimeRemaining.Hours()),
+		int(v.Model.Session.TimeRemaining.Minutes())%60,
 		int(v.Model.Session.TimeRemaining.Seconds())%60,
 	)
 	timer = primaryStyle.Render(timer)

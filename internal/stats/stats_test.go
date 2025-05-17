@@ -5,7 +5,6 @@ package stats
 import (
 	"encoding/json"
 	"fmt"
-	"io/ioutil"
 	"os"
 	"path/filepath"
 	"testing"
@@ -18,7 +17,7 @@ import (
 // Override config dir for testing
 func withTestDir(t *testing.T) (string, func()) {
 	// Create a temporary test directory
-	tempDir, err := ioutil.TempDir("", "algo-scales-test")
+	tempDir, err := os.MkdirTemp("", "algo-scales-test")
 	require.NoError(t, err)
 
 	// Override config dir for testing
@@ -65,7 +64,7 @@ func createSampleSessions(t *testing.T, dir string, count int) []SessionStats {
 		filename := filepath.Join(statsDir, "session_"+sessions[i].ProblemID+"_"+startTime.Format("20060102_150405")+".json")
 		data, err := json.MarshalIndent(sessions[i], "", "  ")
 		require.NoError(t, err)
-		err = ioutil.WriteFile(filename, data, 0644)
+		err = os.WriteFile(filename, data, 0644)
 		require.NoError(t, err)
 	}
 
@@ -96,12 +95,12 @@ func TestRecordSession(t *testing.T) {
 
 	// Check that the stats were saved
 	statsDir := filepath.Join(tempDir, "stats")
-	files, err := ioutil.ReadDir(statsDir)
+	files, err := os.ReadDir(statsDir)
 	require.NoError(t, err)
 	assert.Equal(t, 1, len(files))
 
 	// Verify file content
-	data, err := ioutil.ReadFile(filepath.Join(statsDir, files[0].Name()))
+	data, err := os.ReadFile(filepath.Join(statsDir, files[0].Name()))
 	require.NoError(t, err)
 
 	var savedStats SessionStats
@@ -243,7 +242,7 @@ func TestReset(t *testing.T) {
 
 	// Verify sessions were created
 	statsDir := filepath.Join(tempDir, "stats")
-	files, err := ioutil.ReadDir(statsDir)
+	files, err := os.ReadDir(statsDir)
 	require.NoError(t, err)
 	assert.Equal(t, 5, len(files))
 
@@ -252,7 +251,7 @@ func TestReset(t *testing.T) {
 	require.NoError(t, err)
 
 	// Verify all files were removed
-	files, err = ioutil.ReadDir(statsDir)
+	files, err = os.ReadDir(statsDir)
 	require.NoError(t, err)
 	assert.Equal(t, 0, len(files))
 }
@@ -287,10 +286,10 @@ func TestFormatDuration(t *testing.T) {
 		duration time.Duration
 		expected string
 	}{
-		{30 * time.Second, "00:30"},
-		{2 * time.Minute, "02:00"},
-		{2*time.Minute + 30*time.Second, "02:30"},
-		{1*time.Hour + 15*time.Minute + 45*time.Second, "75:45"},
+		{30 * time.Second, "00:00:30"},
+		{2 * time.Minute, "00:02:00"},
+		{2*time.Minute + 30*time.Second, "00:02:30"},
+		{1*time.Hour + 15*time.Minute + 45*time.Second, "01:15:45"},
 	}
 
 	for _, tc := range testCases {

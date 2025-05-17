@@ -3,7 +3,6 @@ package license
 
 import (
 	"encoding/json"
-	"io/ioutil"
 	"os"
 	"path/filepath"
 	"testing"
@@ -15,7 +14,7 @@ import (
 
 func TestValidateLicense(t *testing.T) {
 	// Create a temporary test directory
-	tempDir, err := ioutil.TempDir("", "algo-scales-test")
+	tempDir, err := os.MkdirTemp("", "algo-scales-test")
 	require.NoError(t, err)
 	defer os.RemoveAll(tempDir)
 
@@ -48,7 +47,7 @@ func TestValidateLicense(t *testing.T) {
 		licenseFile := filepath.Join(tempDir, "license.json")
 		licenseData, err := json.MarshalIndent(license, "", "  ")
 		require.NoError(t, err)
-		err = ioutil.WriteFile(licenseFile, licenseData, 0644)
+		err = os.WriteFile(licenseFile, licenseData, 0644)
 		require.NoError(t, err)
 
 		// Override verify signature for testing
@@ -78,7 +77,7 @@ func TestValidateLicense(t *testing.T) {
 		licenseFile := filepath.Join(tempDir, "license.json")
 		licenseData, err := json.MarshalIndent(license, "", "  ")
 		require.NoError(t, err)
-		err = ioutil.WriteFile(licenseFile, licenseData, 0644)
+		err = os.WriteFile(licenseFile, licenseData, 0644)
 		require.NoError(t, err)
 
 		// Validate the license
@@ -102,7 +101,7 @@ func TestValidateLicense(t *testing.T) {
 		licenseFile := filepath.Join(tempDir, "license.json")
 		licenseData, err := json.MarshalIndent(license, "", "  ")
 		require.NoError(t, err)
-		err = ioutil.WriteFile(licenseFile, licenseData, 0644)
+		err = os.WriteFile(licenseFile, licenseData, 0644)
 		require.NoError(t, err)
 
 		// Override verify signature for testing
@@ -122,7 +121,7 @@ func TestValidateLicense(t *testing.T) {
 	t.Run("CorruptLicenseFile", func(t *testing.T) {
 		// Create a corrupt license file
 		licenseFile := filepath.Join(tempDir, "license.json")
-		err = ioutil.WriteFile(licenseFile, []byte("corrupt json"), 0644)
+		err = os.WriteFile(licenseFile, []byte("corrupt json"), 0644)
 		require.NoError(t, err)
 
 		// Validate the license
@@ -134,7 +133,7 @@ func TestValidateLicense(t *testing.T) {
 
 func TestRequestLicense(t *testing.T) {
 	// Create a temporary test directory
-	tempDir, err := ioutil.TempDir("", "algo-scales-test")
+	tempDir, err := os.MkdirTemp("", "algo-scales-test")
 	require.NoError(t, err)
 	defer os.RemoveAll(tempDir)
 

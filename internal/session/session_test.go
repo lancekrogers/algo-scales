@@ -3,7 +3,6 @@
 package session
 
 import (
-	"io/ioutil"
 	"os"
 	"path/filepath"
 	"testing"
@@ -122,7 +121,7 @@ func TestCreateWorkspace(t *testing.T) {
 	assert.NoError(t, err, "Code file should exist")
 
 	// Verify code file content
-	codeContent, err := ioutil.ReadFile(codeFile)
+	codeContent, err := os.ReadFile(codeFile)
 	require.NoError(t, err)
 	assert.Equal(t, testProblem.StarterCode["go"], string(codeContent))
 }

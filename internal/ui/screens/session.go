@@ -487,9 +487,10 @@ func (m SessionModel) formatModeInfo() string {
 
 // formatTimer formats the timer display
 func (m SessionModel) formatTimer() string {
-	mins := int(m.TimeRemaining.Minutes())
+	hours := int(m.TimeRemaining.Hours())
+	mins := int(m.TimeRemaining.Minutes()) % 60
 	secs := int(m.TimeRemaining.Seconds()) % 60
-	timeStr := fmt.Sprintf("%02d:%02d", mins, secs)
+	timeStr := fmt.Sprintf("%02d:%02d:%02d", hours, mins, secs)
 	
 	if m.TimeRemaining < 5*time.Minute {
 		return view.TimerWarningStyle.Copy().

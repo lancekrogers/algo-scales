@@ -4,7 +4,6 @@ package config
 import (
 	"encoding/json"
 	"fmt"
-	"io/ioutil"
 	"os"
 	"os/exec"
 	"path/filepath"
@@ -50,7 +49,7 @@ func LoadConfig() (UserConfig, error) {
 	}
 	
 	// Read config file
-	data, err := ioutil.ReadFile(configFile)
+	data, err := os.ReadFile(configFile)
 	if err != nil {
 		return DefaultConfig(), err
 	}
@@ -83,7 +82,7 @@ func SaveConfig(config UserConfig) error {
 	
 	// Write config file
 	configFile := filepath.Join(configDir, "config.json")
-	err = ioutil.WriteFile(configFile, data, 0644)
+	err = os.WriteFile(configFile, data, 0644)
 	if err != nil {
 		return fmt.Errorf("failed to write config file: %v", err)
 	}

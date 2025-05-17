@@ -4,7 +4,6 @@ package cmd
 
 import (
 	"bytes"
-	"io/ioutil"
 	"os"
 	"path/filepath"
 	"testing"
@@ -35,7 +34,7 @@ func executeCommand(root *cobra.Command, args ...string) (string, error) {
 // Helper function to override config dir for testing
 func withTestConfigDir(t *testing.T) (string, func()) {
 	// Create temporary directory
-	tempDir, err := ioutil.TempDir("", "algo-scales-test")
+	tempDir, err := os.MkdirTemp("", "algo-scales-test")
 	require.NoError(t, err)
 
 	// Save original getConfigDir function
@@ -62,7 +61,7 @@ func TestRootCommand(t *testing.T) {
 
 func TestFileExists(t *testing.T) {
 	// Create a temporary test file
-	tempFile, err := ioutil.TempFile("", "test-file")
+	tempFile, err := os.CreateTemp("", "test-file")
 	require.NoError(t, err)
 	defer os.Remove(tempFile.Name())
 

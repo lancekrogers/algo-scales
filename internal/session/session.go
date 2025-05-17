@@ -4,7 +4,6 @@ package session
 
 import (
 	"fmt"
-	"io/ioutil"
 	"os"
 	"path/filepath"
 	"time"
@@ -103,7 +102,7 @@ func (s *Session) createWorkspace() error {
 	// Create problem description file
 	descriptionFile := filepath.Join(workspaceDir, "problem.md")
 	description := s.FormatProblemDescription()
-	if err := ioutil.WriteFile(descriptionFile, []byte(description), 0644); err != nil {
+	if err := os.WriteFile(descriptionFile, []byte(description), 0644); err != nil {
 		return err
 	}
 
@@ -121,7 +120,7 @@ func (s *Session) createWorkspace() error {
 		}
 	}
 
-	if err := ioutil.WriteFile(codeFile, []byte(starterCode), 0644); err != nil {
+	if err := os.WriteFile(codeFile, []byte(starterCode), 0644); err != nil {
 		return err
 	}
 

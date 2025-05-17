@@ -5,7 +5,6 @@ package problem
 
 import (
 	"encoding/json"
-	"io/ioutil"
 	"os"
 	"path/filepath"
 	"testing"
@@ -16,7 +15,7 @@ import (
 
 func TestGetByID(t *testing.T) {
 	// Create a temporary test directory
-	tempDir, err := ioutil.TempDir("", "algo-scales-test")
+	tempDir, err := os.MkdirTemp("", "algo-scales-test")
 	require.NoError(t, err)
 	defer os.RemoveAll(tempDir)
 
@@ -37,7 +36,7 @@ func TestGetByID(t *testing.T) {
 	problemData, err := json.MarshalIndent(problem, "", "  ")
 	require.NoError(t, err)
 	problemFile := filepath.Join(patternDir, "test-problem.json")
-	err = ioutil.WriteFile(problemFile, problemData, 0644)
+	err = os.WriteFile(problemFile, problemData, 0644)
 	require.NoError(t, err)
 
 	// Override config dir for testing
@@ -66,7 +65,7 @@ func TestGetByID(t *testing.T) {
 
 func TestListAll(t *testing.T) {
 	// Create a temporary test directory
-	tempDir, err := ioutil.TempDir("", "algo-scales-test")
+	tempDir, err := os.MkdirTemp("", "algo-scales-test")
 	require.NoError(t, err)
 	defer os.RemoveAll(tempDir)
 
@@ -96,7 +95,7 @@ func TestListAll(t *testing.T) {
 			problemData, err := json.MarshalIndent(problem, "", "  ")
 			require.NoError(t, err)
 			problemFile := filepath.Join(patternDir, problem.ID+".json")
-			err = ioutil.WriteFile(problemFile, problemData, 0644)
+			err = os.WriteFile(problemFile, problemData, 0644)
 			require.NoError(t, err)
 		}
 	}
@@ -126,7 +125,7 @@ func TestListAll(t *testing.T) {
 
 func TestListPatterns(t *testing.T) {
 	// Create a temporary test directory
-	tempDir, err := ioutil.TempDir("", "algo-scales-test")
+	tempDir, err := os.MkdirTemp("", "algo-scales-test")
 	require.NoError(t, err)
 	defer os.RemoveAll(tempDir)
 
@@ -156,7 +155,7 @@ func TestListPatterns(t *testing.T) {
 			problemData, err := json.MarshalIndent(problem, "", "  ")
 			require.NoError(t, err)
 			problemFile := filepath.Join(patternDir, problem.ID+".json")
-			err = ioutil.WriteFile(problemFile, problemData, 0644)
+			err = os.WriteFile(problemFile, problemData, 0644)
 			require.NoError(t, err)
 		}
 	}
@@ -182,7 +181,7 @@ func TestListPatterns(t *testing.T) {
 
 func TestListByDifficulty(t *testing.T) {
 	// Create a temporary test directory
-	tempDir, err := ioutil.TempDir("", "algo-scales-test")
+	tempDir, err := os.MkdirTemp("", "algo-scales-test")
 	require.NoError(t, err)
 	defer os.RemoveAll(tempDir)
 
@@ -218,7 +217,7 @@ func TestListByDifficulty(t *testing.T) {
 			problemData, err := json.MarshalIndent(problem, "", "  ")
 			require.NoError(t, err)
 			problemFile := filepath.Join(patternDir, problem.ID+".json")
-			err = ioutil.WriteFile(problemFile, problemData, 0644)
+			err = os.WriteFile(problemFile, problemData, 0644)
 			require.NoError(t, err)
 		}
 	}
@@ -249,7 +248,7 @@ func TestListByDifficulty(t *testing.T) {
 
 func TestListByCompany(t *testing.T) {
 	// Create a temporary test directory
-	tempDir, err := ioutil.TempDir("", "algo-scales-test")
+	tempDir, err := os.MkdirTemp("", "algo-scales-test")
 	require.NoError(t, err)
 	defer os.RemoveAll(tempDir)
 
@@ -281,7 +280,7 @@ func TestListByCompany(t *testing.T) {
 			problemData, err := json.MarshalIndent(problem, "", "  ")
 			require.NoError(t, err)
 			problemFile := filepath.Join(patternDir, problem.ID+".json")
-			err = ioutil.WriteFile(problemFile, problemData, 0644)
+			err = os.WriteFile(problemFile, problemData, 0644)
 			require.NoError(t, err)
 		}
 	}

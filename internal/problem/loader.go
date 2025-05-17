@@ -4,7 +4,6 @@ package problem
 import (
 	"encoding/json"
 	"fmt"
-	"io/ioutil"
 	"os"
 	"path/filepath"
 	"sort"
@@ -57,7 +56,7 @@ func LoadLocalProblems() ([]Problem, error) {
 	processedIDs := make(map[string]bool)
 	
 	// Get pattern directories
-	patternDirs, err := ioutil.ReadDir(problemsDir)
+	patternDirs, err := os.ReadDir(problemsDir)
 	if err != nil {
 		return nil, fmt.Errorf("failed to read problems directory: %v", err)
 	}
@@ -72,7 +71,7 @@ func LoadLocalProblems() ([]Problem, error) {
 		patternPath := filepath.Join(problemsDir, patternName)
 		
 		// Read problem files in the pattern directory
-		problemFiles, err := ioutil.ReadDir(patternPath)
+		problemFiles, err := os.ReadDir(patternPath)
 		if err != nil {
 			return nil, fmt.Errorf("failed to read pattern directory %s: %v", patternName, err)
 		}
@@ -84,7 +83,7 @@ func LoadLocalProblems() ([]Problem, error) {
 			
 			// Read problem file
 			problemPath := filepath.Join(patternPath, file.Name())
-			data, err := ioutil.ReadFile(problemPath)
+			data, err := os.ReadFile(problemPath)
 			if err != nil {
 				return nil, fmt.Errorf("failed to read problem file %s: %v", problemPath, err)
 			}

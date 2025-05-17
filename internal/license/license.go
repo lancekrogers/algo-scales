@@ -5,7 +5,6 @@ package license
 import (
 	"encoding/json"
 	"fmt"
-	"io/ioutil"
 	"os"
 	"path/filepath"
 	"time"
@@ -31,7 +30,7 @@ var ValidateLicense = func() (bool, error) {
 	}
 
 	// Read license file
-	data, err := ioutil.ReadFile(licenseFile)
+	data, err := os.ReadFile(licenseFile)
 	if err != nil {
 		return false, err
 	}
@@ -85,7 +84,7 @@ func RequestLicense() error {
 		return err
 	}
 
-	return ioutil.WriteFile(licenseFile, licenseData, 0644)
+	return os.WriteFile(licenseFile, licenseData, 0644)
 }
 
 // Helper functions - exported as variables for testing
