@@ -4,9 +4,11 @@ import (
 	"time"
 	
 	"github.com/charmbracelet/bubbles/key"
+	"github.com/charmbracelet/bubbles/viewport"
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/lancekrogers/algo-scales/internal/common/config"
 	"github.com/lancekrogers/algo-scales/internal/problem"
+	"github.com/lancekrogers/algo-scales/internal/stats"
 )
 
 // Model represents the main application model
@@ -63,6 +65,8 @@ type problemListModel struct {
 type problemDetailModel struct {
 	problem  problem.Problem
 	showHint bool
+	showInfo bool
+	viewport viewport.Model
 }
 
 // sessionModel represents the active session state
@@ -74,18 +78,24 @@ type sessionModel struct {
 	timerPaused  bool
 	startTime    time.Time
 	duration     time.Duration
+	viewport     viewport.Model
+	testResults  string
+	message      string
+	confirmQuit  bool
 }
 
 // statsModel represents the statistics view state
 type statsModel struct {
 	loading bool
-	stats   interface{} // Will be replaced with actual stats type
+	summary stats.Summary
+	viewport viewport.Model
 }
 
 // dailyModel represents the daily challenge state
 type dailyModel struct {
 	currentScale string
-	progress     interface{} // Will be replaced with actual progress type
+	progress     interface{} // Can be daily.ScaleProgress
+	loading      bool
 }
 
 // settingsModel represents the settings view state
@@ -93,6 +103,8 @@ type settingsModel struct {
 	selectedOption int
 	editing        bool
 	editingField   string
+	editValue      string
+	message        string
 }
 
 // globalKeyMap defines global keyboard shortcuts

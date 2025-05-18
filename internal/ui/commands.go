@@ -1,6 +1,7 @@
 package ui
 
 import (
+	"fmt"
 	"strings"
 	"time"
 
@@ -93,4 +94,15 @@ func sessionTick() tea.Cmd {
 	return tea.Tick(time.Second, func(t time.Time) tea.Msg {
 		return sessionTickMsg{}
 	})
+}
+
+// startSession creates a command to start a new session
+func startSession(prob problem.Problem) tea.Cmd {
+	return func() tea.Msg {
+		// Create session ID
+		sessionID := fmt.Sprintf("session-%s-%d", prob.ID, time.Now().Unix())
+		return sessionStartedMsg{
+			sessionID: sessionID,
+		}
+	}
 }
