@@ -15,8 +15,16 @@ import (
 
 // New creates a new model instance
 func New() Model {
+	// Load user config with defaults
+	cfg, err := config.LoadConfig()
+	if err != nil {
+		// Use default config if loading fails
+		cfg = config.DefaultConfig()
+	}
+	
 	return Model{
 		state: StateHome,
+		config: cfg,
 		home: homeModel{
 			selectedOption: 0,
 			options: []string{
@@ -259,7 +267,10 @@ func NewModel() Model {
 // Init initializes the model
 func (m Model) Init() tea.Cmd {
 	// Load initial data
-	return loadProblems()
+	return tea.Batch(
+		loadProblems(),
+		loadConfig(),
+	)
 }
 
 // Update handles messages and updates the model
@@ -304,6 +315,12 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		
 	case stopLoadingMsg:
 		m.showLoading = false
+		
+	case problemsLoadedMsg:
+		m.allProblems = msg.problems
+		
+	case configLoadedMsg:
+		m.config = msg.config
 		
 	case SelectionChangedMsg:
 		m = m.navigate(msg.State)

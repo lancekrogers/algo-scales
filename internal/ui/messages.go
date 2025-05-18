@@ -3,6 +3,7 @@ package ui
 import (
 	"time"
 	
+	"github.com/lancekrogers/algo-scales/internal/common/config"
 	"github.com/lancekrogers/algo-scales/internal/problem"
 	"github.com/lancekrogers/algo-scales/internal/stats"
 )
@@ -74,6 +75,11 @@ type settingChangedMsg struct {
 }
 
 type saveSettingsMsg struct{}
+
+// Config messages
+type configLoadedMsg struct {
+	config config.UserConfig
+}
 
 // SelectionChangedMsg is sent when the user makes a selection
 type SelectionChangedMsg struct {

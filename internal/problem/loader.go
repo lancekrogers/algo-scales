@@ -157,7 +157,9 @@ func GetPatterns(allProblems []Problem) []string {
 	
 	for _, problem := range allProblems {
 		for _, pattern := range problem.Patterns {
-			patterns[pattern] = true
+			// Convert kebab-case to Title Case for display
+			displayPattern := convertPatternToDisplay(pattern)
+			patterns[displayPattern] = true
 		}
 	}
 	
@@ -171,6 +173,37 @@ func GetPatterns(allProblems []Problem) []string {
 	sort.Strings(result)
 	
 	return result
+}
+
+// convertPatternToDisplay converts kebab-case pattern names to Title Case
+func convertPatternToDisplay(pattern string) string {
+	// Handle special cases
+	patternMap := map[string]string{
+		"two-pointers":       "Two Pointers",
+		"sliding-window":     "Sliding Window",
+		"fast-slow-pointers": "Fast & Slow Pointers",
+		"hash-map":          "Hash Map",
+		"binary-search":     "Binary Search",
+		"bfs":               "BFS",
+		"dfs":               "DFS",
+		"dynamic-programming": "Dynamic Programming",
+		"greedy":            "Greedy",
+		"heap":              "Heap",
+		"union-find":        "Union Find",
+	}
+	
+	if display, ok := patternMap[pattern]; ok {
+		return display
+	}
+	
+	// Fallback: convert kebab-case to Title Case
+	words := strings.Split(pattern, "-")
+	for i, word := range words {
+		if len(word) > 0 {
+			words[i] = strings.ToUpper(word[:1]) + word[1:]
+		}
+	}
+	return strings.Join(words, " ")
 }
 
 // GetLanguages returns all available programming languages from problems

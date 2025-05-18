@@ -6,6 +6,7 @@ import (
 	"time"
 
 	tea "github.com/charmbracelet/bubbletea"
+	"github.com/lancekrogers/algo-scales/internal/common/config"
 	"github.com/lancekrogers/algo-scales/internal/daily"
 	"github.com/lancekrogers/algo-scales/internal/problem"
 	"github.com/lancekrogers/algo-scales/internal/stats"
@@ -29,23 +30,39 @@ func loadProblems() tea.Cmd {
 	)
 }
 
+// loadConfig loads the user configuration
+func loadConfig() tea.Cmd {
+	return func() tea.Msg {
+		cfg, err := config.LoadConfig()
+		if err != nil {
+			// Use default config on error
+			cfg = config.DefaultConfig()
+		}
+		return configLoadedMsg{config: cfg}
+	}
+}
+
 // loadProblemsForPattern loads problems for a specific pattern
 func loadProblemsForPattern(pattern string) tea.Cmd {
 	return func() tea.Msg {
-		// Convert pattern name to directory format
-		dirName := strings.ToLower(strings.ReplaceAll(pattern, " ", "-"))
-		dirName = strings.ReplaceAll(dirName, "&", "")
-		
 		problems, err := problem.LoadLocalProblems()
 		if err != nil {
 			return problemsErrorMsg{err: err}
 		}
 		
+		// Convert pattern name to directory/tag format for matching
+		// e.g., "Two Pointers" -> "two-pointers"
+		normalizedPattern := strings.ToLower(strings.ReplaceAll(pattern, " ", "-"))
+		normalizedPattern = strings.ReplaceAll(normalizedPattern, "&", "")
+		normalizedPattern = strings.ReplaceAll(normalizedPattern, "/", "-")
+		
 		// Filter problems by pattern
 		filtered := make([]problem.Problem, 0)
 		for _, p := range problems {
 			for _, tag := range p.Patterns {
-				if tag == pattern {
+				// Also normalize the tag from the problem
+				normalizedTag := strings.ToLower(tag)
+				if normalizedTag == normalizedPattern || tag == pattern {
 					filtered = append(filtered, p)
 					break
 				}

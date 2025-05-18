@@ -22,7 +22,20 @@ var settingsOptions = []string{
 // Update handles updates for the settings screen
 func (m Model) updateSettings(msg tea.Msg) (Model, tea.Cmd) {
 	switch msg := msg.(type) {
+	case settingSavedMsg:
+		m.settings.message = "Settings saved successfully!"
+		m.settings.editing = false
+		
+	case settingErrorMsg:
+		m.settings.message = fmt.Sprintf("Error saving settings: %v", msg.error)
+		m.settings.editing = false
+		
 	case tea.KeyMsg:
+		// Clear message after keypress
+		if m.settings.message != "" && !m.settings.editing {
+			m.settings.message = ""
+		}
+		
 		switch msg.String() {
 		case "up", "k":
 			if m.settings.selectedOption > 0 {
@@ -110,6 +123,16 @@ func (m Model) viewSettings() string {
 		b.WriteString(line + "\n")
 	}
 	
+	// Show message if any
+	if m.settings.message != "" {
+		b.WriteString("\n")
+		messageStyle := lipgloss.NewStyle().
+			Bold(true).
+			Foreground(lipgloss.Color("214"))
+		b.WriteString(messageStyle.Render(m.settings.message))
+		b.WriteString("\n")
+	}
+	
 	// Help text
 	b.WriteString("\n")
 	helpStyle := lipgloss.NewStyle().
@@ -146,6 +169,11 @@ func (m Model) getSettingValue(index int) string {
 
 // handleSettingSelection handles selecting a setting to edit
 func (m Model) handleSettingSelection() (Model, tea.Cmd) {
+	// Add bounds checking
+	if m.settings.selectedOption < 0 || m.settings.selectedOption >= len(settingsOptions) {
+		return m, nil
+	}
+	
 	switch m.settings.selectedOption {
 	case 0, 1, 2, 3: // Editable fields
 		m.settings.editing = true
@@ -166,17 +194,41 @@ func (m Model) handleSettingSelection() (Model, tea.Cmd) {
 
 // saveSettingValue saves the edited setting value
 func (m Model) saveSettingValue() (Model, tea.Cmd) {
+	// Validate inputs and handle errors
 	switch m.settings.selectedOption {
 	case 0: // Language
-		m.config.Language = m.settings.editValue
+		// Validate language is supported
+		validLanguages := config.ListLanguages()
+		langValid := false
+		for _, lang := range validLanguages {
+			if m.settings.editValue == lang {
+				langValid = true
+				break
+			}
+		}
+		if langValid {
+			m.config.Language = m.settings.editValue
+		} else {
+			m.settings.message = fmt.Sprintf("Invalid language. Choose from: %v", validLanguages)
+			m.settings.editing = false
+			return m, nil
+		}
 	case 1: // Timer Duration
 		// Parse integer
 		var duration int
-		fmt.Sscanf(m.settings.editValue, "%d", &duration)
-		if duration > 0 {
-			m.config.TimerDuration = duration
+		_, err := fmt.Sscanf(m.settings.editValue, "%d", &duration)
+		if err != nil || duration <= 0 {
+			m.settings.message = "Invalid timer duration. Please enter a positive number."
+			m.settings.editing = false
+			return m, nil
 		}
+		m.config.TimerDuration = duration
 	case 2: // Editor Command
+		if m.settings.editValue == "" {
+			m.settings.message = "Editor command cannot be empty."
+			m.settings.editing = false
+			return m, nil
+		}
 		m.config.EditorCommand = m.settings.editValue
 	case 3: // Theme
 		m.config.Theme = m.settings.editValue
