@@ -10,7 +10,7 @@ import (
 )
 
 // Update handles updates for the stats screen
-func (m Model) updateStats(msg tea.Msg) (tea.Model, tea.Cmd) {
+func (m Model) updateStats(msg tea.Msg) (Model, tea.Cmd) {
 	var cmd tea.Cmd
 	
 	switch msg := msg.(type) {

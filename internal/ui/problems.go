@@ -9,7 +9,7 @@ import (
 )
 
 // Update handles updates for the problem list screen
-func (m Model) updateProblemList(msg tea.Msg) (tea.Model, tea.Cmd) {
+func (m Model) updateProblemList(msg tea.Msg) (Model, tea.Cmd) {
 	switch msg := msg.(type) {
 	case problemsLoadedMsg:
 		m.problems.problems = msg.problems

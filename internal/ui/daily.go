@@ -11,7 +11,7 @@ import (
 )
 
 // Update handles updates for the daily scale screen
-func (m Model) updateDaily(msg tea.Msg) (tea.Model, tea.Cmd) {
+func (m Model) updateDaily(msg tea.Msg) (Model, tea.Cmd) {
 	switch msg := msg.(type) {
 	case dailyScaleLoadedMsg:
 		m.daily.currentScale = msg.scale

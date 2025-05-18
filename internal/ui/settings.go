@@ -20,7 +20,7 @@ var settingsOptions = []string{
 }
 
 // Update handles updates for the settings screen
-func (m Model) updateSettings(msg tea.Msg) (tea.Model, tea.Cmd) {
+func (m Model) updateSettings(msg tea.Msg) (Model, tea.Cmd) {
 	switch msg := msg.(type) {
 	case tea.KeyMsg:
 		switch msg.String() {

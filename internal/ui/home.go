@@ -5,11 +5,10 @@ import (
 	"strings"
 
 	tea "github.com/charmbracelet/bubbletea"
-	"github.com/charmbracelet/lipgloss"
 )
 
 // Update handles updates for the home screen
-func (m Model) updateHome(msg tea.Msg) (tea.Model, tea.Cmd) {
+func (m Model) updateHome(msg tea.Msg) (Model, tea.Cmd) {
 	switch msg := msg.(type) {
 	case tea.KeyMsg:
 		switch msg.String() {
@@ -33,11 +32,6 @@ func (m Model) viewHome() string {
 	var b strings.Builder
 	
 	// Title
-	titleStyle := lipgloss.NewStyle().
-		Bold(true).
-		Foreground(lipgloss.Color("62")).
-		MarginBottom(2)
-	
 	b.WriteString(titleStyle.Render("🎵 AlgoScales"))
 	b.WriteString("\n\n")
 	
@@ -45,20 +39,13 @@ func (m Model) viewHome() string {
 	for i, option := range m.home.options {
 		cursor := "  "
 		if i == m.home.selectedOption {
-			cursor = "> "
-			option = lipgloss.NewStyle().
-				Bold(true).
-				Foreground(lipgloss.Color("212")).
-				Render(option)
+			cursor = cursorStyle.Render("> ")
+			option = selectedItemStyle.Render(option)
 		}
 		b.WriteString(fmt.Sprintf("%s%s\n", cursor, option))
 	}
 	
 	// Help text
-	helpStyle := lipgloss.NewStyle().
-		Foreground(lipgloss.Color("241")).
-		MarginTop(2)
-	
 	b.WriteString("\n")
 	b.WriteString(helpStyle.Render("↑/↓: Navigate • Enter: Select • q: Quit"))
 	

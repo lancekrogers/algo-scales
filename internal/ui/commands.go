@@ -13,13 +13,20 @@ import (
 
 // loadProblems loads all available problems
 func loadProblems() tea.Cmd {
-	return func() tea.Msg {
-		problems, err := problem.LoadLocalProblems()
-		if err != nil {
-			return problemsErrorMsg{err: err}
-		}
-		return problemsLoadedMsg{problems: problems}
-	}
+	return tea.Sequence(
+		startLoading("Loading problems..."),
+		func() tea.Msg {
+			// Simulate a small delay for visual effect
+			time.Sleep(200 * time.Millisecond)
+			
+			problems, err := problem.LoadLocalProblems()
+			if err != nil {
+				return problemsErrorMsg{err: err}
+			}
+			return problemsLoadedMsg{problems: problems}
+		},
+		stopLoading(),
+	)
 }
 
 // loadProblemsForPattern loads problems for a specific pattern
@@ -106,3 +113,23 @@ func startSession(prob problem.Problem) tea.Cmd {
 		}
 	}
 }
+
+// Loading commands
+func startLoading(message string) tea.Cmd {
+	return func() tea.Msg {
+		return startLoadingMsg{message: message}
+	}
+}
+
+func stopLoading() tea.Cmd {
+	return func() tea.Msg {
+		return stopLoadingMsg{}
+	}
+}
+
+// Loading messages
+type startLoadingMsg struct {
+	message string
+}
+
+type stopLoadingMsg struct{}

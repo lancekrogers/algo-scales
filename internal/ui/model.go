@@ -38,6 +38,15 @@ type Model struct {
 	
 	// Global key bindings
 	keys globalKeyMap
+	
+	// Animation state
+	animation     Animation
+	loading       LoadingScreen
+	showLoading   bool
+	spinnerTicks  int
+	
+	// Error state
+	errorMessage  string
 }
 
 // homeModel represents the home screen state
@@ -151,12 +160,42 @@ func (m Model) Init() tea.Cmd {
 
 // Update handles messages and updates the model
 func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
+	var cmd tea.Cmd
+	var cmds []tea.Cmd
+	
 	switch msg := msg.(type) {
 	case tea.WindowSizeMsg:
 		m.width = msg.Width
 		m.height = msg.Height
 		m.ready = true
+		if m.showLoading {
+			m.loading.width = msg.Width
+			m.loading.height = msg.Height
+		}
 		return m, nil
+		
+	case animationTickMsg:
+		m.animation.Update()
+		if !m.animation.Complete {
+			cmds = append(cmds, AnimationTick())
+		}
+		
+	case spinnerTickMsg:
+		m.spinnerTicks++
+		if m.showLoading {
+			m.loading.spinnerFrame = m.spinnerTicks
+			cmds = append(cmds, tickSpinner())
+		}
+		
+	case startLoadingMsg:
+		m.showLoading = true
+		m.loading = NewLoadingScreen(msg.message)
+		m.loading.width = m.width
+		m.loading.height = m.height
+		cmds = append(cmds, tickSpinner())
+		
+	case stopLoadingMsg:
+		m.showLoading = false
 		
 	case tea.KeyMsg:
 		// Handle global key bindings
@@ -164,12 +203,30 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		case key.Matches(msg, m.keys.Quit):
 			return m, tea.Quit
 		case key.Matches(msg, m.keys.Back):
-			return m.handleBack()
+			m, cmd = m.handleBack()
+			cmds = append(cmds, cmd)
+			// Start slide animation
+			m.animation = NewAnimation(AnimationSlideLeft, 300*time.Millisecond)
+			cmds = append(cmds, AnimationTick())
+			return m, tea.Batch(cmds...)
+		}
+	}
+	
+	// Handle loading screen updates
+	if m.showLoading {
+		m.loading, cmd = m.loading.Update(msg)
+		if cmd != nil {
+			cmds = append(cmds, cmd)
 		}
 	}
 	
 	// Route updates to current state
-	return m.routeUpdate(msg)
+	m, cmd = m.routeUpdate(msg)
+	if cmd != nil {
+		cmds = append(cmds, cmd)
+	}
+	
+	return m, tea.Batch(cmds...)
 }
 
 // View renders the current state
@@ -178,26 +235,40 @@ func (m Model) View() string {
 		return "Loading..."
 	}
 	
+	// Show loading screen if active
+	if m.showLoading {
+		return m.loading.View()
+	}
+	
+	// Render current state
+	var content string
 	switch m.state {
 	case StateHome:
-		return m.viewHome()
+		content = m.viewHome()
 	case StatePatternSelection:
-		return m.viewPatterns()
+		content = m.viewPatterns()
 	case StateProblemList:
-		return m.viewProblemList()
+		content = m.viewProblemList()
 	case StateProblemDetail:
-		return m.viewProblemDetail()
+		content = m.viewProblemDetail()
 	case StateSession:
-		return m.viewSession()
+		content = m.viewSession()
 	case StateStats:
-		return m.viewStats()
+		content = m.viewStats()
 	case StateDaily:
-		return m.viewDaily()
+		content = m.viewDaily()
 	case StateSettings:
-		return m.viewSettings()
+		content = m.viewSettings()
 	default:
-		return "Unknown state"
+		content = "Unknown state"
 	}
+	
+	// Apply animation if active
+	if !m.animation.Complete {
+		content = m.animation.Apply(content, m.width, m.height)
+	}
+	
+	return content
 }
 
 // Navigation methods
@@ -226,11 +297,21 @@ func (m Model) handleBack() (Model, tea.Cmd) {
 func (m Model) navigate(newState State) Model {
 	m.previousState = m.state
 	m.state = newState
+	
+	// Start appropriate animation based on state transition
+	if newState > m.previousState {
+		// Moving forward
+		m.animation = NewAnimation(AnimationSlideRight, 300*time.Millisecond)
+	} else {
+		// Moving backward
+		m.animation = NewAnimation(AnimationSlideLeft, 300*time.Millisecond)
+	}
+	
 	return m
 }
 
 // routeUpdate routes updates to the appropriate component
-func (m Model) routeUpdate(msg tea.Msg) (tea.Model, tea.Cmd) {
+func (m Model) routeUpdate(msg tea.Msg) (Model, tea.Cmd) {
 	switch m.state {
 	case StateHome:
 		return m.updateHome(msg)

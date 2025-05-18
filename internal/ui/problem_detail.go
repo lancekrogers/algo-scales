@@ -11,7 +11,7 @@ import (
 )
 
 // Update handles updates for the problem detail screen
-func (m Model) updateProblemDetail(msg tea.Msg) (tea.Model, tea.Cmd) {
+func (m Model) updateProblemDetail(msg tea.Msg) (Model, tea.Cmd) {
 	var cmd tea.Cmd
 	
 	switch msg := msg.(type) {

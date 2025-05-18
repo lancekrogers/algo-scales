@@ -14,7 +14,7 @@ import (
 )
 
 // Update handles updates for the session screen
-func (m Model) updateSession(msg tea.Msg) (tea.Model, tea.Cmd) {
+func (m Model) updateSession(msg tea.Msg) (Model, tea.Cmd) {
 	var cmd tea.Cmd
 	
 	switch msg := msg.(type) {

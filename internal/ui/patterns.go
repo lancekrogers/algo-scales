@@ -5,7 +5,6 @@ import (
 	"strings"
 
 	tea "github.com/charmbracelet/bubbletea"
-	"github.com/charmbracelet/lipgloss"
 )
 
 // Pattern categories
@@ -24,7 +23,7 @@ var patterns = []string{
 }
 
 // Update handles updates for the pattern selection screen
-func (m Model) updatePatterns(msg tea.Msg) (tea.Model, tea.Cmd) {
+func (m Model) updatePatterns(msg tea.Msg) (Model, tea.Cmd) {
 	switch msg := msg.(type) {
 	case tea.KeyMsg:
 		switch msg.String() {
@@ -50,10 +49,6 @@ func (m Model) viewPatterns() string {
 	var b strings.Builder
 	
 	// Title
-	titleStyle := lipgloss.NewStyle().
-		Bold(true).
-		Foreground(lipgloss.Color("62")).
-		MarginBottom(2)
 	
 	b.WriteString(titleStyle.Render("Select a Pattern"))
 	b.WriteString("\n\n")
@@ -62,19 +57,13 @@ func (m Model) viewPatterns() string {
 	for i, pattern := range patterns {
 		cursor := "  "
 		if i == m.patterns.selectedIndex {
-			cursor = "> "
-			pattern = lipgloss.NewStyle().
-				Bold(true).
-				Foreground(lipgloss.Color("212")).
-				Render(pattern)
+			cursor = cursorStyle.Render("> ")
+			pattern = selectedItemStyle.Render(pattern)
 		}
 		b.WriteString(fmt.Sprintf("%s%s\n", cursor, pattern))
 	}
 	
 	// Help text
-	helpStyle := lipgloss.NewStyle().
-		Foreground(lipgloss.Color("241")).
-		MarginTop(2)
 	
 	b.WriteString("\n")
 	b.WriteString(helpStyle.Render("↑/↓: Navigate • Enter: Select • Esc: Back"))
