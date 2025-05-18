@@ -276,6 +276,10 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			m.loading.width = msg.Width
 			m.loading.height = msg.Height
 		}
+		// Propagate window size to all components
+		m.home.width = msg.Width
+		m.home.height = msg.Height
+		// TODO: Propagate to other components when they need it
 		return m, nil
 		
 	case animationTickMsg:

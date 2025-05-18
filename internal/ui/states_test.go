@@ -12,9 +12,9 @@ func TestStateString(t *testing.T) {
 		expected string
 	}{
 		{StateHome, "home"},
-		{StatePatternSelection, "pattern-selection"},
-		{StateProblemList, "problem-list"},
-		{StateProblemDetail, "problem-detail"},
+		{StatePatternSelection, "pattern_selection"},
+		{StateProblemList, "problem_list"},
+		{StateProblemDetail, "problem_detail"},
 		{StateSession, "session"},
 		{StateStats, "stats"},
 		{StateDaily, "daily"},

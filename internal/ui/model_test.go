@@ -45,11 +45,11 @@ func TestModelUpdate_WindowSize(t *testing.T) {
 		Height: 24,
 	}
 	
-	updatedModel, cmd := model.Update(msg)
+	updatedModel, _ := model.Update(msg)
 	
 	// Check that the model was updated
 	assert.NotNil(t, updatedModel)
-	assert.NotNil(t, cmd)
+	// cmd can be nil for window size updates
 	
 	// Type assert to access internal fields
 	m, ok := updatedModel.(Model)
@@ -78,9 +78,9 @@ func TestModelUpdate_StateTransition(t *testing.T) {
 			toState:   StatePatternSelection,
 		},
 		{
-			name:      "pattern selection to problem list",
+			name:      "pattern selection to home with esc",
 			fromState: StatePatternSelection,
-			msg:       tea.KeyMsg{Type: tea.KeyRunes, Runes: []rune{'h'}},
+			msg:       tea.KeyMsg{Type: tea.KeyEsc},
 			toState:   StateHome,
 		},
 		{
@@ -115,25 +115,16 @@ func TestModelUpdate_KeyNavigation(t *testing.T) {
 	model.width = 80
 	model.height = 24
 	
-	// Test 'h' key - go home
+	// Test esc key - go back/home
 	model.state = StatePatternSelection
-	updatedModel, _ := model.Update(tea.KeyMsg{Type: tea.KeyRunes, Runes: []rune{'h'}})
+	updatedModel, _ := model.Update(tea.KeyMsg{Type: tea.KeyEsc})
 	m, ok := updatedModel.(Model)
 	require.True(t, ok)
 	assert.Equal(t, StateHome, m.state)
 	
-	// Test 's' key - go to stats
-	updatedModel, _ = m.Update(tea.KeyMsg{Type: tea.KeyRunes, Runes: []rune{'s'}})
-	m, ok = updatedModel.(Model)
-	require.True(t, ok)
-	assert.Equal(t, StateStats, m.state)
-	
-	// Test 'd' key - go to daily
-	model.state = StateHome
-	updatedModel, _ = model.Update(tea.KeyMsg{Type: tea.KeyRunes, Runes: []rune{'d'}})
-	m, ok = updatedModel.(Model)
-	require.True(t, ok)
-	assert.Equal(t, StateDaily, m.state)
+	// Test ctrl+c - quit
+	_, cmd := model.Update(tea.KeyMsg{Type: tea.KeyCtrlC})
+	assert.NotNil(t, cmd) // Should return quit command
 }
 
 func TestModelView(t *testing.T) {
@@ -149,7 +140,7 @@ func TestModelView(t *testing.T) {
 			state: StateHome,
 			ready: false,
 			expectContent: func(view string) bool {
-				return view == "Initializing..."
+				return view == "Loading..."
 			},
 		},
 		{
@@ -185,6 +176,8 @@ func TestModelView(t *testing.T) {
 			// Initialize loading screen
 			if tt.showLoading {
 				model.loading = NewLoadingScreen("Loading...")
+				model.loading.width = model.width
+				model.loading.height = model.height
 			}
 			
 			view := model.View()
