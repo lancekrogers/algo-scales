@@ -1,6 +1,8 @@
 package ui
 
 import (
+	"fmt"
+	"strings"
 	"time"
 	
 	"github.com/charmbracelet/bubbles/key"
@@ -10,6 +12,41 @@ import (
 	"github.com/lancekrogers/algo-scales/internal/problem"
 	"github.com/lancekrogers/algo-scales/internal/stats"
 )
+
+// New creates a new model instance
+func New() Model {
+	return Model{
+		state: StateHome,
+		home: homeModel{
+			selectedOption: 0,
+			options: []string{
+				"Start Practice Session", 
+				"Daily Scales",
+				"View Statistics",
+				"Settings",
+			},
+		},
+		patterns:      patternModel{},
+		problems:      problemListModel{},
+		problemDetail: problemDetailModel{},
+		session:       sessionModel{},
+		stats:         statsModel{},
+		daily:         dailyModel{},
+		settings:      settingsModel{},
+		keys:          globalKeyMap{
+			Quit: key.NewBinding(
+				key.WithKeys("ctrl+c"),
+				key.WithHelp("ctrl+c", "quit"),
+			),
+			Back: key.NewBinding(
+				key.WithKeys("esc"),
+				key.WithHelp("esc", "back"),
+			),
+		},
+		animation:     Animation{Type: AnimationNone},
+		loading:       LoadingScreen{},
+	}
+}
 
 // Model represents the main application model
 type Model struct {
@@ -53,6 +90,73 @@ type Model struct {
 type homeModel struct {
 	selectedOption int
 	options        []string
+	width          int
+	height         int
+}
+
+// Init initializes the home model
+func (m homeModel) Init() tea.Cmd {
+	return nil
+}
+
+// Update handles updates for the home model
+func (m homeModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
+	switch msg := msg.(type) {
+	case tea.WindowSizeMsg:
+		m.width = msg.Width
+		m.height = msg.Height
+		return m, nil
+		
+	case tea.KeyMsg:
+		switch msg.String() {
+		case "up", "k":
+			if m.selectedOption > 0 {
+				m.selectedOption--
+			}
+		case "down", "j":
+			if m.selectedOption < len(m.options)-1 {
+				m.selectedOption++
+			}
+		case "enter", "right", "l":
+			// Return appropriate state change message
+			switch m.selectedOption {
+			case 0: // Start Practice Session
+				return m, func() tea.Msg { return SelectionChangedMsg{State: StatePatternSelection} }
+			case 1: // Daily Scales
+				return m, func() tea.Msg { return SelectionChangedMsg{State: StateDaily} }
+			case 2: // View Statistics  
+				return m, func() tea.Msg { return SelectionChangedMsg{State: StateStats} }
+			case 3: // Settings
+				return m, func() tea.Msg { return SelectionChangedMsg{State: StateSettings} }
+			}
+		}
+	}
+	return m, nil
+}
+
+// View renders the home model
+func (m homeModel) View() string {
+	var b strings.Builder
+	
+	// Title
+	b.WriteString(titleStyle.Render("🎵 AlgoScales"))
+	b.WriteString("\n\n")
+	
+	// Menu options
+	for i, option := range m.options {
+		cursor := "  "
+		if i == m.selectedOption {
+			cursor = cursorStyle.Render("> ")
+			option = selectedItemStyle.Render(option)
+		}
+		b.WriteString(fmt.Sprintf("%s%s\n", cursor, option))
+	}
+	
+	// Help text
+	b.WriteString("\n")
+	b.WriteString(helpStyle.Render("↑/↓: Navigate • Enter: Select • q: Quit"))
+	
+	return b.String()
 }
 
 // patternModel represents the pattern selection state
@@ -196,6 +300,11 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		
 	case stopLoadingMsg:
 		m.showLoading = false
+		
+	case SelectionChangedMsg:
+		m = m.navigate(msg.State)
+		cmds = append(cmds, AnimationTick())
+		return m, tea.Batch(cmds...)
 		
 	case tea.KeyMsg:
 		// Handle global key bindings

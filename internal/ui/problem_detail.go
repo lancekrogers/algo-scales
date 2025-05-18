@@ -105,7 +105,7 @@ func (m Model) viewProblemDetail() string {
 		Foreground(lipgloss.Color("62")).
 		Align(lipgloss.Right)
 	
-	progress := fmt.Sprintf("%d%% ", m.problemDetail.viewport.ScrollPercent())
+	progress := fmt.Sprintf("%.0f%% ", m.problemDetail.viewport.ScrollPercent())
 	b.WriteString(progressStyle.Render(progress))
 	
 	return b.String()

@@ -74,3 +74,13 @@ type settingChangedMsg struct {
 }
 
 type saveSettingsMsg struct{}
+
+// SelectionChangedMsg is sent when the user makes a selection
+type SelectionChangedMsg struct {
+	State State
+}
+
+// GetState returns the state from the message
+func (m SelectionChangedMsg) GetState() State {
+	return m.State
+}
