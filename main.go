@@ -50,172 +50,164 @@ func main() {
 			os.Setenv("DEBUG", "1")
 		case "--vim-mode":
 			fromVim = true
+			os.Setenv("VIM_MODE", "1")
 		case "--split", "--tui", "--splitscreen":
+			// Force split-screen UI mode
 			splitScreenUI = true
 		}
 	}
 
-	// First attempt to detect if we're in a non-interactive terminal
-	// or one that doesn't support the features we need
-	if !isInteractiveTerminal() {
-		fmt.Println("Non-interactive terminal detected. Using CLI mode.")
-		useLegacyCLI = true
-	}
-
-	// Filter out our custom flags before passing to cobra
-	filteredArgs := make([]string, 0)
-	for _, arg := range os.Args {
-		if arg != "--cli" && arg != "--legacy" && arg != "--debug" &&
-		   arg != "--vim-mode" && arg != "--split" && arg != "--tui" && arg != "--splitscreen" {
-			filteredArgs = append(filteredArgs, arg)
-		}
-	}
-	os.Args = filteredArgs
-
-	// Decide which mode to use
-	if useLegacyCLI || fromVim {
-		// Use traditional CLI for legacy mode or Neovim integration
+	// CLI mode detection
+	if fromVim || (!isTerminal() && !splitScreenUI) {
+		// Automatically set simple mode if not in terminal
+		os.Setenv("SIMPLE_MODE", "1")
+		// Stop the signal handler for non-UI modes
+		close(stopSignalHandler)
+		// Execute CLI commands directly
 		cmd.Execute()
-	} else if splitScreenUI {
-		// Use the split-screen UI
-		fmt.Println("Starting AlgoScales split-screen UI...")
-		
-		// Try to start the UI with a sample problem
-		err := splitscreen.StartWithSampleProblem()
-		if err != nil {
-			fmt.Printf("Error launching split-screen UI: %v\n", err)
-			fmt.Println("Falling back to CLI mode. Use --cli for command line.")
-			cmd.Execute()
+		return
+	}
+
+	// If using legacy CLI or no terminal detected, use the cobra CLI
+	if useLegacyCLI || !isTerminal() {
+		// Stop the signal handler for non-UI modes
+		close(stopSignalHandler)
+		cmd.Execute()
+		return
+	}
+
+	// If explicitly using split-screen UI
+	if splitScreenUI {
+		if err := splitscreen.StartUI(nil); err != nil {
+			fmt.Printf("Error running split-screen UI: %v\n", err)
+			fmt.Println("Falling back to standard TUI...")
+			// Fall through to standard TUI
+		} else {
+			return // Split-screen successful, exit
 		}
+	}
+
+	// Default to the terminal UI (TUI)
+	// Stop the signal handler for UI mode - let UI handle its own signals
+	close(stopSignalHandler)
+	
+	// Add timeout mechanism and error handling
+	if isTerminal() {
+		// Use the timeout approach only for terminal UIs
+		startWithTimeout()
 	} else {
-		// Launch the original interactive TUI by default
-		// With improved error handling and terminal recovery
-		fmt.Println("Starting AlgoScales interactive UI...")
-		fmt.Println("If your terminal freezes, press Ctrl+C and restart with --split")
+		// For non-terminal environments, use CLI directly
+		cmd.Execute()
+	}
+}
 
-		// Add an extra debug message if in debug mode
-		if os.Getenv("DEBUG") == "1" {
-			fmt.Println("Debug mode: Using interactive TUI with enhanced error handling")
+// Start TUI with timeout and error recovery
+func startWithTimeout() {
+	// Use channels for coordinating UI startup and potential fallback
+	done := make(chan bool)
+	errChan := make(chan error)
+
+	// Use a separate goroutine to prevent blocking the main thread
+	go func() {
+		// Create and start the UI app with enhanced error handling
+		err := ui.StartTUI()
+		if err != nil {
+			// Return error to main thread for proper handling
+			errChan <- err
+		} else {
+			done <- true
 		}
+	}()
 
-		// Use channels for coordinating UI startup and potential fallback
-		done := make(chan bool)
-		errChan := make(chan error)
-
-		// Use a separate goroutine to prevent blocking the main thread
-		go func() {
-			// Create and start the UI app with enhanced error handling
-			app := ui.NewApp()
-			err := app.Start()
-			if err != nil {
-				// Return error to main thread for proper handling
-				errChan <- err
-			} else {
-				done <- true
-			}
-		}()
-
-		// Set a timeout to prevent indefinite freezing with better fallback strategy
+	// Set a timeout to prevent indefinite freezing with better fallback strategy
+	select {
+	case <-done:
+		// UI started successfully, normal exit
+		return
+	case err := <-errChan:
+		// UI failed - provide error information and fallback to CLI
+		fmt.Printf("Error starting TUI: %v\n", err)
+		fmt.Println("Falling back to CLI mode...")
+		
+		// Give brief pause for user to see error
+		time.Sleep(1 * time.Second)
+		cmd.Execute()
+	case <-time.After(5 * time.Second):
+		// Timeout - inform user and suggest CLI mode
+		fmt.Println("\nUI initialization taking too long. This might be due to terminal compatibility issues.")
+		fmt.Println("You can:")
+		fmt.Println("1. Press Ctrl+C to exit and run with --cli flag for command-line mode")
+		fmt.Println("2. Wait a bit longer for UI to load")
+		fmt.Println("3. Check if your terminal supports interactive UIs")
+		
+		// Continue waiting for UI with extended timeout
 		select {
 		case <-done:
-			// UI exited normally
-			fmt.Println("UI session complete")
-		
+			return
 		case err := <-errChan:
-			// UI reported an error, handle more gracefully
-			if os.Getenv("DEBUG") == "1" {
-				fmt.Printf("Debug mode: UI Error details: %v\n", err)
-			} else {
-				fmt.Printf("Error launching interactive UI: %v\n", err)
-			}
-			
-			// More detailed user guidance
-			fmt.Println("\nIt looks like your terminal may not support the interactive UI.")
-			fmt.Println("Trying split-screen UI as a fallback...")
-			
-			// Force terminal reset before trying alternative UI
-			fmt.Print("\033c") // Terminal reset escape code
-			time.Sleep(200 * time.Millisecond)
-			
-			// Try the split-screen UI as fallback - it has better terminal compatibility
-			err = splitscreen.StartWithSampleProblem()
-			if err != nil {
-				if os.Getenv("DEBUG") == "1" {
-					fmt.Printf("Debug mode: Split-screen UI error: %v\n", err)
-				} else {
-					fmt.Printf("Split-screen UI also failed: %v\n", err)
-				}
-				fmt.Println("Falling back to CLI mode.")
-				cmd.Execute()
-			}
-		
-		case <-time.After(3 * time.Second): // Reduced timeout for faster feedback
-			// Terminal reset to prevent frozen state and clear the screen
-			fmt.Print("\033c") 
-			fmt.Println("\nUI initialization timed out. Your terminal might not fully support the interactive UI.")
-			fmt.Println("Trying split-screen UI as a fallback...")
-			
-			// Small delay to ensure terminal is reset
-			time.Sleep(200 * time.Millisecond)
-			
-			// Try the split-screen UI as fallback - it has better terminal compatibility
-			err := splitscreen.StartWithSampleProblem()
-			if err != nil {
-				fmt.Printf("Split-screen UI also failed: %v\n", err)
-				fmt.Println("Falling back to CLI mode.")
-				cmd.Execute()
-			}
+			fmt.Printf("\nError: %v\n", err)
+			fmt.Println("Falling back to CLI mode...")
+			time.Sleep(1 * time.Second)
+			cmd.Execute()
+		case <-time.After(10 * time.Second):
+			// Final timeout - exit gracefully
+			fmt.Println("\nUI failed to start. Please run with --cli flag for command-line mode.")
+			os.Exit(1)
 		}
 	}
 }
 
-// isInteractiveTerminal checks if we're running in an interactive terminal
-// that supports the features we need
-func isInteractiveTerminal() bool {
-	// Use a more comprehensive check for terminal capabilities
-	
-	// Try opening /dev/tty first, but don't fail if it doesn't exist
-	tty, err := os.Open("/dev/tty")
-	if err == nil {
-		tty.Close()
-	} else {
-		// If we can't open /dev/tty, we're likely not in an interactive terminal
-		// but we'll continue with additional checks before giving up completely
-		if os.Getenv("DEBUG") == "1" {
-			fmt.Println("Debug mode: TTY check failed:", err)
-		}
-	}
-	
-	// Check for environment variables that indicate we're running in a CI system
-	if os.Getenv("CI") != "" || os.Getenv("CONTINUOUS_INTEGRATION") != "" {
-		return false
-	}
-
-	// Check if TERM is set to something useful
-	term := os.Getenv("TERM")
-	if term == "dumb" || term == "" {
+// isTerminal checks if we're running in an actual terminal
+func isTerminal() bool {
+	// Check if we're running from vim
+	if os.Getenv("VIM") != "" || os.Getenv("VIM_MODE") == "1" {
 		return false
 	}
 	
-	// Additional checks for terminal type
-	termProgram := os.Getenv("TERM_PROGRAM")
-	if termProgram == "iTerm.app" || 
-	   termProgram == "Apple_Terminal" || 
-	   strings.Contains(term, "xterm") || 
-	   strings.Contains(term, "screen") {
-		// These are generally well-supported terminals
-		return true
+	// Check if stdin is a terminal
+	if fileInfo, _ := os.Stdin.Stat(); (fileInfo.Mode() & os.ModeCharDevice) == 0 {
+		return false
 	}
 	
-	// Check if we can get terminal size as a final test
-	// This usually works even in minimal terminals
-	cmd := exec.Command("stty", "size")
-	cmd.Stdin = os.Stdin
-	output, err := cmd.Output()
-	if err != nil || len(output) == 0 {
-		// If stty fails, we probably don't have a proper terminal
+	// Additional terminal detection for different environments
+	if term := os.Getenv("TERM"); term == "" || term == "dumb" {
+		return false
+	}
+	
+	// Check for specific CI/non-interactive environments
+	if os.Getenv("CI") != "" || os.Getenv("JENKINS_URL") != "" {
+		return false
+	}
+	
+	// Platform-specific terminal checks (optional)
+	if err := checkPlatformTerminal(); err != nil {
 		return false
 	}
 	
 	return true
+}
+
+// Platform-specific terminal checking
+func checkPlatformTerminal() error {
+	// Simple platform detection using 'which' command
+	cmd := exec.Command("which", "tput")
+	if err := cmd.Run(); err != nil {
+		// tput not available, might not be a full terminal
+		return err
+	}
+	
+	// Check if terminal supports colors/interaction
+	cmd = exec.Command("tput", "colors")
+	output, err := cmd.Output()
+	if err != nil {
+		return err
+	}
+	
+	// Parse color count
+	colorCount := strings.TrimSpace(string(output))
+	if colorCount == "" || colorCount == "0" {
+		return fmt.Errorf("terminal does not support colors")
+	}
+	
+	return nil
 }
