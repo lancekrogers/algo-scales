@@ -173,8 +173,12 @@ func isValidLicense(licenseKey string) bool {
 // generateLicenseKey generates a license key from an email
 func generateLicenseKey(email string) string {
 	// In a real implementation, this would generate a cryptographically secure key
-	// For demo, we'll just use a simple hash
-	return fmt.Sprintf("LICENSE-%s-%d", email[:4], time.Now().Unix())
+	// For demo, we'll just use a simple hash. Handle short emails gracefully.
+	prefix := email
+	if len(prefix) > 4 {
+		prefix = prefix[:4]
+	}
+	return fmt.Sprintf("LICENSE-%s-%d", prefix, time.Now().Unix())
 }
 
 // generateSignature creates a signature for a license
