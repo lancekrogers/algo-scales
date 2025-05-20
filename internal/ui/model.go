@@ -322,6 +322,14 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	case configLoadedMsg:
 		m.config = msg.config
 		
+	case navigateBackMsg:
+		m, cmd = m.handleBack()
+		cmds = append(cmds, cmd)
+		// Start slide animation
+		m.animation = NewAnimation(AnimationSlideLeft, 300*time.Millisecond)
+		cmds = append(cmds, AnimationTick())
+		return m, tea.Batch(cmds...)
+		
 	case SelectionChangedMsg:
 		m = m.navigate(msg.State)
 		cmds = append(cmds, AnimationTick())

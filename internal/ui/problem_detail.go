@@ -3,7 +3,6 @@ package ui
 import (
 	"fmt"
 	"strings"
-	"time"
 
 	"github.com/charmbracelet/bubbles/viewport"
 	tea "github.com/charmbracelet/bubbletea"
@@ -15,6 +14,16 @@ func (m Model) updateProblemDetail(msg tea.Msg) (Model, tea.Cmd) {
 	var cmd tea.Cmd
 	
 	switch msg := msg.(type) {
+	case sessionErrorMsg:
+		// Handle error from splitscreen session
+		m.problemDetail.showInfo = true
+		errorContent := m.problemDetailContent() + "\n\n" + lipgloss.NewStyle().
+			Foreground(lipgloss.Color("196")).
+			Bold(true).
+			Render(fmt.Sprintf("Error starting session: %v", msg.err))
+		m.problemDetail.viewport.SetContent(errorContent)
+		return m, nil
+		
 	case tea.WindowSizeMsg:
 		m.width = msg.Width
 		m.height = msg.Height
@@ -31,10 +40,9 @@ func (m Model) updateProblemDetail(msg tea.Msg) (Model, tea.Cmd) {
 	case tea.KeyMsg:
 		switch msg.String() {
 		case "enter":
-			// Start session with selected problem
-			m.session.problem = m.problemDetail.problem
-			m.session.startTime = time.Now()
-			return m.navigate(StateSession), startSession(m.problemDetail.problem)
+			// Start session with selected problem using the split-screen interface
+			problem := m.problemDetail.problem
+			return m, startSplitScreenSession(&problem, m.config.Language)
 		case "h":
 			// Toggle hint
 			m.problemDetail.showHint = !m.problemDetail.showHint

@@ -1,3 +1,4 @@
+// Package ui contains the terminal user interface components
 package ui
 
 import (
@@ -10,6 +11,7 @@ import (
 	"github.com/lancekrogers/algo-scales/internal/daily"
 	"github.com/lancekrogers/algo-scales/internal/problem"
 	"github.com/lancekrogers/algo-scales/internal/stats"
+	"github.com/lancekrogers/algo-scales/internal/ui/splitscreen"
 )
 
 // loadProblems loads all available problems
@@ -131,6 +133,23 @@ func startSession(prob problem.Problem) tea.Cmd {
 	}
 }
 
+// startSplitScreenSession launches the split-screen interface for a problem
+func startSplitScreenSession(prob *problem.Problem, language string) tea.Cmd {
+	return func() tea.Msg {
+		// We don't need to create a local model - instead we'll directly use the StartUI function
+		// The splitscreen UI takes care of all problem setup internally
+		
+		// Launch the split-screen interface
+		err := splitscreen.StartUI(prob)
+		if err != nil {
+			return sessionErrorMsg{err: err}
+		}
+		
+		// Return to problem selection when done
+		return navigateBackMsg{}
+	}
+}
+
 // Loading commands
 func startLoading(message string) tea.Cmd {
 	return func() tea.Msg {
@@ -150,3 +169,8 @@ type startLoadingMsg struct {
 }
 
 type stopLoadingMsg struct{}
+
+// Test results message for sessions
+type sessionErrorMsg struct {
+	err error
+}

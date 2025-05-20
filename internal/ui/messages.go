@@ -13,6 +13,7 @@ type navigateToMsg struct {
 	state State
 }
 
+// navigateBackMsg is used to navigate back to the previous screen
 type navigateBackMsg struct{}
 
 // Data loading messages

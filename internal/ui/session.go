@@ -11,6 +11,8 @@ import (
 	"github.com/charmbracelet/bubbles/viewport"
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/lipgloss"
+	"github.com/lancekrogers/algo-scales/internal/common/config"
+	"github.com/lancekrogers/algo-scales/internal/problem"
 )
 
 // Update handles updates for the session screen
@@ -47,14 +49,22 @@ func (m Model) updateSession(msg tea.Msg) (Model, tea.Cmd) {
 		m.session.testResults = msg.results
 		m.session.viewport.SetContent(m.sessionContent())
 		
+	case editorFinishedMsg:
+		m.session.message = "Editor closed. Press 't' to run tests."
+		return m, nil
+		
+	case editorErrorMsg:
+		m.session.message = fmt.Sprintf("Error opening editor: %v", msg.error)
+		return m, nil
+		
 	case tea.KeyMsg:
 		switch msg.String() {
 		case "e":
 			// Open editor
-			return m, m.openEditor()
+			return m, openEditor(m.session.sessionID, m.config.Language, m.session.problem)
 		case "t":
 			// Run tests
-			return m, m.runTests()
+			return m, runTests(m.session.sessionID, m.config.Language)
 		case "h":
 			// Toggle hint
 			m.session.showHint = !m.session.showHint
@@ -171,7 +181,11 @@ func (m Model) sessionContent() string {
 		Foreground(lipgloss.Color("212")).
 		Render("Problem"))
 	content.WriteString("\n\n")
-	content.WriteString(p.Description)
+	if p.Description != "" {
+		content.WriteString(p.Description)
+	} else {
+		content.WriteString("No description available")
+	}
 	content.WriteString("\n\n")
 	
 	// Examples
@@ -243,21 +257,30 @@ func (m Model) sessionContent() string {
 }
 
 // openEditor opens the code file in the user's editor
-func (m Model) openEditor() tea.Cmd {
+func openEditor(sessionID, language string, problem problem.Problem) tea.Cmd {
 	return func() tea.Msg {
 		// Get the session directory
-		sessionDir := fmt.Sprintf("/tmp/algo-scales/sessions/%s", m.session.sessionID)
-		codeFile := fmt.Sprintf("%s/solution.%s", sessionDir, getFileExtension(m.config.Language))
+		sessionDir := fmt.Sprintf("/tmp/algo-scales/sessions/%s", sessionID)
+		codeFile := fmt.Sprintf("%s/solution.%s", sessionDir, getFileExtension(language))
 		
 		// Create the file if it doesn't exist
 		if _, err := os.Stat(codeFile); os.IsNotExist(err) {
 			os.MkdirAll(sessionDir, 0755)
 			// Write starter code
-			os.WriteFile(codeFile, []byte(m.session.problem.StarterCode[m.config.Language]), 0644)
+			starterCode := problem.StarterCode[language]
+			if starterCode == "" {
+				// Provide a basic template if no starter code
+				starterCode = getDefaultTemplate(language, problem)
+			}
+			os.WriteFile(codeFile, []byte(starterCode), 0644)
 		}
 		
-		// Get editor
-		editor := os.Getenv("EDITOR")
+		// Get editor from config or environment
+		cfg, _ := config.LoadConfig()
+		editor := cfg.EditorCommand
+		if editor == "" {
+			editor = os.Getenv("EDITOR")
+		}
 		if editor == "" {
 			if runtime.GOOS == "windows" {
 				editor = "notepad"
@@ -282,8 +305,17 @@ func (m Model) openEditor() tea.Cmd {
 }
 
 // runTests runs tests on the current solution
-func (m Model) runTests() tea.Cmd {
+func runTests(sessionID, language string) tea.Cmd {
 	return func() tea.Msg {
+		// Get the session directory and code file
+		sessionDir := fmt.Sprintf("/tmp/algo-scales/sessions/%s", sessionID)
+		codeFile := fmt.Sprintf("%s/solution.%s", sessionDir, getFileExtension(language))
+		
+		// Check if file exists
+		if _, err := os.Stat(codeFile); os.IsNotExist(err) {
+			return testResultsMsg{results: "Error: No solution file found. Press 'e' to edit your solution first."}
+		}
+		
 		// Simulate test run for now
 		time.Sleep(1 * time.Second)
 		
@@ -359,4 +391,56 @@ func max(a, b int) int {
 		return a
 	}
 	return b
+}
+
+
+// getDefaultTemplate provides a basic template when no starter code is available
+func getDefaultTemplate(language string, problem problem.Problem) string {
+	switch language {
+	case "python":
+		return fmt.Sprintf(`# %s
+# %s
+
+def solution():
+    # TODO: Implement your solution here
+    pass
+
+if __name__ == "__main__":
+    # Test your solution here
+    pass
+`, problem.Title, problem.Description)
+	case "javascript":
+		return fmt.Sprintf(`// %s
+// %s
+
+function solution() {
+    // TODO: Implement your solution here
+}
+
+// Test your solution here
+`, problem.Title, problem.Description)
+	case "go":
+		return fmt.Sprintf(`// %s
+// %s
+
+package main
+
+import "fmt"
+
+func solution() {
+    // TODO: Implement your solution here
+}
+
+func main() {
+    // Test your solution here
+    fmt.Println("Solution not implemented yet")
+}
+`, problem.Title, problem.Description)
+	default:
+		return fmt.Sprintf(`// %s
+// %s
+
+// TODO: Implement your solution here
+`, problem.Title, problem.Description)
+	}
 }
