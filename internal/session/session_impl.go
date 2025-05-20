@@ -8,6 +8,7 @@ import (
 	"github.com/lancekrogers/algo-scales/internal/common/interfaces"
 	"github.com/lancekrogers/algo-scales/internal/common/utils"
 	"github.com/lancekrogers/algo-scales/internal/problem"
+	"github.com/lancekrogers/algo-scales/internal/session/execution"
 	"github.com/lancekrogers/algo-scales/internal/stats"
 )
 
@@ -23,6 +24,31 @@ type SessionImpl struct {
 	ShowPattern  bool
 	solutionShown bool
 	Code         string
+	testRegistry interfaces.TestRunnerRegistry
+	fs          interfaces.FileSystem
+}
+
+// NewSessionImpl creates a new session implementation
+func NewSessionImpl(opts interfaces.SessionOptions, prob *problem.Problem) *SessionImpl {
+	return &SessionImpl{
+		Options:      opts,
+		Problem:      prob,
+		StartTime:    time.Now(),
+		testRegistry: execution.DefaultRegistry,
+		fs:          utils.NewFileSystem(),
+	}
+}
+
+// WithTestRegistry sets a custom test runner registry
+func (s *SessionImpl) WithTestRegistry(registry interfaces.TestRunnerRegistry) *SessionImpl {
+	s.testRegistry = registry
+	return s
+}
+
+// WithFileSystem sets a custom file system
+func (s *SessionImpl) WithFileSystem(fs interfaces.FileSystem) *SessionImpl {
+	s.fs = fs
+	return s
 }
 
 // GetProblem returns the current problem
@@ -136,7 +162,7 @@ func (s *SessionImpl) GetCode() string {
 	
 	// Otherwise read from file
 	if s.CodeFile != "" {
-		data, err := utils.ReadFile(s.CodeFile)
+		data, err := s.fs.ReadFile(s.CodeFile)
 		if err == nil {
 			s.Code = string(data)
 			return s.Code
@@ -157,7 +183,7 @@ func (s *SessionImpl) SetCode(code string) error {
 	
 	// Update file if it exists
 	if s.CodeFile != "" {
-		return utils.WriteFile(s.CodeFile, []byte(code), 0644)
+		return s.fs.WriteFile(s.CodeFile, []byte(code), 0644)
 	}
 	
 	return nil
@@ -165,8 +191,17 @@ func (s *SessionImpl) SetCode(code string) error {
 
 // RunTests executes tests on the current solution
 func (s *SessionImpl) RunTests() ([]interfaces.TestResult, bool, error) {
-	// Try to use the real execution engine
-	results, allPassed, err := ExecuteTests(s, 30*time.Second)
+	// Get the test runner for this language
+	runner, err := s.testRegistry.GetRunner(s.Options.Language)
+	if err != nil {
+		return nil, false, fmt.Errorf("no test runner available for %s: %v", s.Options.Language, err)
+	}
+	
+	// Get the current code
+	code := s.GetCode()
+	
+	// Execute tests
+	results, allPassed, err := runner.ExecuteTests(s.Problem, code, 30*time.Second)
 	if err != nil {
 		// If real execution fails, fall back to simulation for now
 		fmt.Printf("Warning: Code execution failed (%v), falling back to simulation.\n", err)

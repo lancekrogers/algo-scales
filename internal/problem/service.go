@@ -1,21 +1,50 @@
 package problem
 
+import (
+	"github.com/lancekrogers/algo-scales/internal/common/interfaces"
+)
+
 // Service provides operations on problems
-type Service struct{}
+type Service struct {
+	repository interfaces.ProblemRepository
+}
 
 // NewService creates a new problem service
 func NewService() *Service {
-	return &Service{}
+	return &Service{
+		repository: NewRepository(),
+	}
+}
+
+// WithRepository sets a custom repository for the service
+func (s *Service) WithRepository(repo interfaces.ProblemRepository) *Service {
+	s.repository = repo
+	return s
 }
 
 // ListAll returns all available problems
 func (s *Service) ListAll() ([]Problem, error) {
-	return ListAll()
+	return s.repository.GetAll()
 }
 
 // GetByID retrieves a problem by its ID
 func (s *Service) GetByID(id string) (*Problem, error) {
-	return GetByID(id)
+	return s.repository.GetByID(id)
+}
+
+// GetByPattern returns problems matching a specific pattern
+func (s *Service) GetByPattern(pattern string) ([]Problem, error) {
+	return s.repository.GetByPattern(pattern)
+}
+
+// GetPatterns returns all available algorithm patterns
+func (s *Service) GetPatterns() ([]string, error) {
+	return s.repository.GetPatterns()
+}
+
+// GetLanguages returns all available programming languages
+func (s *Service) GetLanguages() ([]string, error) {
+	return s.repository.GetLanguages()
 }
 
 // TestSolution tests a user's solution against test cases
@@ -26,7 +55,7 @@ func (s *Service) TestSolution(problemID, code, language string) ([]struct {
 	Passed   bool
 }, error) {
 	// Get the problem
-	p, err := s.GetByID(problemID)
+	p, err := s.repository.GetByID(problemID)
 	if err != nil {
 		return nil, err
 	}

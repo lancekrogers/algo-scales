@@ -13,6 +13,7 @@ import (
 	"github.com/lancekrogers/algo-scales/internal/common/utils"
 	"github.com/lancekrogers/algo-scales/internal/problem"
 	"github.com/lancekrogers/algo-scales/internal/session"
+	"github.com/lancekrogers/algo-scales/internal/stats"
 	"github.com/lancekrogers/algo-scales/internal/ui/model"
 	"github.com/lancekrogers/algo-scales/internal/ui/view"
 )
@@ -30,6 +31,12 @@ type Controller struct {
 	// Session management
 	sessionManager interfaces.SessionManager
 	activeSession  interfaces.Session
+	
+	// Stats service
+	statsService   interfaces.StatsService
+	
+	// Problem repository
+	problemRepo    interfaces.ProblemRepository
 }
 
 // NewController creates a new controller with the model and initializes components
@@ -40,6 +47,8 @@ func NewController(m *model.UIModel) *Controller {
 		spinners:          view.NewCustomSpinners(),
 		patternViz:        view.NewPatternVisualization(),
 		sessionManager:    session.NewManager(),
+		statsService:      stats.NewService(),
+		problemRepo:       problem.NewRepository(),
 	}
 }
 
@@ -47,14 +56,35 @@ func NewController(m *model.UIModel) *Controller {
 func (c *Controller) Initialize() tea.Cmd {
 	// Load initial problems
 	return func() tea.Msg {
-		// Load all problems
-		problems, err := problem.ListAll()
+		// Load all problems using the problem repository
+		problems, err := c.problemRepo.GetAll()
 		if err != nil {
 			return model.ErrorMsg(fmt.Sprintf("Failed to load problems: %v", err))
 		}
 
-		// Load any saved stats
-		// TODO: Implement stats loading
+		// Load stats using StatsService
+		summary, err := c.statsService.GetSummary()
+		if err != nil {
+			log.Printf("Failed to load stats: %v", err)
+			// Non-critical error, continue without stats
+		} else {
+			// Update model with stats
+			c.Model.Stats.TotalSolved = summary.TotalSolved
+			c.Model.Stats.TotalAttempted = summary.TotalAttempted
+			c.Model.Stats.SuccessRate = summary.SuccessRate
+		}
+		
+		// Load pattern stats
+		patternStats, err := c.statsService.GetByPattern()
+		if err == nil {
+			// Update model with pattern stats
+			for pattern, stat := range patternStats {
+				c.Model.Stats.PatternCounts[pattern] = stat.Solved
+				if stat.Attempted > 0 {
+					c.Model.Stats.PatternsProgress[pattern] = float64(stat.Solved) / float64(stat.Attempted)
+				}
+			}
+		}
 
 		return model.ProblemsLoadedMsg{Problems: problems}
 	}
@@ -211,14 +241,9 @@ func (c *Controller) handleSelection(index int) tea.Cmd {
 				c.Model.SelectedIndex = 0
 
 				// Filter problems by pattern
-				var filtered []problem.Problem
-				for _, p := range c.Model.AvailableProblems {
-					for _, patternName := range p.Patterns {
-						if patternName == pattern {
-							filtered = append(filtered, p)
-							break
-						}
-					}
+				filtered, err := c.problemRepo.GetByPattern(pattern)
+				if err != nil {
+					return model.ErrorMsg(fmt.Sprintf("Failed to filter problems: %v", err))
 				}
 
 				// Update available problems list
@@ -419,19 +444,10 @@ func (c *Controller) updateStatistics() {
 	for _, pattern := range problem.Patterns {
 		c.Model.Stats.PatternCounts[pattern]++
 
-		// Calculate progress for this pattern
-		patternProblems := 0
-		for _, p := range c.Model.AvailableProblems {
-			for _, pt := range p.Patterns {
-				if pt == pattern {
-					patternProblems++
-				}
-			}
-		}
-
-		// Update progress (0.0 to 1.0)
-		if patternProblems > 0 {
-			c.Model.Stats.PatternsProgress[pattern] = float64(c.Model.Stats.PatternCounts[pattern]) / float64(patternProblems)
+		// Update progress based on total problems with this pattern
+		filtered, err := c.problemRepo.GetByPattern(pattern)
+		if err == nil && len(filtered) > 0 {
+			c.Model.Stats.PatternsProgress[pattern] = float64(c.Model.Stats.PatternCounts[pattern]) / float64(len(filtered))
 		}
 	}
 
@@ -460,6 +476,25 @@ func (c *Controller) updateStatistics() {
 	}
 
 	c.Model.Stats.LastPracticeDate = time.Now()
+	
+	// Store session stats
+	sessionStats := stats.SessionStats{
+		ProblemID:    problem.ID,
+		StartTime:    c.activeSession.GetStartTime(),
+		EndTime:      time.Now(),
+		Duration:     time.Since(c.activeSession.GetStartTime()),
+		Solved:       true,
+		Mode:         c.Model.Session.Mode,
+		HintsUsed:    c.activeSession.AreHintsShown(),
+		SolutionUsed: c.activeSession.IsSolutionShown(),
+		Patterns:     problem.Patterns,
+		Difficulty:   problem.Difficulty,
+	}
+	
+	// Record stats using the stats service
+	if err := c.statsService.RecordSession(sessionStats); err != nil {
+		log.Printf("Failed to record session stats: %v", err)
+	}
 }
 
 // checkAchievements checks for any newly unlocked achievements
@@ -496,4 +531,3 @@ func (c *Controller) checkAchievements() tea.Cmd {
 		return nil
 	}
 }
-

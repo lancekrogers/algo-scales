@@ -10,6 +10,7 @@ import (
 	"github.com/lancekrogers/algo-scales/internal/common/interfaces"
 	"github.com/lancekrogers/algo-scales/internal/common/utils"
 	"github.com/lancekrogers/algo-scales/internal/problem"
+	"github.com/lancekrogers/algo-scales/internal/session/execution"
 )
 
 // Manager manages practice sessions
@@ -17,13 +18,37 @@ type Manager struct {
 	// Map of active sessions by ID
 	sessions     map[string]interfaces.Session
 	sessionMutex sync.RWMutex
+	fs           interfaces.FileSystem
+	problemRepo  interfaces.ProblemRepository
+	testRegistry interfaces.TestRunnerRegistry
 }
 
 // NewManager creates a new session manager
 func NewManager() *Manager {
 	return &Manager{
-		sessions: make(map[string]interfaces.Session),
+		sessions:     make(map[string]interfaces.Session),
+		fs:           utils.NewFileSystem(),
+		problemRepo:  problem.NewRepository(),
+		testRegistry: execution.DefaultRegistry,
 	}
+}
+
+// WithFileSystem sets a custom file system for the manager
+func (m *Manager) WithFileSystem(fs interfaces.FileSystem) *Manager {
+	m.fs = fs
+	return m
+}
+
+// WithProblemRepository sets a custom problem repository
+func (m *Manager) WithProblemRepository(repo interfaces.ProblemRepository) *Manager {
+	m.problemRepo = repo
+	return m
+}
+
+// WithTestRunnerRegistry sets a custom test runner registry
+func (m *Manager) WithTestRunnerRegistry(registry interfaces.TestRunnerRegistry) *Manager {
+	m.testRegistry = registry
+	return m
 }
 
 // StartSession begins a new practice session
@@ -34,36 +59,33 @@ func (m *Manager) StartSession(opts interfaces.SessionOptions) (interfaces.Sessi
 	
 	if opts.ProblemID != "" {
 		// Specific problem requested
-		p, err = problem.GetByID(opts.ProblemID)
+		p, err = m.problemRepo.GetByID(opts.ProblemID)
 		if err != nil {
 			return nil, fmt.Errorf("failed to load problem: %v", err)
 		}
 	} else if opts.Mode == interfaces.CramMode {
 		// Cram mode - choose problems from common patterns
-		p, err = selectCramProblem()
+		p, err = m.selectCramProblem()
 		if err != nil {
 			return nil, fmt.Errorf("failed to select problem for cram mode: %v", err)
 		}
 	} else {
 		// Filter by pattern/difficulty if specified
-		p, err = selectProblem(opts.Pattern, opts.Difficulty)
+		p, err = m.selectProblem(opts.Pattern, opts.Difficulty)
 		if err != nil {
 			return nil, fmt.Errorf("failed to select problem: %v", err)
 		}
 	}
 	
 	// Initialize session
-	session := &SessionImpl{
-		Options:      opts,
-		Problem:      p,
-		StartTime:    time.Now(),
-		hintsShown:   opts.Mode == interfaces.LearnMode,
-		ShowPattern:  opts.Mode == interfaces.LearnMode,
-		solutionShown: false,
-	}
+	session := NewSessionImpl(opts, p)
+	session.hintsShown = opts.Mode == interfaces.LearnMode
+	session.ShowPattern = opts.Mode == interfaces.LearnMode
+	session.WithFileSystem(m.fs)
+	session.WithTestRegistry(m.testRegistry)
 	
 	// Create workspace
-	if err := createWorkspace(session); err != nil {
+	if err := m.createWorkspace(session); err != nil {
 		return nil, fmt.Errorf("failed to create workspace: %v", err)
 	}
 	
@@ -110,10 +132,10 @@ func (m *Manager) FinishSession(sessionID string, solved bool) error {
 }
 
 // createWorkspace sets up a workspace for the problem
-func createWorkspace(s *SessionImpl) error {
+func (m *Manager) createWorkspace(s *SessionImpl) error {
 	// Create workspace directory
-	workspaceDir := filepath.Join(utils.TempDir(), "algo-scales", s.Problem.ID)
-	if err := utils.CreateDirectory(workspaceDir); err != nil {
+	workspaceDir := filepath.Join(m.fs.TempDir(), "algo-scales", s.Problem.ID)
+	if err := m.fs.MkdirAll(workspaceDir, 0755); err != nil {
 		return err
 	}
 
@@ -122,7 +144,7 @@ func createWorkspace(s *SessionImpl) error {
 	// Create problem description file
 	descriptionFile := filepath.Join(workspaceDir, "problem.md")
 	description := s.FormatDescription()
-	if err := utils.WriteFile(descriptionFile, []byte(description), 0644); err != nil {
+	if err := m.fs.WriteFile(descriptionFile, []byte(description), 0644); err != nil {
 		return err
 	}
 
@@ -140,7 +162,7 @@ func createWorkspace(s *SessionImpl) error {
 		}
 	}
 
-	if err := utils.WriteFile(codeFile, []byte(starterCode), 0644); err != nil {
+	if err := m.fs.WriteFile(codeFile, []byte(starterCode), 0644); err != nil {
 		return err
 	}
 
@@ -150,97 +172,118 @@ func createWorkspace(s *SessionImpl) error {
 	return nil
 }
 
-// selectProblem chooses a problem based on filters
-var selectProblem = func(pattern, difficulty string) (*problem.Problem, error) {
+// selectProblem chooses a problem based on pattern and difficulty
+func (m *Manager) selectProblem(pattern, difficulty string) (*problem.Problem, error) {
 	// Get all problems
-	problems, err := problem.ListAll()
-	if err != nil {
-		return nil, err
-	}
-
-	// Filter problems
-	var filtered []problem.Problem
-	for _, p := range problems {
-		matchesPattern := pattern == "" || containsPattern(p.Patterns, pattern)
-		matchesDifficulty := difficulty == "" || p.Difficulty == difficulty
-
-		if matchesPattern && matchesDifficulty {
-			filtered = append(filtered, p)
+	var problems []problem.Problem
+	var err error
+	
+	if pattern != "" && difficulty != "" {
+		// Filter by both pattern and difficulty
+		byPattern, err := m.problemRepo.GetByPattern(pattern)
+		if err != nil {
+			return nil, err
+		}
+		
+		// Further filter by difficulty
+		for _, p := range byPattern {
+			if p.Difficulty == difficulty {
+				problems = append(problems, p)
+			}
+		}
+	} else if pattern != "" {
+		// Filter by pattern only
+		problems, err = m.problemRepo.GetByPattern(pattern)
+		if err != nil {
+			return nil, err
+		}
+	} else if difficulty != "" {
+		// Filter by difficulty only
+		problems, err = m.problemRepo.GetByDifficulty(difficulty)
+		if err != nil {
+			return nil, err
+		}
+	} else {
+		// No filters, get all problems
+		problems, err = m.problemRepo.GetAll()
+		if err != nil {
+			return nil, err
 		}
 	}
-
-	if len(filtered) == 0 {
-		return nil, fmt.Errorf("no problems match the specified filters")
+	
+	if len(problems) == 0 {
+		return nil, fmt.Errorf("no problems found matching criteria")
 	}
-
-	// Choose a random problem from filtered list
+	
+	// Select random problem
 	rand.Seed(time.Now().UnixNano())
-	selected := filtered[rand.Intn(len(filtered))]
-
-	return &selected, nil
+	selectedIndex := rand.Intn(len(problems))
+	return &problems[selectedIndex], nil
 }
 
 // selectCramProblem chooses a problem for cram mode
-var selectCramProblem = func() (*problem.Problem, error) {
-	// For cram mode, we focus on the most common patterns
+func (m *Manager) selectCramProblem() (*problem.Problem, error) {
+	// For cram mode, we typically want to focus on common patterns
+	// This is a simplified implementation - may be improved in the future
 	commonPatterns := []string{
-		"sliding-window",
 		"two-pointers",
-		"fast-slow-pointers",
+		"sliding-window",
 		"hash-map",
 		"binary-search",
 		"dfs",
 		"bfs",
 		"dynamic-programming",
-		"greedy",
-		"union-find",
-		"heap",
 	}
-
+	
 	// Choose a random pattern
 	rand.Seed(time.Now().UnixNano())
-	pattern := commonPatterns[rand.Intn(len(commonPatterns))]
-
-	// Get a problem with this pattern
-	return selectProblem(pattern, "")
-}
-
-// Helper functions
-
-// containsPattern checks if a pattern is in a list
-func containsPattern(patterns []string, pattern string) bool {
-	for _, p := range patterns {
-		if p == pattern {
-			return true
-		}
+	patternIndex := rand.Intn(len(commonPatterns))
+	selectedPattern := commonPatterns[patternIndex]
+	
+	// Get problems for this pattern
+	patternProblems, err := m.problemRepo.GetByPattern(selectedPattern)
+	if err != nil {
+		return nil, err
 	}
-	return false
+	
+	if len(patternProblems) == 0 {
+		return nil, fmt.Errorf("no problems found for pattern: %s", selectedPattern)
+	}
+	
+	// Select random problem from this pattern
+	selectedIndex := rand.Intn(len(patternProblems))
+	return &patternProblems[selectedIndex], nil
 }
 
-// JoinStrings joins a string slice with commas
-func JoinStrings(strings []string) string {
-	if len(strings) == 0 {
+// JoinStrings joins a slice of strings with commas
+func JoinStrings(items []string) string {
+	if len(items) == 0 {
 		return ""
 	}
-
-	result := strings[0]
-	for i := 1; i < len(strings); i++ {
-		result += ", " + strings[i]
+	
+	result := items[0]
+	for i := 1; i < len(items); i++ {
+		result += ", " + items[i]
 	}
-
+	
 	return result
 }
 
 // languageExtension returns the file extension for a language
 func languageExtension(language string) string {
-	switch language {
-	case "go":
-		return "go"
-	case "python":
-		return "py"
-	case "javascript":
-		return "js"
-	default:
-		return "txt"
+	extensions := map[string]string{
+		"go":         "go",
+		"python":     "py",
+		"javascript": "js",
+		"java":       "java",
+		"c++":        "cpp",
+		"typescript": "ts",
 	}
+	
+	if ext, ok := extensions[language]; ok {
+		return ext
+	}
+	
+	// Default to .txt if language not recognized
+	return "txt"
 }
