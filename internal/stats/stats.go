@@ -465,6 +465,11 @@ func endOfWeek(t time.Time) time.Time {
 	return startOfWeek(t).AddDate(0, 0, 6)
 }
 
+// GetAllSessions exports the loadAllSessions function for external use
+var GetAllSessions = func() ([]SessionStats, error) {
+	return loadAllSessions()
+}
+
 // getConfigDir returns the configuration directory
 // Exported as variable for testing
 var getConfigDir = func() string {

@@ -22,7 +22,17 @@ Just as musicians practice scales daily to build technique, developers can pract
 algorithm patterns daily to build problem-solving intuition. This command will guide
 you through one problem from each major algorithm pattern (musical scale).`,
 	Run: func(cmd *cobra.Command, args []string) {
-		startDailyScale()
+		// Check if we should use CLI mode
+		useCliMode, _ := rootCmd.PersistentFlags().GetBool("cli")
+		legacyCLI, _ := rootCmd.PersistentFlags().GetBool("legacy")
+		vimMode, _ := rootCmd.PersistentFlags().GetBool("vim-mode")
+		
+		// Use CLI mode if any CLI-related flag is set
+		if useCliMode || legacyCLI || vimMode {
+			startDailyCliMode()
+		} else {
+			startDailyScale()
+		}
 	},
 }
 
