@@ -22,16 +22,16 @@ Just as musicians practice scales daily to build technique, developers can pract
 algorithm patterns daily to build problem-solving intuition. This command will guide
 you through one problem from each major algorithm pattern (musical scale).`,
 	Run: func(cmd *cobra.Command, args []string) {
-		// Check if we should use CLI mode
-		useCliMode, _ := rootCmd.PersistentFlags().GetBool("cli")
-		legacyCLI, _ := rootCmd.PersistentFlags().GetBool("legacy")
-		vimMode, _ := rootCmd.PersistentFlags().GetBool("vim-mode")
+		// Check if TUI mode is requested
+		useTUI, _ := rootCmd.PersistentFlags().GetBool("tui")
+		useSplit, _ := rootCmd.PersistentFlags().GetBool("split")
 		
-		// Use CLI mode if any CLI-related flag is set
-		if useCliMode || legacyCLI || vimMode {
-			startDailyCliMode()
-		} else {
+		// Use TUI mode if explicitly requested and in a terminal
+		if (useTUI || useSplit) && isTerminal() {
 			startDailyScale()
+		} else {
+			// Default to CLI mode
+			startDailyCliMode()
 		}
 	},
 }

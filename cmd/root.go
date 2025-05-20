@@ -21,25 +21,26 @@ import (
 var rootCmd = &cobra.Command{
 	Use:   "algo-scales",
 	Short: "Algorithm study tool for interview preparation",
-	Long: `Algo Scales is a terminal-based algorithm study tool designed to help developers
+	Long: `Algo Scales is a command-line algorithm study tool designed to help developers
 prepare for coding interviews efficiently. It focuses on teaching common algorithm
-patterns through curated problems and features different learning modes.`,
+patterns through curated problems and features different learning modes.
+
+By default, Algo Scales runs in CLI mode with interactive commands. For a terminal
+UI experience, use the --tui or --split flags.`,
 	
-	// Run the TUI by default
+	// Run the CLI by default now, with option for TUI
 	Run: func(cmd *cobra.Command, args []string) {
-		// Don't attempt to run TUI in test mode
+		// Don't attempt to run any UI in test mode
 		if os.Getenv("TESTING") == "1" {
 			fmt.Fprintln(cmd.OutOrStdout(), "algo-scales - Algorithm study tool for interview preparation")
 			return
 		}
 		
 		// Check the flags to determine the UI mode
-		useCLI, _ := cmd.Flags().GetBool("cli")
-		legacyCLI, _ := cmd.Flags().GetBool("legacy") 
-		vimMode, _ := cmd.Flags().GetBool("vim-mode")
-		splitUI, _ := cmd.Flags().GetBool("split")
-		tuiFlag, _ := cmd.Flags().GetBool("tui")
+		useTUI, _ := cmd.Flags().GetBool("tui")
+		useSplit, _ := cmd.Flags().GetBool("split")
 		splitscreenFlag, _ := cmd.Flags().GetBool("splitscreen")
+		vimMode, _ := cmd.Flags().GetBool("vim-mode")
 		debugFlag, _ := cmd.Flags().GetBool("debug")
 		
 		// Set debug mode if flag is used
@@ -47,53 +48,46 @@ patterns through curated problems and features different learning modes.`,
 			os.Setenv("DEBUG", "1")
 		}
 		
-		// Determine final split screen mode from any of the aliased flags
-		useSplitScreen := splitUI || tuiFlag || splitscreenFlag
-		
 		// Set VIM_MODE environment variable if needed
 		if vimMode {
 			os.Setenv("VIM_MODE", "1")
 		}
 		
-		// Determine if we should use CLI mode
-		useCliMode := useCLI || legacyCLI || vimMode || !isTerminal()
+		// Determine if any TUI mode is requested
+		useSplitScreen := useSplit || splitscreenFlag
+		useTuiMode := useTUI || useSplitScreen
 		
-		if useCliMode {
-			// Use CLI mode - just show help since no specific command was given
-			if err := cmd.Help(); err != nil {
-				fmt.Println("Error displaying help:", err)
-			}
-			return
+		// Check if this is a proper terminal if TUI is requested
+		if useTuiMode && !isTerminal() {
+			fmt.Println("Warning: TUI requested but not running in a compatible terminal.")
+			fmt.Println("Falling back to CLI mode.")
+			useTuiMode = false
 		}
 		
 		// Use split-screen UI if requested
-		if useSplitScreen {
+		if useSplitScreen && isTerminal() {
 			if err := splitscreen.StartUI(nil); err != nil {
 				fmt.Printf("Error running split-screen UI: %v\n", err)
-				fmt.Println("Falling back to standard TUI...")
-				// Fall through to standard TUI
+				fmt.Println("Falling back to CLI mode...")
+				// Fall through to CLI mode
 			} else {
 				return // Split-screen successful, exit
 			}
-		}
-		
-		// Default to the terminal UI (TUI)
-		if isTerminal() {
-			// Start the TUI
+		} else if useTUI && isTerminal() {
+			// Use standard TUI if requested
 			err := ui.StartTUI()
 			if err != nil {
 				fmt.Printf("Error starting TUI: %v\n", err)
 				fmt.Println("Falling back to CLI mode...")
-				// Show help as fallback
-				if err := cmd.Help(); err != nil {
-					fmt.Println("Error displaying help:", err)
-				}
+				// Fall through to CLI mode
+			} else {
+				return // TUI successful, exit
 			}
-		} else {
-			// Show help for non-terminal environments
-			if err := cmd.Help(); err != nil {
-				fmt.Println("Error displaying help:", err)
-			}
+		}
+		
+		// Default to CLI mode - show help since no specific command was given
+		if err := cmd.Help(); err != nil {
+			fmt.Println("Error displaying help:", err)
 		}
 	},
 }
@@ -110,7 +104,7 @@ func Execute() {
 // hideFlags hides flags that shouldn't show in help output
 func hideFlags(cmd *cobra.Command) {
 	// Hide these flags from the command and all its subcommands
-	flagsToHide := []string{"legacy", "tui", "splitscreen"}
+	flagsToHide := []string{"legacy", "cli", "splitscreen"}
 	
 	for _, flag := range flagsToHide {
 		// Skip if the flag doesn't exist
@@ -131,15 +125,17 @@ func init() {
 	cobra.OnInitialize(initConfig)
 	
 	// Add global flags
-	rootCmd.PersistentFlags().Bool("cli", false, "Use command-line interface mode (no TUI)")
-	rootCmd.PersistentFlags().Bool("legacy", false, "Alias for --cli")
+	rootCmd.PersistentFlags().Bool("tui", false, "Use terminal UI mode instead of CLI")
+	rootCmd.PersistentFlags().Bool("split", false, "Use split-screen TUI mode")
+	rootCmd.PersistentFlags().Bool("splitscreen", false, "Alias for --split")
 	rootCmd.PersistentFlags().Bool("debug", false, "Enable debug mode")
 	rootCmd.PersistentFlags().Bool("vim-mode", false, "Use VIM-optimized mode")
-	rootCmd.PersistentFlags().Bool("split", false, "Use split-screen TUI mode")
-	rootCmd.PersistentFlags().Bool("tui", false, "Alias for --split")
-	rootCmd.PersistentFlags().Bool("splitscreen", false, "Alias for --split")
 	
-	// Hide aliases from help output to avoid confusion
+	// Keep these for backward compatibility but hide them
+	rootCmd.PersistentFlags().Bool("cli", false, "Legacy flag (CLI is now the default)")
+	rootCmd.PersistentFlags().Bool("legacy", false, "Legacy flag (CLI is now the default)")
+	
+	// Hide aliases and deprecated flags from help output
 	hideFlags(rootCmd)
 	
 	// Check if first run and perform setup if needed

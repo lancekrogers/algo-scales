@@ -1,18 +1,20 @@
 # AlgoScales CLI Mode
 
-AlgoScales provides a powerful command-line interface (CLI) mode that allows you to practice algorithm problems without using the Terminal UI interface. This is useful for environments where a full TUI isn't practical, or for users who prefer to work in their own editor.
+AlgoScales operates primarily in command-line interface (CLI) mode, which allows you to practice algorithm problems efficiently. The CLI mode is the default way to interact with AlgoScales, providing a streamlined experience for practicing algorithms in your preferred code editor.
 
 ## Getting Started with CLI Mode
 
-To use CLI mode, run AlgoScales with the `--cli` flag or use the `solve` command:
+CLI mode is the default operating mode for AlgoScales. Simply run any command without flags to use CLI mode:
 
 ```bash
-# Use the CLI flag with any command
-algo-scales start practice --cli
+# Run in CLI mode (default)
+algo-scales start practice
 
-# Or use the dedicated solve command
+# Use the dedicated solve command
 algo-scales solve
 ```
+
+If you prefer the Terminal UI interface, you can use the `--tui` flag with any command.
 
 ## Available Commands in CLI Mode
 

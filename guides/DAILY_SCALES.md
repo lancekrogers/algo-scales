@@ -9,18 +9,18 @@ Just as musicians develop technical proficiency by practicing scales daily, deve
 To begin your daily scale practice from the command line:
 
 ```bash
-# Use TUI mode (Terminal User Interface):
+# Use CLI mode (default):
 algo-scales daily
 
-# Use CLI mode for file-based problem solving:
-algo-scales daily --cli
+# Use TUI mode (Terminal User Interface):
+algo-scales daily --tui
 ```
 
 This will start a sequence of problem-solving sessions, one for each of the 11 core algorithm patterns ("scales").
 
 ## CLI Mode Workflow
 
-When using the CLI mode (`--cli` flag), AlgoScales creates problem files in a dedicated workspace:
+In CLI mode (default), AlgoScales creates problem files in a dedicated workspace:
 
 ```
 ~/Dev/AlgoScalesPractice/Daily/{YYYY-MM-DD}/
@@ -28,7 +28,7 @@ When using the CLI mode (`--cli` flag), AlgoScales creates problem files in a de
 
 The CLI workflow is:
 
-1. **Start Session**: Run `algo-scales daily --cli` to start or resume a daily session
+1. **Start Session**: Run `algo-scales daily` to start or resume a daily session
 2. **Solve Problems**: Edit the problem file in your editor of choice
 3. **Test Solutions**: Run `algo-scales daily test` to verify your solution
 4. **Skip Problems**: Run `algo-scales daily skip` if you want to skip the current problem

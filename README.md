@@ -4,7 +4,7 @@ An algorithm study tool designed for efficient interview preparation, focusing o
 
 ## Overview
 
-Algo Scales is a terminal-based application that helps developers practice and master algorithm patterns for technical interviews. It emphasizes focused learning through curated problems organized by algorithm patterns, offering different learning modes to accommodate various study needs.
+Algo Scales is a command-line application that helps developers practice and master algorithm patterns for technical interviews. It emphasizes focused learning through curated problems organized by algorithm patterns, offering different learning modes to accommodate various study needs. The application primarily operates in CLI mode, with an optional Terminal UI mode available.
 
 ## Features
 
@@ -66,6 +66,8 @@ The first time you run Algo Scales, you'll be asked to enter your license key an
 ./algo-scales
 ```
 
+By default, Algo Scales runs in CLI mode. If you prefer the terminal UI interface, you can use the `--tui` flag with any command.
+
 ### Available Commands
 
 ```bash
@@ -117,6 +119,12 @@ The first time you run Algo Scales, you'll be asked to enter your license key an
 
 # Select by difficulty
 ./algo-scales start practice --difficulty medium
+
+# Use the terminal UI mode instead of CLI
+./algo-scales start learn --tui
+
+# Use split-screen terminal UI mode
+./algo-scales start practice --split
 ```
 
 ## In-Session Commands
