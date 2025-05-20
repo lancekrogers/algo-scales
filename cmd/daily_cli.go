@@ -2,9 +2,11 @@
 package cmd
 
 import (
+	"bytes"
 	"fmt"
 	"os"
 	"os/exec"
+	"strings"
 	"time"
 
 	"github.com/lancekrogers/algo-scales/internal/common/interfaces"
@@ -256,11 +258,59 @@ func testDailySolution() {
 		Code:     string(content),
 	}
 	
-	// Run tests
-	results, allPassed, err := execution.ExecuteTests(tempSession, 30*time.Second)
-	if err != nil {
-		fmt.Printf("Error executing tests: %v\n", err)
+	// First try to run the file directly since it has test code
+	var cmd *exec.Cmd
+	var allPassed bool
+	var results []interfaces.TestResult
+	
+	// Create results array for output
+	results = make([]interfaces.TestResult, len(prob.TestCases))
+	for i, tc := range prob.TestCases {
+		results[i] = interfaces.TestResult{
+			Input:    tc.Input,
+			Expected: tc.Expected,
+			Actual:   "",
+			Passed:   false,
+		}
+	}
+	
+	// Execute based on language
+	switch language {
+	case "go":
+		cmd = exec.Command("go", "run", filePath)
+	case "python":
+		cmd = exec.Command("python", filePath)
+	case "javascript":
+		cmd = exec.Command("node", filePath)
+	default:
+		fmt.Printf("Unsupported language: %s\n", language)
 		return
+	}
+	
+	// Capture output
+	var stdout, stderr bytes.Buffer
+	cmd.Stdout = &stdout
+	cmd.Stderr = &stderr
+	
+	// Run the command
+	err = cmd.Run()
+	
+	// Parse test results from output
+	output := stdout.String()
+	fmt.Println("\nTest Results:")
+	fmt.Println(output)
+	
+	// Check if all tests passed
+	allPassed = err == nil && strings.Contains(output, "All tests passed")
+	
+	// If direct execution fails, fall back to the execution engine
+	if err != nil && !strings.Contains(output, "FAILED") {
+		fmt.Println("Direct execution failed, falling back to test runner...")
+		results, allPassed, err = execution.ExecuteTests(tempSession, 30*time.Second)
+		if err != nil {
+			fmt.Printf("Error executing tests: %v\n", err)
+			return
+		}
 	}
 	
 	// Display test results
