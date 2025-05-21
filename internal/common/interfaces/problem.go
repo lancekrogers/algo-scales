@@ -1,36 +1,51 @@
 // Package interfaces defines the core interfaces for Algo Scales
 package interfaces
 
-import (
-	"github.com/lancekrogers/algo-scales/internal/problem"
-)
+// Problem represents an algorithm problem
+type Problem struct {
+	ID          string
+	Title       string
+	Description string
+	Pattern     string
+	Difficulty  string
+	Companies   []string
+	Tags        []string
+	TestCases   []TestCase
+	Languages   []string
+}
+
+// TestCase represents a problem test case
+type TestCase struct {
+	Input    interface{}
+	Expected interface{}
+}
 
 // ProblemRepository defines the interface for accessing algorithm problems
 type ProblemRepository interface {
 	// GetAll returns all available problems
-	GetAll() ([]problem.Problem, error)
+	GetAll() ([]Problem, error)
 	
 	// GetByID retrieves a specific problem by its ID
-	GetByID(id string) (*problem.Problem, error)
+	GetByID(id string) (*Problem, error)
 	
 	// GetByPattern returns problems matching a specific pattern
-	GetByPattern(pattern string) ([]problem.Problem, error)
-	
-	// GetPatterns returns all available algorithm patterns
-	GetPatterns() ([]string, error)
-	
-	// GetLanguages returns all available programming languages
-	GetLanguages() ([]string, error)
+	GetByPattern(pattern string) ([]Problem, error)
 	
 	// GetByDifficulty returns problems with a specific difficulty level
-	GetByDifficulty(difficulty string) ([]problem.Problem, error)
+	GetByDifficulty(difficulty string) ([]Problem, error)
 	
-	// GetByCompany returns problems from a specific company
-	GetByCompany(company string) ([]problem.Problem, error)
-}
-
-// TestRunner defines the interface for testing problem solutions
-type TestRunner interface {
-	// TestSolution tests a solution against test cases
-	TestSolution(problemID, code, language string) ([]TestResult, error)
+	// GetByTags returns problems matching any of the specified tags
+	GetByTags(tags []string) ([]Problem, error)
+	
+	// GetRandom returns a random problem
+	GetRandom() (*Problem, error)
+	
+	// GetRandomByPattern returns a random problem matching a pattern
+	GetRandomByPattern(pattern string) (*Problem, error)
+	
+	// GetRandomByDifficulty returns a random problem with a difficulty
+	GetRandomByDifficulty(difficulty string) (*Problem, error)
+	
+	// GetRandomByTags returns a random problem matching tags
+	GetRandomByTags(tags []string) (*Problem, error)
 }

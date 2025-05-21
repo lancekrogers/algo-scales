@@ -93,3 +93,51 @@ type SessionManager interface {
 	// FinishSession completes a session
 	FinishSession(sessionID string, solved bool) error
 }
+
+// ProblemFormatter handles problem text formatting
+type ProblemFormatter interface {
+	FormatDescription(problem *problem.Problem, showPattern bool, showSolution bool) string
+}
+
+// CodeManager handles user code and workspace operations
+type CodeManager interface {
+	// GetCode returns the current user code
+	GetCode() string
+	
+	// SetCode updates the user code
+	SetCode(code string) error
+	
+	// GetWorkspace returns the workspace directory
+	GetWorkspace() string
+	
+	// GetCodeFile returns the path to the code file
+	GetCodeFile() string
+	
+	// SetWorkspace sets the workspace directory
+	SetWorkspace(workspace string) error
+	
+	// InitializeWorkspace creates workspace and initial code file
+	InitializeWorkspace(problem *problem.Problem, language string) error
+	
+	// CleanupWorkspace removes temporary files
+	CleanupWorkspace() error
+}
+
+// SessionStatsRecorder handles session statistics recording
+type SessionStatsRecorder interface {
+	RecordSession(stats SessionStats) error
+}
+
+// SessionStats contains session performance data
+type SessionStats struct {
+	ProblemID    string
+	StartTime    time.Time
+	EndTime      time.Time
+	Duration     time.Duration
+	Solved       bool
+	Mode         string
+	HintsUsed    bool
+	SolutionUsed bool
+	Patterns     []string
+	Difficulty   string
+}
