@@ -29,7 +29,22 @@ func (r *Repository) WithFileSystem(fs interfaces.FileSystem) *Repository {
 }
 
 // GetAll returns all available problems
-func (r *Repository) GetAll() ([]Problem, error) {
+func (r *Repository) GetAll() ([]interfaces.Problem, error) {
+	problems, err := r.getAllLocal()
+	if err != nil {
+		return nil, err
+	}
+	
+	// Convert to interface types
+	result := make([]interfaces.Problem, len(problems))
+	for i, p := range problems {
+		result[i] = r.convertToInterface(p)
+	}
+	return result, nil
+}
+
+// getAllLocal returns all problems as local Problem types
+func (r *Repository) getAllLocal() ([]Problem, error) {
 	// First try the standard config dir location
 	configDir := r.fs.GetConfigDir()
 	problemsDir := filepath.Join(configDir, "problems")
@@ -150,7 +165,18 @@ func (r *Repository) GetAll() ([]Problem, error) {
 }
 
 // GetByID retrieves a specific problem by its ID
-func (r *Repository) GetByID(id string) (*Problem, error) {
+func (r *Repository) GetByID(id string) (*interfaces.Problem, error) {
+	problem, err := r.getByIDLocal(id)
+	if err != nil {
+		return nil, err
+	}
+	
+	converted := r.convertToInterface(*problem)
+	return &converted, nil
+}
+
+// getByIDLocal retrieves a specific problem by its ID as local type
+func (r *Repository) getByIDLocal(id string) (*Problem, error) {
 	configDir := r.fs.GetConfigDir()
 	
 	// Search in all pattern directories
@@ -187,32 +213,37 @@ func (r *Repository) GetByID(id string) (*Problem, error) {
 }
 
 // GetByPattern returns problems matching a specific pattern
-func (r *Repository) GetByPattern(pattern string) ([]Problem, error) {
-	allProblems, err := r.GetAll()
+func (r *Repository) GetByPattern(pattern string) ([]interfaces.Problem, error) {
+	allProblems, err := r.getAllLocal()
 	if err != nil {
 		return nil, err
 	}
 	
-	if pattern == "" {
-		return allProblems, nil
-	}
-	
 	var filtered []Problem
-	for _, p := range allProblems {
-		for _, patternName := range p.Patterns {
-			if patternName == pattern {
-				filtered = append(filtered, p)
-				break
+	if pattern == "" {
+		filtered = allProblems
+	} else {
+		for _, p := range allProblems {
+			for _, patternName := range p.Patterns {
+				if patternName == pattern {
+					filtered = append(filtered, p)
+					break
+				}
 			}
 		}
 	}
 	
-	return filtered, nil
+	// Convert to interface types
+	result := make([]interfaces.Problem, len(filtered))
+	for i, p := range filtered {
+		result[i] = r.convertToInterface(p)
+	}
+	return result, nil
 }
 
 // GetPatterns returns all available algorithm patterns
 func (r *Repository) GetPatterns() ([]string, error) {
-	allProblems, err := r.GetAll()
+	allProblems, err := r.getAllLocal()
 	if err != nil {
 		return nil, err
 	}
@@ -242,7 +273,7 @@ func (r *Repository) GetPatterns() ([]string, error) {
 
 // GetLanguages returns all available programming languages
 func (r *Repository) GetLanguages() ([]string, error) {
-	allProblems, err := r.GetAll()
+	allProblems, err := r.getAllLocal()
 	if err != nil {
 		return nil, err
 	}
@@ -269,8 +300,8 @@ func (r *Repository) GetLanguages() ([]string, error) {
 }
 
 // GetByDifficulty returns problems with a specific difficulty level
-func (r *Repository) GetByDifficulty(difficulty string) ([]Problem, error) {
-	allProblems, err := r.GetAll()
+func (r *Repository) GetByDifficulty(difficulty string) ([]interfaces.Problem, error) {
+	allProblems, err := r.getAllLocal()
 	if err != nil {
 		return nil, err
 	}
@@ -282,12 +313,17 @@ func (r *Repository) GetByDifficulty(difficulty string) ([]Problem, error) {
 		}
 	}
 	
-	return filtered, nil
+	// Convert to interface types
+	result := make([]interfaces.Problem, len(filtered))
+	for i, p := range filtered {
+		result[i] = r.convertToInterface(p)
+	}
+	return result, nil
 }
 
 // GetByCompany returns problems from a specific company
 func (r *Repository) GetByCompany(company string) ([]Problem, error) {
-	allProblems, err := r.GetAll()
+	allProblems, err := r.getAllLocal()
 	if err != nil {
 		return nil, err
 	}
@@ -303,4 +339,131 @@ func (r *Repository) GetByCompany(company string) ([]Problem, error) {
 	}
 	
 	return filtered, nil
+}
+
+// convertToInterface converts a local Problem to interfaces.Problem
+func (r *Repository) convertToInterface(p Problem) interfaces.Problem {
+	var pattern string
+	if len(p.Patterns) > 0 {
+		pattern = p.Patterns[0] // Use first pattern for simplicity
+	}
+	
+	var languages []string
+	for lang := range p.StarterCode {
+		languages = append(languages, lang)
+	}
+	
+	// Convert test cases
+	testCases := make([]interfaces.TestCase, len(p.TestCases))
+	for i, tc := range p.TestCases {
+		testCases[i] = interfaces.TestCase{
+			Input:    tc.Input,
+			Expected: tc.Expected,
+		}
+	}
+	
+	return interfaces.Problem{
+		ID:          p.ID,
+		Title:       p.Title,
+		Description: p.Description,
+		Pattern:     pattern,
+		Difficulty:  p.Difficulty,
+		Companies:   p.Companies,
+		Tags:        p.Patterns, // Use patterns as tags
+		TestCases:   testCases,
+		Languages:   languages,
+	}
+}
+
+// GetByTags returns problems matching any of the specified tags
+func (r *Repository) GetByTags(tags []string) ([]interfaces.Problem, error) {
+	allProblems, err := r.getAllLocal()
+	if err != nil {
+		return nil, err
+	}
+	
+	var filtered []Problem
+	for _, p := range allProblems {
+		// Check if any pattern matches any tag
+		for _, pattern := range p.Patterns {
+			for _, tag := range tags {
+				if pattern == tag {
+					filtered = append(filtered, p)
+					goto next_problem
+				}
+			}
+		}
+		next_problem:
+	}
+	
+	// Convert to interface types
+	result := make([]interfaces.Problem, len(filtered))
+	for i, p := range filtered {
+		result[i] = r.convertToInterface(p)
+	}
+	return result, nil
+}
+
+// GetRandom returns a random problem
+func (r *Repository) GetRandom() (*interfaces.Problem, error) {
+	problems, err := r.GetAll()
+	if err != nil {
+		return nil, err
+	}
+	
+	if len(problems) == 0 {
+		return nil, ErrProblemNotFound
+	}
+	
+	// Use simple random selection (could be improved with proper randomization)
+	randomIndex := len(problems) / 2 // Simple selection for now
+	return &problems[randomIndex], nil
+}
+
+// GetRandomByPattern returns a random problem matching a pattern
+func (r *Repository) GetRandomByPattern(pattern string) (*interfaces.Problem, error) {
+	problems, err := r.GetByPattern(pattern)
+	if err != nil {
+		return nil, err
+	}
+	
+	if len(problems) == 0 {
+		return nil, ErrProblemNotFound
+	}
+	
+	// Use simple random selection
+	randomIndex := len(problems) / 2
+	return &problems[randomIndex], nil
+}
+
+// GetRandomByDifficulty returns a random problem with a difficulty
+func (r *Repository) GetRandomByDifficulty(difficulty string) (*interfaces.Problem, error) {
+	problems, err := r.GetByDifficulty(difficulty)
+	if err != nil {
+		return nil, err
+	}
+	
+	if len(problems) == 0 {
+		return nil, ErrProblemNotFound
+	}
+	
+	// Use simple random selection
+	randomIndex := len(problems) / 2
+	return &problems[randomIndex], nil
+}
+
+// GetRandomByTags returns a random problem matching tags
+func (r *Repository) GetRandomByTags(tags []string) (*interfaces.Problem, error) {
+	problems, err := r.GetByTags(tags)
+	if err != nil {
+		return nil, err
+	}
+	
+	if len(problems) == 0 {
+		return nil, ErrProblemNotFound
+	}
+	
+	// Use simple random selection
+	randomIndex := len(problems) / 2
+	return &problems[randomIndex], nil
 }

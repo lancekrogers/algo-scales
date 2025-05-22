@@ -3,20 +3,18 @@ package interfaces
 
 import (
 	"time"
-	
-	"github.com/lancekrogers/algo-scales/internal/problem"
 )
 
 // TestRunner defines an interface for running code tests
 type TestRunner interface {
 	// ExecuteTests runs tests for a solution and returns the results
-	ExecuteTests(prob *problem.Problem, code string, timeout time.Duration) ([]TestResult, bool, error)
+	ExecuteTests(prob *Problem, code string, timeout time.Duration) ([]TestResult, bool, error)
 	
 	// GetLanguage returns the language this runner supports
 	GetLanguage() string
 	
 	// GenerateTestCode creates test code for a given problem
-	GenerateTestCode(prob *problem.Problem, solutionCode string) (string, error)
+	GenerateTestCode(prob *Problem, solutionCode string) (string, error)
 }
 
 // TestRunnerRegistry provides access to language-specific test runners

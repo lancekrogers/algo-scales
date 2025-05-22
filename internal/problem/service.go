@@ -24,17 +24,43 @@ func (s *Service) WithRepository(repo interfaces.ProblemRepository) *Service {
 
 // ListAll returns all available problems
 func (s *Service) ListAll() ([]Problem, error) {
-	return s.repository.GetAll()
+	interfaceProblems, err := s.repository.GetAll()
+	if err != nil {
+		return nil, err
+	}
+	
+	// Convert to local types
+	problems := make([]Problem, len(interfaceProblems))
+	for i, p := range interfaceProblems {
+		problems[i] = s.convertFromInterface(p)
+	}
+	return problems, nil
 }
 
 // GetByID retrieves a problem by its ID
 func (s *Service) GetByID(id string) (*Problem, error) {
-	return s.repository.GetByID(id)
+	interfaceProblem, err := s.repository.GetByID(id)
+	if err != nil {
+		return nil, err
+	}
+	
+	localProblem := s.convertFromInterface(*interfaceProblem)
+	return &localProblem, nil
 }
 
 // GetByPattern returns problems matching a specific pattern
 func (s *Service) GetByPattern(pattern string) ([]Problem, error) {
-	return s.repository.GetByPattern(pattern)
+	interfaceProblems, err := s.repository.GetByPattern(pattern)
+	if err != nil {
+		return nil, err
+	}
+	
+	// Convert to local types
+	problems := make([]Problem, len(interfaceProblems))
+	for i, p := range interfaceProblems {
+		problems[i] = s.convertFromInterface(p)
+	}
+	return problems, nil
 }
 
 // GetPatterns returns all available algorithm patterns
@@ -73,7 +99,19 @@ func (s *Service) TestSolution(problemID, code, language string) ([]struct {
 		// For demonstration purposes, we'll simulate most tests passing
 		// In a real implementation, we would execute the code against test cases
 		passed := true
-		actual := tc.Expected
+		
+		// Convert interface{} to string with type assertion
+		inputStr := ""
+		if str, ok := tc.Input.(string); ok {
+			inputStr = str
+		}
+		
+		expectedStr := ""
+		if str, ok := tc.Expected.(string); ok {
+			expectedStr = str
+		}
+		
+		actual := expectedStr // For simulation
 
 		results = append(results, struct {
 			Input    string
@@ -81,12 +119,52 @@ func (s *Service) TestSolution(problemID, code, language string) ([]struct {
 			Actual   string
 			Passed   bool
 		}{
-			Input:    tc.Input,
-			Expected: tc.Expected,
+			Input:    inputStr,
+			Expected: expectedStr,
 			Actual:   actual,
 			Passed:   passed,
 		})
 	}
 
 	return results, nil
+}
+
+// convertFromInterface converts an interfaces.Problem to a local Problem
+func (s *Service) convertFromInterface(p interfaces.Problem) Problem {
+	// Convert test cases
+	testCases := make([]TestCase, len(p.TestCases))
+	for i, tc := range p.TestCases {
+		inputStr := ""
+		if str, ok := tc.Input.(string); ok {
+			inputStr = str
+		}
+		
+		expectedStr := ""
+		if str, ok := tc.Expected.(string); ok {
+			expectedStr = str
+		}
+		
+		testCases[i] = TestCase{
+			Input:    inputStr,
+			Expected: expectedStr,
+		}
+	}
+	
+	// Create starter code map
+	starterCode := make(map[string]string)
+	for _, lang := range p.Languages {
+		starterCode[lang] = "" // Empty starter code for now
+	}
+	
+	return Problem{
+		ID:          p.ID,
+		Title:       p.Title,
+		Description: p.Description,
+		Difficulty:  p.Difficulty,
+		Patterns:    p.Tags, // Use tags as patterns
+		Companies:   p.Companies,
+		TestCases:   testCases,
+		StarterCode: starterCode,
+		Solutions:   make(map[string]string),
+	}
 }

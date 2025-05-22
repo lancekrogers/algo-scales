@@ -26,12 +26,12 @@ func (s *Service) WithStorage(storage interfaces.StatsStorage) *Service {
 }
 
 // RecordSession records a session's statistics
-func (s *Service) RecordSession(sessionStats SessionStats) error {
+func (s *Service) RecordSession(sessionStats interfaces.SessionStats) error {
 	return s.storage.SaveSession(sessionStats)
 }
 
 // GetSummary returns summary statistics
-func (s *Service) GetSummary() (*Summary, error) {
+func (s *Service) GetSummary() (*interfaces.Summary, error) {
 	// Load all session stats
 	sessions, err := s.storage.LoadAllSessions()
 	if err != nil {
@@ -39,7 +39,7 @@ func (s *Service) GetSummary() (*Summary, error) {
 	}
 
 	if len(sessions) == 0 {
-		return &Summary{
+		return &interfaces.Summary{
 			TotalAttempted: 0,
 			TotalSolved:    0,
 			SuccessRate:    0,
@@ -62,7 +62,7 @@ func (s *Service) GetSummary() (*Summary, error) {
 	}
 
 	// Calculate summary stats
-	summary := &Summary{}
+	summary := &interfaces.Summary{}
 	summary.TotalAttempted = len(sessions)
 
 	var totalSolveTime time.Duration
@@ -128,7 +128,7 @@ func (s *Service) GetSummary() (*Summary, error) {
 }
 
 // GetByPattern returns statistics by pattern
-func (s *Service) GetByPattern() (map[string]PatternStats, error) {
+func (s *Service) GetByPattern() (map[string]interfaces.PatternStats, error) {
 	// Load all session stats
 	sessions, err := s.storage.LoadAllSessions()
 	if err != nil {
@@ -136,7 +136,7 @@ func (s *Service) GetByPattern() (map[string]PatternStats, error) {
 	}
 
 	// Group by pattern
-	patternStats := make(map[string]PatternStats)
+	patternStats := make(map[string]interfaces.PatternStats)
 
 	// Track pattern solve times
 	patternTimes := make(map[string][]time.Duration)
@@ -145,7 +145,7 @@ func (s *Service) GetByPattern() (map[string]PatternStats, error) {
 		for _, pattern := range session.Patterns {
 			// Initialize if not exists
 			if _, ok := patternStats[pattern]; !ok {
-				patternStats[pattern] = PatternStats{
+				patternStats[pattern] = interfaces.PatternStats{
 					Pattern: pattern,
 				}
 			}
@@ -186,7 +186,7 @@ func (s *Service) GetByPattern() (map[string]PatternStats, error) {
 }
 
 // GetTrends returns usage trends over time
-func (s *Service) GetTrends() (*Trends, error) {
+func (s *Service) GetTrends() (*interfaces.Trends, error) {
 	// Load all session stats
 	sessions, err := s.storage.LoadAllSessions()
 	if err != nil {
@@ -199,7 +199,7 @@ func (s *Service) GetTrends() (*Trends, error) {
 	})
 
 	// Group by day and week
-	trends := &Trends{}
+	trends := &interfaces.Trends{}
 	dailyStats := make(map[string]struct {
 		Solved    int
 		TotalTime time.Duration
@@ -246,7 +246,7 @@ func (s *Service) GetTrends() (*Trends, error) {
 		date := now.AddDate(0, 0, -i)
 		dateStr := date.Format("2006-01-02")
 
-		dailyTrend := DailyTrend{
+		dailyTrend := interfaces.DailyTrend{
 			Date:   dateStr,
 			Solved: 0,
 		}
@@ -270,7 +270,7 @@ func (s *Service) GetTrends() (*Trends, error) {
 
 	// Convert weekly stats map to slice
 	for _, stats := range weeklyStats {
-		weeklyTrend := WeeklyTrend{
+		weeklyTrend := interfaces.WeeklyTrend{
 			StartDate:   stats.StartDate.Format("2006-01-02"),
 			EndDate:     stats.EndDate.Format("2006-01-02"),
 			Solved:      stats.Solved,
@@ -303,6 +303,27 @@ func (s *Service) Reset() error {
 }
 
 // GetAllSessions returns all recorded sessions
-func (s *Service) GetAllSessions() ([]SessionStats, error) {
-	return s.storage.LoadAllSessions()
+func (s *Service) GetAllSessions() ([]interfaces.SessionStats, error) {
+	sessions, err := s.storage.LoadAllSessions()
+	if err != nil {
+		return nil, err
+	}
+	
+	// Convert to interfaces types
+	result := make([]interfaces.SessionStats, len(sessions))
+	for i, session := range sessions {
+		result[i] = interfaces.SessionStats{
+			ProblemID:    session.ProblemID,
+			StartTime:    session.StartTime,
+			EndTime:      session.EndTime,
+			Duration:     session.Duration,
+			Solved:       session.Solved,
+			Mode:         session.Mode,
+			HintsUsed:    session.HintsUsed,
+			SolutionUsed: session.SolutionUsed,
+			Patterns:     session.Patterns,
+			Difficulty:   session.Difficulty,
+		}
+	}
+	return result, nil
 }

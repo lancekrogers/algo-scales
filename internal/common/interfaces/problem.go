@@ -48,4 +48,10 @@ type ProblemRepository interface {
 	
 	// GetRandomByTags returns a random problem matching tags
 	GetRandomByTags(tags []string) (*Problem, error)
+	
+	// GetPatterns returns all available algorithm patterns
+	GetPatterns() ([]string, error)
+	
+	// GetLanguages returns all available programming languages
+	GetLanguages() ([]string, error)
 }

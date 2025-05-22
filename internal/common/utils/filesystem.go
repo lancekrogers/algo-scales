@@ -4,7 +4,6 @@ import (
 	"io/fs"
 	"os"
 	"os/exec"
-	"path/filepath"
 	
 	"github.com/lancekrogers/algo-scales/internal/common/interfaces"
 )

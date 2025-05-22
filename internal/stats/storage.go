@@ -28,7 +28,20 @@ func (s *FileStorage) WithFileSystem(fs interfaces.FileSystem) *FileStorage {
 }
 
 // SaveSession saves a session's statistics
-func (s *FileStorage) SaveSession(session SessionStats) error {
+func (s *FileStorage) SaveSession(session interfaces.SessionStats) error {
+	// Convert to local type for storage
+	localSession := SessionStats{
+		ProblemID:    session.ProblemID,
+		StartTime:    session.StartTime,
+		EndTime:      session.EndTime,
+		Duration:     session.Duration,
+		Solved:       session.Solved,
+		Mode:         session.Mode,
+		HintsUsed:    session.HintsUsed,
+		SolutionUsed: session.SolutionUsed,
+		Patterns:     session.Patterns,
+		Difficulty:   session.Difficulty,
+	}
 	// Get the stats directory
 	statsDir := filepath.Join(s.fs.GetConfigDir(), "stats")
 	if err := s.fs.MkdirAll(statsDir, 0755); err != nil {
@@ -36,11 +49,11 @@ func (s *FileStorage) SaveSession(session SessionStats) error {
 	}
 
 	// Generate a unique filename
-	filename := fmt.Sprintf("session_%s_%s.json", session.ProblemID, session.StartTime.Format("20060102_150405"))
+	filename := fmt.Sprintf("session_%s_%s.json", localSession.ProblemID, localSession.StartTime.Format("20060102_150405"))
 	statsFile := filepath.Join(statsDir, filename)
 
 	// Save stats to file
-	data, err := json.MarshalIndent(session, "", "  ")
+	data, err := json.MarshalIndent(localSession, "", "  ")
 	if err != nil {
 		return err
 	}
@@ -49,14 +62,14 @@ func (s *FileStorage) SaveSession(session SessionStats) error {
 }
 
 // LoadAllSessions loads all session statistics
-func (s *FileStorage) LoadAllSessions() ([]SessionStats, error) {
-	var sessions []SessionStats
+func (s *FileStorage) LoadAllSessions() ([]interfaces.SessionStats, error) {
+	var localSessions []SessionStats
 
 	statsDir := filepath.Join(s.fs.GetConfigDir(), "stats")
 
 	// Check if directory exists
 	if !s.fs.Exists(statsDir) {
-		return sessions, nil
+		return []interfaces.SessionStats{}, nil
 	}
 
 	// Read all stats files
@@ -81,7 +94,24 @@ func (s *FileStorage) LoadAllSessions() ([]SessionStats, error) {
 			return nil, err
 		}
 
-		sessions = append(sessions, session)
+		localSessions = append(localSessions, session)
+	}
+
+	// Convert to interface types
+	sessions := make([]interfaces.SessionStats, len(localSessions))
+	for i, s := range localSessions {
+		sessions[i] = interfaces.SessionStats{
+			ProblemID:    s.ProblemID,
+			StartTime:    s.StartTime,
+			EndTime:      s.EndTime,
+			Duration:     s.Duration,
+			Solved:       s.Solved,
+			Mode:         s.Mode,
+			HintsUsed:    s.HintsUsed,
+			SolutionUsed: s.SolutionUsed,
+			Patterns:     s.Patterns,
+			Difficulty:   s.Difficulty,
+		}
 	}
 
 	return sessions, nil

@@ -1,40 +1,86 @@
 // Package interfaces defines the core interfaces for Algo Scales
 package interfaces
 
-import (
-	"time"
-	
-	"github.com/lancekrogers/algo-scales/internal/stats"
-)
+// Summary represents summary statistics
+type Summary struct {
+	TotalAttempted int     `json:"total_attempted"`
+	TotalSolved    int     `json:"total_solved"`
+	AvgSolveTime   string  `json:"avg_solve_time"`
+	SuccessRate    float64 `json:"success_rate"`
+	FastestSolve   struct {
+		ProblemID string `json:"problem_id"`
+		Time      string `json:"time"`
+	} `json:"fastest_solve"`
+	MostChallenging struct {
+		ProblemID string `json:"problem_id"`
+		Attempts  int    `json:"attempts"`
+	} `json:"most_challenging"`
+}
+
+// PatternStats represents statistics for a pattern
+type PatternStats struct {
+	Pattern     string  `json:"pattern"`
+	Attempted   int     `json:"attempted"`
+	Solved      int     `json:"solved"`
+	SuccessRate float64 `json:"success_rate"`
+	AvgTime     string  `json:"avg_time"`
+}
+
+// Trends represents trends over time
+type Trends struct {
+	Daily  []DailyTrend  `json:"daily"`
+	Weekly []WeeklyTrend `json:"weekly"`
+}
+
+// DailyTrend represents a daily trend
+type DailyTrend struct {
+	Date    string `json:"date"`
+	Solved  int    `json:"solved"`
+	AvgTime string `json:"avg_time"`
+}
+
+// WeeklyTrend represents a weekly trend
+type WeeklyTrend struct {
+	StartDate   string  `json:"start_date"`
+	EndDate     string  `json:"end_date"`
+	Solved      int     `json:"solved"`
+	SuccessRate float64 `json:"success_rate"`
+}
+
+// OverallStats contains general overview statistics
+type OverallStats struct {
+	Summary *Summary
+	Trends  *Trends
+}
 
 // StatsService defines the interface for accessing algorithm practice statistics
 type StatsService interface {
 	// RecordSession records a session's statistics
-	RecordSession(sessionStats stats.SessionStats) error
+	RecordSession(sessionStats SessionStats) error
 	
 	// GetSummary returns summary statistics
-	GetSummary() (*stats.Summary, error)
+	GetSummary() (*Summary, error)
 	
 	// GetByPattern returns statistics by pattern
-	GetByPattern() (map[string]stats.PatternStats, error)
+	GetByPattern() (map[string]PatternStats, error)
 	
 	// GetTrends returns usage trends over time
-	GetTrends() (*stats.Trends, error)
+	GetTrends() (*Trends, error)
 	
 	// Reset resets all statistics
 	Reset() error
 	
 	// GetAllSessions returns all recorded sessions
-	GetAllSessions() ([]stats.SessionStats, error)
+	GetAllSessions() ([]SessionStats, error)
 }
 
 // StatsStorage defines the interface for storing and retrieving statistics
 type StatsStorage interface {
 	// SaveSession saves a session's statistics
-	SaveSession(session stats.SessionStats) error
+	SaveSession(session SessionStats) error
 	
 	// LoadAllSessions loads all session statistics
-	LoadAllSessions() ([]stats.SessionStats, error)
+	LoadAllSessions() ([]SessionStats, error)
 	
 	// ClearAllSessions removes all session statistics
 	ClearAllSessions() error

@@ -3,8 +3,6 @@ package interfaces
 
 import (
 	"time"
-
-	"github.com/lancekrogers/algo-scales/internal/problem"
 )
 
 // SessionMode represents a practice session mode
@@ -40,7 +38,7 @@ type TestResult struct {
 // Session represents an active problem-solving session
 type Session interface {
 	// GetProblem returns the current problem
-	GetProblem() *problem.Problem
+	GetProblem() *Problem
 	
 	// GetOptions returns the session options
 	GetOptions() SessionOptions
@@ -96,7 +94,7 @@ type SessionManager interface {
 
 // ProblemFormatter handles problem text formatting
 type ProblemFormatter interface {
-	FormatDescription(problem *problem.Problem, showPattern bool, showSolution bool) string
+	FormatDescription(problem *Problem, showPattern bool, showSolution bool) string
 }
 
 // CodeManager handles user code and workspace operations
@@ -117,7 +115,7 @@ type CodeManager interface {
 	SetWorkspace(workspace string) error
 	
 	// InitializeWorkspace creates workspace and initial code file
-	InitializeWorkspace(problem *problem.Problem, language string) error
+	InitializeWorkspace(problem *Problem, language string) error
 	
 	// CleanupWorkspace removes temporary files
 	CleanupWorkspace() error
