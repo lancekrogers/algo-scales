@@ -9,7 +9,6 @@ import (
 	"time"
 	
 	"github.com/lancekrogers/algo-scales/internal/common/interfaces"
-	"github.com/lancekrogers/algo-scales/internal/problem"
 )
 
 // PythonTestRunner implements the TestRunner interface for Python code
@@ -25,7 +24,7 @@ func NewPythonTestRunner() *PythonTestRunner {
 }
 
 // ExecuteTests runs tests for a Python solution
-func (r *PythonTestRunner) ExecuteTests(prob *problem.Problem, code string, timeout time.Duration) ([]interfaces.TestResult, bool, error) {
+func (r *PythonTestRunner) ExecuteTests(prob *interfaces.Problem, code string, timeout time.Duration) ([]interfaces.TestResult, bool, error) {
 	// Create a temporary directory for test execution
 	testDir, err := os.MkdirTemp("", "algo-scales-python-test")
 	if err != nil {
@@ -65,7 +64,7 @@ func (r *PythonTestRunner) ExecuteTests(prob *problem.Problem, code string, time
 }
 
 // GenerateTestCode creates Python test code for a given problem
-func (r *PythonTestRunner) GenerateTestCode(prob *problem.Problem, solutionCode string) (string, error) {
+func (r *PythonTestRunner) GenerateTestCode(prob *interfaces.Problem, solutionCode string) (string, error) {
 	// Create the test file content template
 	testTemplate := `
 # User's solution
@@ -88,10 +87,21 @@ if __name__ == "__main__":
 	// Generate test code for each test case
 	var testCases strings.Builder
 	for i, tc := range prob.TestCases {
+		// Convert interface{} to string
+		inputStr := ""
+		if str, ok := tc.Input.(string); ok {
+			inputStr = str
+		}
+		
+		expectedStr := ""
+		if str, ok := tc.Expected.(string); ok {
+			expectedStr = str
+		}
+		
 		testCases.WriteString(fmt.Sprintf("\n    # Test case %d\n", i+1))
 		testCases.WriteString(fmt.Sprintf("    print(\"Test %d\")\n", i+1))
-		testCases.WriteString(fmt.Sprintf("    input_str = '%s'\n", tc.Input))
-		testCases.WriteString(fmt.Sprintf("    expected_str = '%s'\n", tc.Expected))
+		testCases.WriteString(fmt.Sprintf("    input_str = '%s'\n", inputStr))
+		testCases.WriteString(fmt.Sprintf("    expected_str = '%s'\n", expectedStr))
 		
 		// Parse input (very simplified - would need to be customized)
 		testCases.WriteString("    # Parse input (simplified)\n")

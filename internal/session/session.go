@@ -56,6 +56,9 @@ var Start = func(opts Options) error {
 		ShowSolution: false,
 	}
 
+	// Create a manager to handle problem selection
+	manager := NewManager()
+
 	// Choose problem based on options
 	var err error
 	if opts.ProblemID != "" {
@@ -66,13 +69,13 @@ var Start = func(opts Options) error {
 		}
 	} else if opts.Mode == CramMode {
 		// Cram mode - choose problems from common patterns
-		session.Problem, err = selectCramProblem()
+		session.Problem, err = manager.selectCramProblem()
 		if err != nil {
 			return fmt.Errorf("failed to select problem for cram mode: %v", err)
 		}
 	} else {
 		// Filter by pattern/difficulty if specified
-		session.Problem, err = selectProblem(opts.Pattern, opts.Difficulty)
+		session.Problem, err = manager.selectProblem(opts.Pattern, opts.Difficulty)
 		if err != nil {
 			return fmt.Errorf("failed to select problem: %v", err)
 		}

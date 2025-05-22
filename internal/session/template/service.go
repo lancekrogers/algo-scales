@@ -3,9 +3,7 @@ package template
 
 import (
 	"fmt"
-	"strings"
 	
-	"github.com/lancekrogers/algo-scales/internal/common/interfaces"
 	"github.com/lancekrogers/algo-scales/internal/problem"
 )
 

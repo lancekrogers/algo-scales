@@ -9,7 +9,6 @@ import (
 	"time"
 	
 	"github.com/lancekrogers/algo-scales/internal/common/interfaces"
-	"github.com/lancekrogers/algo-scales/internal/problem"
 )
 
 // JavaScriptTestRunner implements the TestRunner interface for JavaScript code
@@ -25,7 +24,7 @@ func NewJavaScriptTestRunner() *JavaScriptTestRunner {
 }
 
 // ExecuteTests runs tests for a JavaScript solution
-func (r *JavaScriptTestRunner) ExecuteTests(prob *problem.Problem, code string, timeout time.Duration) ([]interfaces.TestResult, bool, error) {
+func (r *JavaScriptTestRunner) ExecuteTests(prob *interfaces.Problem, code string, timeout time.Duration) ([]interfaces.TestResult, bool, error) {
 	// Create a temporary directory for test execution
 	testDir, err := os.MkdirTemp("", "algo-scales-js-test")
 	if err != nil {
@@ -65,7 +64,7 @@ func (r *JavaScriptTestRunner) ExecuteTests(prob *problem.Problem, code string, 
 }
 
 // GenerateTestCode creates JavaScript test code for a given problem
-func (r *JavaScriptTestRunner) GenerateTestCode(prob *problem.Problem, solutionCode string) (string, error) {
+func (r *JavaScriptTestRunner) GenerateTestCode(prob *interfaces.Problem, solutionCode string) (string, error) {
 	// Create the test file content template
 	testTemplate := `
 // User's solution
@@ -90,10 +89,21 @@ if (!success) {
 	// Generate test code for each test case
 	var testCases strings.Builder
 	for i, tc := range prob.TestCases {
+		// Convert interface{} to string
+		inputStr := ""
+		if str, ok := tc.Input.(string); ok {
+			inputStr = str
+		}
+		
+		expectedStr := ""
+		if str, ok := tc.Expected.(string); ok {
+			expectedStr = str
+		}
+		
 		testCases.WriteString(fmt.Sprintf("\n    // Test case %d\n", i+1))
 		testCases.WriteString(fmt.Sprintf("    console.log(\"Test %d\");\n", i+1))
-		testCases.WriteString(fmt.Sprintf("    const inputStr = '%s';\n", tc.Input))
-		testCases.WriteString(fmt.Sprintf("    const expectedStr = '%s';\n", tc.Expected))
+		testCases.WriteString(fmt.Sprintf("    const inputStr = '%s';\n", inputStr))
+		testCases.WriteString(fmt.Sprintf("    const expectedStr = '%s';\n", expectedStr))
 		
 		// Parse input (very simplified - would need to be customized)
 		testCases.WriteString("    // Parse input (simplified)\n")

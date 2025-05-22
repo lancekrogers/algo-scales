@@ -15,11 +15,14 @@ import (
 	"github.com/lancekrogers/algo-scales/internal/problem"
 )
 
-// ExecuteTests runs tests for the current solution
-func ExecuteTests(s interfaces.Session, timeout time.Duration) ([]interfaces.TestResult, bool, error) {
+// ExecuteSessionTests runs tests for the current solution using a session
+func ExecuteSessionTests(s interfaces.Session, timeout time.Duration) ([]interfaces.TestResult, bool, error) {
 	// Get the problem and language
-	prob := s.GetProblem()
+	interfaceProb := s.GetProblem()
 	language := s.GetLanguage()
+	
+	// Convert to local problem type for internal functions
+	prob := convertInterfaceProblemToLocal(interfaceProb)
 	
 	// Get the current user code
 	code := s.GetCode()
@@ -36,11 +39,11 @@ func ExecuteTests(s interfaces.Session, timeout time.Duration) ([]interfaces.Tes
 	
 	switch language {
 	case "go":
-		results, err = executeGoTests(testDir, prob, code)
+		results, err = executeGoTests(testDir, &prob, code)
 	case "python":
-		results, err = executePythonTests(testDir, prob, code)
+		results, err = executePythonTests(testDir, &prob, code)
 	case "javascript":
-		results, err = executeJavaScriptTests(testDir, prob, code)
+		results, err = executeJavaScriptTests(testDir, &prob, code)
 	default:
 		return nil, false, fmt.Errorf("unsupported language: %s", language)
 	}
@@ -342,4 +345,43 @@ if (!success) {
 	}
 	
 	return results, nil
+}
+// convertInterfaceProblemToLocal converts an interfaces.Problem to a local problem.Problem
+func convertInterfaceProblemToLocal(p *interfaces.Problem) problem.Problem {
+	// Convert test cases
+	testCases := make([]problem.TestCase, len(p.TestCases))
+	for i, tc := range p.TestCases {
+		inputStr := ""
+		if str, ok := tc.Input.(string); ok {
+			inputStr = str
+		}
+		
+		expectedStr := ""
+		if str, ok := tc.Expected.(string); ok {
+			expectedStr = str
+		}
+		
+		testCases[i] = problem.TestCase{
+			Input:    inputStr,
+			Expected: expectedStr,
+		}
+	}
+	
+	// Create starter code map
+	starterCode := make(map[string]string)
+	for _, lang := range p.Languages {
+		starterCode[lang] = ""
+	}
+	
+	return problem.Problem{
+		ID:          p.ID,
+		Title:       p.Title,
+		Description: p.Description,
+		Difficulty:  p.Difficulty,
+		Patterns:    p.Tags,
+		Companies:   p.Companies,
+		TestCases:   testCases,
+		StarterCode: starterCode,
+		Solutions:   make(map[string]string),
+	}
 }

@@ -3,50 +3,53 @@ package session
 
 import (
 	"fmt"
-	"time"
 
+	"github.com/lancekrogers/algo-scales/internal/common/interfaces"
 	"github.com/lancekrogers/algo-scales/internal/problem"
 )
 
 // CreateSession creates a session without starting the UI
 func CreateSession(opts Options) (*Session, error) {
-	// Initialize session
-	session := &Session{
+	// Convert old Options to new SessionOptions
+	sessionOpts := interfaces.SessionOptions{
+		Mode:       interfaces.SessionMode(opts.Mode),
+		Language:   opts.Language,
+		Timer:      opts.Timer,
+		Pattern:    opts.Pattern,
+		Difficulty: opts.Difficulty,
+		ProblemID:  opts.ProblemID,
+	}
+	
+	// Create a manager to handle session creation
+	manager := NewManager()
+	
+	// Use the manager to start the session
+	interfaceSession, err := manager.StartSession(sessionOpts)
+	if err != nil {
+		return nil, err
+	}
+	
+	// Convert the interface session back to legacy Session type
+	// Note: This maintains backward compatibility with existing code
+	sessionImpl, ok := interfaceSession.(*SessionImpl)
+	if !ok {
+		return nil, fmt.Errorf("unexpected session implementation type")
+	}
+	
+	// Create legacy Session struct for backward compatibility
+	legacySession := &Session{
 		Options:      opts,
-		StartTime:    time.Now(),
-		ShowHints:    opts.Mode == LearnMode,
-		ShowPattern:  opts.Mode == LearnMode,
-		ShowSolution: false,
+		Problem:      sessionImpl.Problem,
+		StartTime:    sessionImpl.StartTime,
+		ShowHints:    sessionImpl.hintsShown,
+		ShowPattern:  sessionImpl.ShowPattern,
+		ShowSolution: sessionImpl.solutionShown,
+		Workspace:    sessionImpl.Workspace,
+		CodeFile:     sessionImpl.CodeFile,
 	}
 
-	// Choose problem based on options
-	var err error
-	if opts.ProblemID != "" {
-		// Specific problem requested
-		session.Problem, err = problem.GetByID(opts.ProblemID)
-		if err != nil {
-			return nil, fmt.Errorf("failed to load problem: %v", err)
-		}
-	} else if opts.Mode == CramMode {
-		// Cram mode - choose problems from common patterns
-		session.Problem, err = selectCramProblem()
-		if err != nil {
-			return nil, fmt.Errorf("failed to select problem for cram mode: %v", err)
-		}
-	} else {
-		// Filter by pattern/difficulty if specified
-		session.Problem, err = selectProblem(opts.Pattern, opts.Difficulty)
-		if err != nil {
-			return nil, fmt.Errorf("failed to select problem: %v", err)
-		}
-	}
-
-	// Create workspace
-	if err := session.createWorkspace(); err != nil {
-		return nil, fmt.Errorf("failed to create workspace: %v", err)
-	}
-
-	return session, nil
+	// Workspace is already created by the manager, so we can return directly
+	return legacySession, nil
 }
 
 // getDefaultProblem returns a fallback problem if no problems match filters

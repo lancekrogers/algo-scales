@@ -59,10 +59,14 @@ func (m *Manager) StartSession(opts interfaces.SessionOptions) (interfaces.Sessi
 	
 	if opts.ProblemID != "" {
 		// Specific problem requested
-		p, err = m.problemRepo.GetByID(opts.ProblemID)
+		interfaceProb, err := m.problemRepo.GetByID(opts.ProblemID)
 		if err != nil {
 			return nil, fmt.Errorf("failed to load problem: %v", err)
 		}
+		
+		// Convert to local problem type
+		localProb := m.convertInterfaceToLocalProblem(*interfaceProb)
+		p = &localProb
 	} else if opts.Mode == interfaces.CramMode {
 		// Cram mode - choose problems from common patterns
 		p, err = m.selectCramProblem()
@@ -176,39 +180,42 @@ func (m *Manager) createWorkspace(s *SessionImpl) error {
 func (m *Manager) selectProblem(pattern, difficulty string) (*problem.Problem, error) {
 	// Get all problems
 	var problems []problem.Problem
-	var err error
 	
 	if pattern != "" && difficulty != "" {
 		// Filter by both pattern and difficulty
-		byPattern, err := m.problemRepo.GetByPattern(pattern)
+		interfaceProbs, err := m.problemRepo.GetByPattern(pattern)
 		if err != nil {
 			return nil, err
 		}
 		
-		// Further filter by difficulty
-		for _, p := range byPattern {
+		// Convert and filter by difficulty
+		for _, p := range interfaceProbs {
 			if p.Difficulty == difficulty {
-				problems = append(problems, p)
+				localProb := m.convertInterfaceToLocalProblem(p)
+				problems = append(problems, localProb)
 			}
 		}
 	} else if pattern != "" {
 		// Filter by pattern only
-		problems, err = m.problemRepo.GetByPattern(pattern)
+		interfaceProbs, err := m.problemRepo.GetByPattern(pattern)
 		if err != nil {
 			return nil, err
 		}
+		problems = m.convertInterfaceProblemsToLocal(interfaceProbs)
 	} else if difficulty != "" {
 		// Filter by difficulty only
-		problems, err = m.problemRepo.GetByDifficulty(difficulty)
+		interfaceProbs, err := m.problemRepo.GetByDifficulty(difficulty)
 		if err != nil {
 			return nil, err
 		}
+		problems = m.convertInterfaceProblemsToLocal(interfaceProbs)
 	} else {
 		// No filters, get all problems
-		problems, err = m.problemRepo.GetAll()
+		interfaceProbs, err := m.problemRepo.GetAll()
 		if err != nil {
 			return nil, err
 		}
+		problems = m.convertInterfaceProblemsToLocal(interfaceProbs)
 	}
 	
 	if len(problems) == 0 {
@@ -241,10 +248,11 @@ func (m *Manager) selectCramProblem() (*problem.Problem, error) {
 	selectedPattern := commonPatterns[patternIndex]
 	
 	// Get problems for this pattern
-	patternProblems, err := m.problemRepo.GetByPattern(selectedPattern)
+	interfaceProbs, err := m.problemRepo.GetByPattern(selectedPattern)
 	if err != nil {
 		return nil, err
 	}
+	patternProblems := m.convertInterfaceProblemsToLocal(interfaceProbs)
 	
 	if len(patternProblems) == 0 {
 		return nil, fmt.Errorf("no problems found for pattern: %s", selectedPattern)
@@ -286,4 +294,57 @@ func languageExtension(language string) string {
 	
 	// Default to .txt if language not recognized
 	return "txt"
+}
+// convertInterfaceToLocalProblem converts an interfaces.Problem to a local problem.Problem
+func (m *Manager) convertInterfaceToLocalProblem(p interfaces.Problem) problem.Problem {
+	// Convert test cases
+	testCases := make([]problem.TestCase, len(p.TestCases))
+	for i, tc := range p.TestCases {
+		inputStr := ""
+		if str, ok := tc.Input.(string); ok {
+			inputStr = str
+		}
+		
+		expectedStr := ""
+		if str, ok := tc.Expected.(string); ok {
+			expectedStr = str
+		}
+		
+		testCases[i] = problem.TestCase{
+			Input:    inputStr,
+			Expected: expectedStr,
+		}
+	}
+	
+	// Create starter code map
+	starterCode := make(map[string]string)
+	for _, lang := range p.Languages {
+		starterCode[lang] = ""
+	}
+	
+	return problem.Problem{
+		ID:                  p.ID,
+		Title:               p.Title,
+		Description:         p.Description,
+		Difficulty:          p.Difficulty,
+		Patterns:            p.Tags,
+		Companies:           p.Companies,
+		TestCases:           testCases,
+		StarterCode:         starterCode,
+		Solutions:           make(map[string]string),
+		EstimatedTime:       30, // Default value
+		Examples:            []problem.Example{}, // Empty for now
+		Constraints:         []string{}, // Empty for now
+		PatternExplanation:  "", // Empty for now
+		SolutionWalkthrough: []string{}, // Empty for now
+	}
+}
+
+// convertInterfaceProblemsToLocal converts a slice of interfaces.Problem to local problem.Problem
+func (m *Manager) convertInterfaceProblemsToLocal(probs []interfaces.Problem) []problem.Problem {
+	result := make([]problem.Problem, len(probs))
+	for i, p := range probs {
+		result[i] = m.convertInterfaceToLocalProblem(p)
+	}
+	return result
 }

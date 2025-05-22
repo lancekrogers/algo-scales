@@ -6,7 +6,6 @@ import (
 	"time"
 	
 	"github.com/lancekrogers/algo-scales/internal/common/interfaces"
-	"github.com/lancekrogers/algo-scales/internal/problem"
 )
 
 // RunnerRegistry implements the TestRunnerRegistry interface
@@ -72,7 +71,7 @@ func (r *RunnerRegistry) GetSupportedLanguages() []string {
 var DefaultRegistry = NewRunnerRegistry()
 
 // ExecuteTests is a convenience function using the default registry
-func ExecuteTests(prob *problem.Problem, code, language string, timeout time.Duration) ([]interfaces.TestResult, bool, error) {
+func ExecuteTests(prob *interfaces.Problem, code, language string, timeout time.Duration) ([]interfaces.TestResult, bool, error) {
 	runner, err := DefaultRegistry.GetRunner(language)
 	if err != nil {
 		return nil, false, err

@@ -9,7 +9,6 @@ import (
 	"time"
 	
 	"github.com/lancekrogers/algo-scales/internal/common/interfaces"
-	"github.com/lancekrogers/algo-scales/internal/problem"
 )
 
 // GoTestRunner implements the TestRunner interface for Go code
@@ -25,7 +24,7 @@ func NewGoTestRunner() *GoTestRunner {
 }
 
 // ExecuteTests runs tests for a Go solution
-func (r *GoTestRunner) ExecuteTests(prob *problem.Problem, code string, timeout time.Duration) ([]interfaces.TestResult, bool, error) {
+func (r *GoTestRunner) ExecuteTests(prob *interfaces.Problem, code string, timeout time.Duration) ([]interfaces.TestResult, bool, error) {
 	// Create a temporary directory for test execution
 	testDir, err := os.MkdirTemp("", "algo-scales-go-test")
 	if err != nil {
@@ -63,16 +62,18 @@ func (r *GoTestRunner) ExecuteTests(prob *problem.Problem, code string, timeout 
 	
 	return results, allTestsPassed(results), nil
 }
+// GenerateTestCode creates test code for a given problem
+func (r *GoTestRunner) GenerateTestCode(prob *interfaces.Problem, solutionCode string) (string, error) {
+	return r.generateTestTemplate(prob, solutionCode)
+}
 
-// GenerateTestCode creates Go test code for a given problem
-func (r *GoTestRunner) GenerateTestCode(prob *problem.Problem, solutionCode string) (string, error) {
-	// Create the test file content template
+// generateTestTemplate generates the Go test template (extracted from ExecuteTests)
+func (r *GoTestRunner) generateTestTemplate(prob *interfaces.Problem, solutionCode string) (string, error) {
 	testTemplate := `package main
 
 import (
 	"fmt"
 	"os"
-	"reflect"
 	"strings"
 )
 
@@ -85,7 +86,7 @@ func main() {
 	
 	%s
 	
-	if !allPassed {
+	if \!allPassed {
 		os.Exit(1)
 	}
 }
@@ -94,22 +95,30 @@ func main() {
 	// Generate test code for each test case
 	var testCases strings.Builder
 	for i, tc := range prob.TestCases {
+		// Convert interface{} to string
+		inputStr := ""
+		if str, ok := tc.Input.(string); ok {
+			inputStr = str
+		}
+		
+		expectedStr := ""
+		if str, ok := tc.Expected.(string); ok {
+			expectedStr = str
+		}
+		
 		testCases.WriteString(fmt.Sprintf("\n\t// Test case %d\n", i+1))
 		testCases.WriteString(fmt.Sprintf("\tfmt.Printf(\"Test %d\\n\")\n", i+1))
-		testCases.WriteString(fmt.Sprintf("\t{\n\t\tinputStr := `%s`\n", tc.Input))
-		testCases.WriteString(fmt.Sprintf("\t\texpectedStr := `%s`\n", tc.Expected))
+		testCases.WriteString(fmt.Sprintf("\t{\n\t\tinputStr := `%s`\n", inputStr))
+		testCases.WriteString(fmt.Sprintf("\t\texpectedStr := `%s`\n", expectedStr))
 		
 		// Parse input based on the problem
 		testCases.WriteString("\t\t// Parse input\n")
 		testCases.WriteString("\t\t// Note: This parsing logic needs to be customized for each problem type\n")
-		testCases.WriteString("\t\t// For example, parsing \"[1,2,3], 5\" into a slice and an int\n")
 		testCases.WriteString("\t\tparts := strings.Split(inputStr, \", \")\n")
 		testCases.WriteString("\t\tif len(parts) < 1 {\n\t\t\tfmt.Printf(\"Error parsing input: %s\\n\", inputStr)\n\t\t\tallPassed = false\n\t\t\tcontinue\n\t\t}\n")
 		
 		// Actual test execution - simplified for demonstration
-		// This would need to parse the actual parameters and call the function
 		testCases.WriteString("\t\t// Execute solution with the input\n")
-		testCases.WriteString("\t\t// Note: This would need to call the actual solution function with parsed parameters\n")
 		testCases.WriteString("\t\tresult := \"PLACEHOLDER\" // Replace with actual function call\n")
 		
 		// Check result

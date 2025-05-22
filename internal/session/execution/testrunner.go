@@ -4,15 +4,12 @@ package execution
 import (
 	"bytes"
 	"fmt"
-	"os"
 	"os/exec"
-	"path/filepath"
 	"strings"
 	"time"
 	
 	"github.com/lancekrogers/algo-scales/internal/common/interfaces"
 	"github.com/lancekrogers/algo-scales/internal/common/utils"
-	"github.com/lancekrogers/algo-scales/internal/problem"
 )
 
 // BaseTestRunner contains common functionality for test runners
@@ -41,15 +38,26 @@ func (b *BaseTestRunner) GetLanguage() string {
 }
 
 // parseTestOutput parses the test output to extract results
-func parseTestOutput(output string, testCases []problem.TestCase) []interfaces.TestResult {
+func parseTestOutput(output string, testCases []interfaces.TestCase) []interfaces.TestResult {
 	// Create results array
 	results := make([]interfaces.TestResult, len(testCases))
 	
 	// Initialize with basic information
 	for i, tc := range testCases {
+		// Convert interface{} to string
+		inputStr := ""
+		if str, ok := tc.Input.(string); ok {
+			inputStr = str
+		}
+		
+		expectedStr := ""
+		if str, ok := tc.Expected.(string); ok {
+			expectedStr = str
+		}
+		
 		results[i] = interfaces.TestResult{
-			Input:    tc.Input,
-			Expected: tc.Expected,
+			Input:    inputStr,
+			Expected: expectedStr,
 			Actual:   "No output captured",
 			Passed:   false,
 		}

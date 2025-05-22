@@ -52,8 +52,14 @@ func (s *SessionImpl) WithFileSystem(fs interfaces.FileSystem) *SessionImpl {
 }
 
 // GetProblem returns the current problem
-func (s *SessionImpl) GetProblem() *problem.Problem {
-	return s.Problem
+func (s *SessionImpl) GetProblem() *interfaces.Problem {
+	if s.Problem == nil {
+		return nil
+	}
+	
+	// Convert to interface type
+	converted := s.convertProblemToInterface(*s.Problem)
+	return &converted
 }
 
 // GetOptions returns the session options
@@ -201,7 +207,8 @@ func (s *SessionImpl) RunTests() ([]interfaces.TestResult, bool, error) {
 	code := s.GetCode()
 	
 	// Execute tests
-	results, allPassed, err := runner.ExecuteTests(s.Problem, code, 30*time.Second)
+	interfaceProblem := s.convertProblemToInterface(*s.Problem)
+	results, allPassed, err := runner.ExecuteTests(&interfaceProblem, code, 30*time.Second)
 	if err != nil {
 		// If real execution fails, fall back to simulation for now
 		fmt.Printf("Warning: Code execution failed (%v), falling back to simulation.\n", err)
@@ -263,3 +270,38 @@ func (s *SessionImpl) Finish(solved bool) error {
 }
 
 // Note: Using joinStrings from manager.go to avoid redeclaration
+// convertProblemToInterface converts a local problem.Problem to interfaces.Problem
+func (s *SessionImpl) convertProblemToInterface(p problem.Problem) interfaces.Problem {
+	// Convert test cases
+	testCases := make([]interfaces.TestCase, len(p.TestCases))
+	for i, tc := range p.TestCases {
+		testCases[i] = interfaces.TestCase{
+			Input:    tc.Input,
+			Expected: tc.Expected,
+		}
+	}
+	
+	// Get languages from starter code
+	var languages []string
+	for lang := range p.StarterCode {
+		languages = append(languages, lang)
+	}
+	
+	// Use first pattern or empty string
+	var pattern string
+	if len(p.Patterns) > 0 {
+		pattern = p.Patterns[0]
+	}
+	
+	return interfaces.Problem{
+		ID:          p.ID,
+		Title:       p.Title,
+		Description: p.Description,
+		Pattern:     pattern,
+		Difficulty:  p.Difficulty,
+		Companies:   p.Companies,
+		Tags:        p.Patterns,
+		TestCases:   testCases,
+		Languages:   languages,
+	}
+}

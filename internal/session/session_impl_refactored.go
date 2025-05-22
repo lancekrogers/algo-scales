@@ -119,7 +119,8 @@ func (s *RefactoredSessionImpl) IsSolutionShown() bool {
 
 // FormatDescription returns formatted problem description using the formatter component
 func (s *RefactoredSessionImpl) FormatDescription() string {
-	return s.formatter.FormatDescription(s.Problem, s.ShowPattern, s.solutionShown)
+	interfaceProblem := s.convertProblemToInterface(*s.Problem)
+	return s.formatter.FormatDescription(&interfaceProblem, s.ShowPattern, s.solutionShown)
 }
 
 // GetCode returns the current user code via the code manager
@@ -144,7 +145,8 @@ func (s *RefactoredSessionImpl) RunTests() ([]interfaces.TestResult, bool, error
 	code := s.GetCode()
 	
 	// Execute tests
-	results, allPassed, err := runner.ExecuteTests(s.Problem, code, 30*time.Second)
+	interfaceProblem := s.convertProblemToInterface(*s.Problem)
+	results, allPassed, err := runner.ExecuteTests(&interfaceProblem, code, 30*time.Second)
 	if err != nil {
 		// If real execution fails, fall back to simulation for now
 		fmt.Printf("Warning: Code execution failed (%v), falling back to simulation.\n", err)
@@ -203,4 +205,40 @@ func (s *RefactoredSessionImpl) Finish(solved bool) error {
 	}
 
 	return s.statsRecorder.RecordSession(sessionStats)
+}
+
+// convertProblemToInterface converts a local problem.Problem to interfaces.Problem
+func (s *RefactoredSessionImpl) convertProblemToInterface(p problem.Problem) interfaces.Problem {
+	// Convert test cases
+	testCases := make([]interfaces.TestCase, len(p.TestCases))
+	for i, tc := range p.TestCases {
+		testCases[i] = interfaces.TestCase{
+			Input:    tc.Input,
+			Expected: tc.Expected,
+		}
+	}
+	
+	// Get languages from starter code
+	var languages []string
+	for lang := range p.StarterCode {
+		languages = append(languages, lang)
+	}
+	
+	// Use first pattern or empty string
+	var pattern string
+	if len(p.Patterns) > 0 {
+		pattern = p.Patterns[0]
+	}
+	
+	return interfaces.Problem{
+		ID:          p.ID,
+		Title:       p.Title,
+		Description: p.Description,
+		Pattern:     pattern,
+		Difficulty:  p.Difficulty,
+		Companies:   p.Companies,
+		Tags:        p.Patterns,
+		TestCases:   testCases,
+		Languages:   languages,
+	}
 }

@@ -4,7 +4,6 @@ import (
 	"path/filepath"
 
 	"github.com/lancekrogers/algo-scales/internal/common/interfaces"
-	"github.com/lancekrogers/algo-scales/internal/problem"
 )
 
 // CodeManagerImpl implements the CodeManager interface
@@ -72,7 +71,7 @@ func (cm *CodeManagerImpl) SetWorkspace(workspace string) error {
 }
 
 // InitializeWorkspace creates workspace and initial code file
-func (cm *CodeManagerImpl) InitializeWorkspace(prob *problem.Problem, language string) error {
+func (cm *CodeManagerImpl) InitializeWorkspace(prob *interfaces.Problem, language string) error {
 	// Create workspace directory
 	if cm.workspace == "" {
 		tempDir := cm.fs.TempDir()
@@ -101,7 +100,7 @@ func (cm *CodeManagerImpl) InitializeWorkspace(prob *problem.Problem, language s
 	
 	// Generate initial template code
 	if cm.templateSvc != nil {
-		templateCode, err := cm.templateSvc.GenerateTemplate(prob, language)
+		templateCode, err := cm.templateSvc.GetTemplate(prob, language)
 		if err == nil {
 			cm.currentCode = templateCode
 		}
