@@ -2,13 +2,14 @@
 package interfaces
 
 import (
+	"context"
 	"time"
 )
 
 // TestRunner defines an interface for running code tests
 type TestRunner interface {
 	// ExecuteTests runs tests for a solution and returns the results
-	ExecuteTests(prob *Problem, code string, timeout time.Duration) ([]TestResult, bool, error)
+	ExecuteTests(ctx context.Context, prob *Problem, code string, timeout time.Duration) ([]TestResult, bool, error)
 	
 	// GetLanguage returns the language this runner supports
 	GetLanguage() string

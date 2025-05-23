@@ -74,6 +74,33 @@ type StatsService interface {
 	GetAllSessions() ([]SessionStats, error)
 }
 
+// DifficultyStats represents statistics by difficulty level
+type DifficultyStats struct {
+	Difficulty  string  `json:"difficulty"`
+	Attempted   int     `json:"attempted"`
+	Solved      int     `json:"solved"`
+	SuccessRate float64 `json:"success_rate"`
+	AvgTime     string  `json:"avg_time"`
+}
+
+// LanguageStats represents statistics by programming language
+type LanguageStats struct {
+	Language    string  `json:"language"`
+	Attempted   int     `json:"attempted"`
+	Solved      int     `json:"solved"`
+	SuccessRate float64 `json:"success_rate"`
+	AvgTime     string  `json:"avg_time"`
+}
+
+// DailyStats represents statistics for daily practice
+type DailyStats struct {
+	Date          string   `json:"date"`
+	ProblemsToday int      `json:"problems_today"`
+	StreakDays    int      `json:"streak_days"`
+	PatternsToday []string `json:"patterns_today"`
+	Complete      bool     `json:"complete"`
+}
+
 // StatsStorage defines the interface for storing and retrieving statistics
 type StatsStorage interface {
 	// SaveSession saves a session's statistics

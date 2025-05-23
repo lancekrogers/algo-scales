@@ -1,6 +1,7 @@
 package execution
 
 import (
+	"context"
 	"testing"
 	"time"
 	
@@ -39,12 +40,12 @@ func TestRunnerRegistry(t *testing.T) {
 // MockTestRunner for testing
 type MockTestRunner struct {
 	BaseTestRunner
-	executeFn func(prob *interfaces.Problem, code string, timeout time.Duration) ([]interfaces.TestResult, bool, error)
+	executeFn func(ctx context.Context, prob *interfaces.Problem, code string, timeout time.Duration) ([]interfaces.TestResult, bool, error)
 }
 
 // Implement TestRunner interface
-func (m *MockTestRunner) ExecuteTests(prob *interfaces.Problem, code string, timeout time.Duration) ([]interfaces.TestResult, bool, error) {
-	return m.executeFn(prob, code, timeout)
+func (m *MockTestRunner) ExecuteTests(ctx context.Context, prob *interfaces.Problem, code string, timeout time.Duration) ([]interfaces.TestResult, bool, error) {
+	return m.executeFn(ctx, prob, code, timeout)
 }
 
 func (m *MockTestRunner) GenerateTestCode(prob *interfaces.Problem, solutionCode string) (string, error) {
@@ -56,7 +57,7 @@ func TestMockTestRunner(t *testing.T) {
 	// Create a mock test runner
 	mockRunner := &MockTestRunner{
 		BaseTestRunner: NewBaseTestRunner("mock"),
-		executeFn: func(prob *interfaces.Problem, code string, timeout time.Duration) ([]interfaces.TestResult, bool, error) {
+		executeFn: func(ctx context.Context, prob *interfaces.Problem, code string, timeout time.Duration) ([]interfaces.TestResult, bool, error) {
 			results := []interfaces.TestResult{
 				{
 					Input:    "input1",
@@ -95,7 +96,7 @@ func TestMockTestRunner(t *testing.T) {
 		},
 	}
 	
-	results, allPassed, err := runner.ExecuteTests(testProblem, "mock code", 1*time.Second)
+	results, allPassed, err := runner.ExecuteTests(context.Background(), testProblem, "mock code", 1*time.Second)
 	assert.NoError(t, err)
 	assert.False(t, allPassed)
 	assert.Len(t, results, 2)

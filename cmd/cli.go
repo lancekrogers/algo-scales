@@ -2,6 +2,7 @@
 package cmd
 
 import (
+	"context"
 	"fmt"
 	"os"
 	"os/exec"
@@ -117,7 +118,7 @@ func runCliWorkflow(s *SessionAdapter) error {
 
 		case "3": // Test solution
 			// Run tests
-			results, allPassed, err := s.RunTests()
+			results, allPassed, err := s.RunTests(context.Background())
 			if err != nil {
 				fmt.Printf("Error running tests: %v\n", err)
 				continue

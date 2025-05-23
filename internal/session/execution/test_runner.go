@@ -3,6 +3,7 @@ package execution
 
 import (
 	"bytes"
+	"context"
 	"fmt"
 	"io/ioutil"
 	"os"
@@ -16,7 +17,7 @@ import (
 )
 
 // ExecuteSessionTests runs tests for the current solution using a session
-func ExecuteSessionTests(s interfaces.Session, timeout time.Duration) ([]interfaces.TestResult, bool, error) {
+func ExecuteSessionTests(ctx context.Context, s interfaces.Session, timeout time.Duration) ([]interfaces.TestResult, bool, error) {
 	// Get the problem and language
 	interfaceProb := s.GetProblem()
 	language := s.GetLanguage()
@@ -39,11 +40,11 @@ func ExecuteSessionTests(s interfaces.Session, timeout time.Duration) ([]interfa
 	
 	switch language {
 	case "go":
-		results, err = executeGoTests(testDir, &prob, code)
+		results, err = executeGoTests(ctx, testDir, &prob, code)
 	case "python":
-		results, err = executePythonTests(testDir, &prob, code)
+		results, err = executePythonTests(ctx, testDir, &prob, code)
 	case "javascript":
-		results, err = executeJavaScriptTests(testDir, &prob, code)
+		results, err = executeJavaScriptTests(ctx, testDir, &prob, code)
 	default:
 		return nil, false, fmt.Errorf("unsupported language: %s", language)
 	}
@@ -65,7 +66,7 @@ func ExecuteSessionTests(s interfaces.Session, timeout time.Duration) ([]interfa
 }
 
 // executeGoTests runs tests for Go solutions
-func executeGoTests(testDir string, prob *problem.Problem, code string) ([]interfaces.TestResult, error) {
+func executeGoTests(ctx context.Context, testDir string, prob *problem.Problem, code string) ([]interfaces.TestResult, error) {
 	// Create main.go with the solution and test code
 	mainFile := filepath.Join(testDir, "main.go")
 	
@@ -130,7 +131,7 @@ func main() {
 	}
 	
 	// Build and run the test
-	cmd := exec.Command("go", "run", mainFile)
+	cmd := exec.CommandContext(ctx, "go", "run", mainFile)
 	var stdout, stderr bytes.Buffer
 	cmd.Stdout = &stdout
 	cmd.Stderr = &stderr
@@ -198,7 +199,7 @@ func main() {
 }
 
 // executePythonTests runs tests for Python solutions
-func executePythonTests(testDir string, prob *problem.Problem, code string) ([]interfaces.TestResult, error) {
+func executePythonTests(ctx context.Context, testDir string, prob *problem.Problem, code string) ([]interfaces.TestResult, error) {
 	// Create a Python file with the solution and test code
 	testFile := filepath.Join(testDir, "test_solution.py")
 	
@@ -271,7 +272,7 @@ if __name__ == "__main__":
 }
 
 // executeJavaScriptTests runs tests for JavaScript solutions
-func executeJavaScriptTests(testDir string, prob *problem.Problem, code string) ([]interfaces.TestResult, error) {
+func executeJavaScriptTests(ctx context.Context, testDir string, prob *problem.Problem, code string) ([]interfaces.TestResult, error) {
 	// Create a JavaScript file with the solution and test code
 	testFile := filepath.Join(testDir, "test_solution.js")
 	

@@ -1,6 +1,7 @@
 package session
 
 import (
+	"context"
 	"fmt"
 	"math/rand"
 	"time"
@@ -134,7 +135,7 @@ func (s *RefactoredSessionImpl) SetCode(code string) error {
 }
 
 // RunTests runs the code tests using the test runner registry
-func (s *RefactoredSessionImpl) RunTests() ([]interfaces.TestResult, bool, error) {
+func (s *RefactoredSessionImpl) RunTests(ctx context.Context) ([]interfaces.TestResult, bool, error) {
 	// Get test runner for the language
 	runner, err := s.testRegistry.GetRunner(s.GetLanguage())
 	if err != nil {
@@ -146,7 +147,7 @@ func (s *RefactoredSessionImpl) RunTests() ([]interfaces.TestResult, bool, error
 	
 	// Execute tests
 	interfaceProblem := s.convertProblemToInterface(*s.Problem)
-	results, allPassed, err := runner.ExecuteTests(&interfaceProblem, code, 30*time.Second)
+	results, allPassed, err := runner.ExecuteTests(ctx, &interfaceProblem, code, 30*time.Second)
 	if err != nil {
 		// If real execution fails, fall back to simulation for now
 		fmt.Printf("Warning: Code execution failed (%v), falling back to simulation.\n", err)

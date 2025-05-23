@@ -25,16 +25,22 @@ var RefactoredStatsCmd = &cobra.Command{
 		}
 
 		fmt.Fprintln(cmd.OutOrStdout(), "=== Overall Statistics ===")
-		fmt.Fprintf(cmd.OutOrStdout(), "Total Sessions: %d\n", overall.TotalSessions)
-		fmt.Fprintf(cmd.OutOrStdout(), "Solved Problems: %d\n", overall.SolvedProblems)
-		fmt.Fprintf(cmd.OutOrStdout(), "Unsolved Problems: %d\n", overall.UnsolvedProblems)
-		fmt.Fprintf(cmd.OutOrStdout(), "Success Rate: %.1f%%\n", overall.SuccessRate*100)
-		fmt.Fprintf(cmd.OutOrStdout(), "Average Time: %s\n", overall.AverageTime.String())
-		fmt.Fprintf(cmd.OutOrStdout(), "Total Time: %s\n", overall.TotalTime.String())
-		fmt.Fprintf(cmd.OutOrStdout(), "Current Streak: %d\n", overall.CurrentStreak)
-		fmt.Fprintf(cmd.OutOrStdout(), "Longest Streak: %d\n", overall.LongestStreak)
-		fmt.Fprintf(cmd.OutOrStdout(), "Favorite Pattern: %s\n", overall.FavoritePattern)
-		fmt.Fprintf(cmd.OutOrStdout(), "Favorite Language: %s\n", overall.FavoriteLanguage)
+		if overall.Summary != nil {
+			fmt.Fprintf(cmd.OutOrStdout(), "Total Attempted: %d\n", overall.Summary.TotalAttempted)
+			fmt.Fprintf(cmd.OutOrStdout(), "Total Solved: %d\n", overall.Summary.TotalSolved)
+			fmt.Fprintf(cmd.OutOrStdout(), "Success Rate: %.1f%%\n", overall.Summary.SuccessRate*100)
+			fmt.Fprintf(cmd.OutOrStdout(), "Average Solve Time: %s\n", overall.Summary.AvgSolveTime)
+			
+			if overall.Summary.FastestSolve.ProblemID != "" {
+				fmt.Fprintf(cmd.OutOrStdout(), "Fastest Solve: %s (%s)\n", overall.Summary.FastestSolve.ProblemID, overall.Summary.FastestSolve.Time)
+			}
+			
+			if overall.Summary.MostChallenging.ProblemID != "" {
+				fmt.Fprintf(cmd.OutOrStdout(), "Most Challenging: %s (%d attempts)\n", overall.Summary.MostChallenging.ProblemID, overall.Summary.MostChallenging.Attempts)
+			}
+		} else {
+			fmt.Fprintln(cmd.OutOrStdout(), "No summary data available")
+		}
 	},
 }
 
@@ -55,11 +61,10 @@ var RefactoredPatternStatsCmd = &cobra.Command{
 		fmt.Fprintln(cmd.OutOrStdout(), "=== Pattern Statistics ===")
 		for pattern, stats := range patternStats {
 			fmt.Fprintf(cmd.OutOrStdout(), "\n%s:\n", pattern)
-			fmt.Fprintf(cmd.OutOrStdout(), "  Sessions: %d\n", stats.TotalSessions)
+			fmt.Fprintf(cmd.OutOrStdout(), "  Attempted: %d\n", stats.Attempted)
 			fmt.Fprintf(cmd.OutOrStdout(), "  Solved: %d\n", stats.Solved)
-			fmt.Fprintf(cmd.OutOrStdout(), "  Unsolved: %d\n", stats.Unsolved)
 			fmt.Fprintf(cmd.OutOrStdout(), "  Success Rate: %.1f%%\n", stats.SuccessRate*100)
-			fmt.Fprintf(cmd.OutOrStdout(), "  Average Time: %s\n", stats.AverageTime.String())
+			fmt.Fprintf(cmd.OutOrStdout(), "  Average Time: %s\n", stats.AvgTime)
 		}
 	},
 }
@@ -81,11 +86,10 @@ var RefactoredDifficultyStatsCmd = &cobra.Command{
 		fmt.Fprintln(cmd.OutOrStdout(), "=== Difficulty Statistics ===")
 		for difficulty, stats := range difficultyStats {
 			fmt.Fprintf(cmd.OutOrStdout(), "\n%s:\n", difficulty)
-			fmt.Fprintf(cmd.OutOrStdout(), "  Sessions: %d\n", stats.TotalSessions)
+			fmt.Fprintf(cmd.OutOrStdout(), "  Attempted: %d\n", stats.Attempted)
 			fmt.Fprintf(cmd.OutOrStdout(), "  Solved: %d\n", stats.Solved)
-			fmt.Fprintf(cmd.OutOrStdout(), "  Unsolved: %d\n", stats.Unsolved)
 			fmt.Fprintf(cmd.OutOrStdout(), "  Success Rate: %.1f%%\n", stats.SuccessRate*100)
-			fmt.Fprintf(cmd.OutOrStdout(), "  Average Time: %s\n", stats.AverageTime.String())
+			fmt.Fprintf(cmd.OutOrStdout(), "  Average Time: %s\n", stats.AvgTime)
 		}
 	},
 }
@@ -114,8 +118,11 @@ var RefactoredRecentActivityCmd = &cobra.Command{
 
 		fmt.Fprintf(cmd.OutOrStdout(), "=== Recent Activity (Last %d days) ===\n", days)
 		for _, daily := range recentActivity {
-			fmt.Fprintf(cmd.OutOrStdout(), "%s: %d sessions (%d solved, %d unsolved)\n",
-				daily.Date.Format("2006-01-02"), daily.Sessions, daily.Solved, daily.Unsolved)
+			fmt.Fprintf(cmd.OutOrStdout(), "%s: %d problems today (streak: %d days)\n",
+				daily.Date, daily.ProblemsToday, daily.StreakDays)
+			if len(daily.PatternsToday) > 0 {
+				fmt.Fprintf(cmd.OutOrStdout(), "  Patterns: %v\n", daily.PatternsToday)
+			}
 		}
 	},
 }

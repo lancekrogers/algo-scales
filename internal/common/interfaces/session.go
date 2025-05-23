@@ -2,6 +2,7 @@
 package interfaces
 
 import (
+	"context"
 	"time"
 )
 
@@ -74,7 +75,7 @@ type Session interface {
 	SetCode(code string) error
 	
 	// RunTests executes tests on the current solution
-	RunTests() ([]TestResult, bool, error)
+	RunTests(ctx context.Context) ([]TestResult, bool, error)
 	
 	// Finish completes the session and records stats
 	Finish(solved bool) error

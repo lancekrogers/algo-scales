@@ -2,16 +2,26 @@
 package problem
 
 import (
+	"context"
 	"encoding/json"
 	"fmt"
 	"os"
 	"path/filepath"
 	"sort"
 	"strings"
+	"time"
 )
 
 // LoadLocalProblems loads problems from the local problems directory
 func LoadLocalProblems() ([]Problem, error) {
+	return LoadLocalProblemsWithContext(context.Background())
+}
+
+// LoadLocalProblemsWithContext loads problems from the local problems directory with context
+func LoadLocalProblemsWithContext(ctx context.Context) ([]Problem, error) {
+	// Create a context with timeout for file operations
+	ctx, cancel := context.WithTimeout(ctx, 10*time.Second)
+	defer cancel()
 	// First try the standard config dir location
 	configDir := getConfigDir()
 	problemsDir := filepath.Join(configDir, "problems")
@@ -63,6 +73,13 @@ func LoadLocalProblems() ([]Problem, error) {
 	
 	// Iterate through pattern directories
 	for _, patternDir := range patternDirs {
+		// Check for context cancellation
+		select {
+		case <-ctx.Done():
+			return nil, fmt.Errorf("problem loading cancelled: %w", ctx.Err())
+		default:
+		}
+		
 		if !patternDir.IsDir() {
 			continue
 		}

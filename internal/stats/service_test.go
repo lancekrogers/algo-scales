@@ -31,7 +31,7 @@ func TestStatsService(t *testing.T) {
 	now := time.Now()
 	
 	// Session 1: Successfully solved
-	session1 := SessionStats{
+	session1 := interfaces.SessionStats{
 		ProblemID:    "problem1",
 		StartTime:    now.Add(-30 * time.Minute),
 		EndTime:      now.Add(-15 * time.Minute),
@@ -46,7 +46,7 @@ func TestStatsService(t *testing.T) {
 	mockStorage.AddSession(session1)
 	
 	// Session 2: Failed attempt
-	session2 := SessionStats{
+	session2 := interfaces.SessionStats{
 		ProblemID:    "problem2",
 		StartTime:    now.Add(-60 * time.Minute),
 		EndTime:      now.Add(-45 * time.Minute),
@@ -61,7 +61,7 @@ func TestStatsService(t *testing.T) {
 	mockStorage.AddSession(session2)
 	
 	// Session 3: Multiple attempts on same problem
-	session3 := SessionStats{
+	session3 := interfaces.SessionStats{
 		ProblemID:    "problem2",
 		StartTime:    now.Add(-40 * time.Minute),
 		EndTime:      now.Add(-30 * time.Minute),
@@ -135,7 +135,7 @@ func TestStatsService(t *testing.T) {
 	// Test RecordSession
 	t.Run("RecordSession", func(t *testing.T) {
 		// Add a new session
-		newSession := SessionStats{
+		newSession := interfaces.SessionStats{
 			ProblemID:    "problem3",
 			StartTime:    now,
 			EndTime:      now.Add(20 * time.Minute),

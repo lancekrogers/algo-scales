@@ -1,6 +1,7 @@
 package execution
 
 import (
+	"context"
 	"fmt"
 	"os"
 	"os/exec"
@@ -24,7 +25,11 @@ func NewJavaScriptTestRunner() *JavaScriptTestRunner {
 }
 
 // ExecuteTests runs tests for a JavaScript solution
-func (r *JavaScriptTestRunner) ExecuteTests(prob *interfaces.Problem, code string, timeout time.Duration) ([]interfaces.TestResult, bool, error) {
+func (r *JavaScriptTestRunner) ExecuteTests(ctx context.Context, prob *interfaces.Problem, code string, timeout time.Duration) ([]interfaces.TestResult, bool, error) {
+	// Create a context with timeout for the entire operation
+	ctx, cancel := context.WithTimeout(ctx, timeout)
+	defer cancel()
+	
 	// Create a temporary directory for test execution
 	testDir, err := os.MkdirTemp("", "algo-scales-js-test")
 	if err != nil {
@@ -46,7 +51,7 @@ func (r *JavaScriptTestRunner) ExecuteTests(prob *interfaces.Problem, code strin
 	}
 	
 	// Run the test
-	cmd := exec.Command("node", testFile)
+	cmd := exec.CommandContext(ctx, "node", testFile)
 	
 	// Run the command with timeout
 	stdout, stderr, err := runCommandWithTimeout(cmd, timeout)

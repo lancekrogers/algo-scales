@@ -1,6 +1,7 @@
 package execution
 
 import (
+	"context"
 	"fmt"
 	"sync"
 	"time"
@@ -71,11 +72,11 @@ func (r *RunnerRegistry) GetSupportedLanguages() []string {
 var DefaultRegistry = NewRunnerRegistry()
 
 // ExecuteTests is a convenience function using the default registry
-func ExecuteTests(prob *interfaces.Problem, code, language string, timeout time.Duration) ([]interfaces.TestResult, bool, error) {
+func ExecuteTests(ctx context.Context, prob *interfaces.Problem, code, language string, timeout time.Duration) ([]interfaces.TestResult, bool, error) {
 	runner, err := DefaultRegistry.GetRunner(language)
 	if err != nil {
 		return nil, false, err
 	}
 	
-	return runner.ExecuteTests(prob, code, timeout)
+	return runner.ExecuteTests(ctx, prob, code, timeout)
 }

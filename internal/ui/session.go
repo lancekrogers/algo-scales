@@ -1,6 +1,7 @@
 package ui
 
 import (
+	"context"
 	"fmt"
 	"os"
 	"os/exec"
@@ -12,6 +13,7 @@ import (
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/lipgloss"
 	"github.com/lancekrogers/algo-scales/internal/common/config"
+	"github.com/lancekrogers/algo-scales/internal/common/logging"
 	"github.com/lancekrogers/algo-scales/internal/problem"
 )
 
@@ -289,17 +291,46 @@ func openEditor(sessionID, language string, problem problem.Problem) tea.Cmd {
 			}
 		}
 		
+		// Create session state for error logging
+		sessionState := &logging.SessionSnapshot{
+			ProblemID:    problem.ID,
+			Language:     language,
+			Mode:         "editor_session",
+			StartTime:    time.Now(),
+			Patterns:     problem.Patterns,
+			Difficulty:   problem.Difficulty,
+			Workspace:    sessionDir,
+			CodeFile:     codeFile,
+			CustomFields: map[string]string{
+				"editor": editor,
+			},
+		}
+		
 		// Open editor
 		cmd := exec.Command(editor, codeFile)
 		cmd.Stdin = os.Stdin
 		cmd.Stdout = os.Stdout
 		cmd.Stderr = os.Stderr
 		
+		// Log editor operation start
+		ctx := context.Background()
+		ctx = logging.WithOperation(ctx, "open_editor")
+		ctx = logging.WithComponent(ctx, "UI")
+		logger := logging.NewLogger("EditorSession").WithContext(ctx)
+		
+		logger.Info("Opening editor: %s for file: %s", editor, codeFile)
+		
 		err := cmd.Run()
 		if err != nil {
+			// Log detailed editor error
+			if logging.GlobalErrorLogger != nil {
+				logging.GlobalErrorLogger.LogEditorError(ctx, err, editor, codeFile, sessionState)
+			}
+			logger.Error("Editor failed: %v", err)
 			return editorErrorMsg{err}
 		}
 		
+		logger.Info("Editor session completed successfully")
 		return editorFinishedMsg{}
 	}
 }

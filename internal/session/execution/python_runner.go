@@ -1,6 +1,7 @@
 package execution
 
 import (
+	"context"
 	"fmt"
 	"os"
 	"os/exec"
@@ -9,6 +10,7 @@ import (
 	"time"
 	
 	"github.com/lancekrogers/algo-scales/internal/common/interfaces"
+	"github.com/lancekrogers/algo-scales/internal/common/logging"
 )
 
 // PythonTestRunner implements the TestRunner interface for Python code
@@ -24,7 +26,43 @@ func NewPythonTestRunner() *PythonTestRunner {
 }
 
 // ExecuteTests runs tests for a Python solution
-func (r *PythonTestRunner) ExecuteTests(prob *interfaces.Problem, code string, timeout time.Duration) ([]interfaces.TestResult, bool, error) {
+func (r *PythonTestRunner) ExecuteTests(ctx context.Context, prob *interfaces.Problem, code string, timeout time.Duration) ([]interfaces.TestResult, bool, error) {
+	// Create a context with timeout for the entire operation
+	ctx, cancel := context.WithTimeout(ctx, timeout)
+	defer cancel()
+	
+	// Add logging context  
+	ctx = logging.WithOperation(ctx, "ExecutePythonTests")
+	ctx = logging.WithComponent(ctx, "PythonTestRunner")
+	logger := logging.TestRunnerLogger.WithContext(ctx)
+	
+	// Create session snapshot for error logging
+	sessionState := &logging.SessionSnapshot{
+		ProblemID:    prob.ID,
+		Language:     "python",
+		Mode:         "test_execution", 
+		UserCode:     code,
+		StartTime:    time.Now(),
+		Patterns:     prob.Tags,
+		Difficulty:   prob.Difficulty,
+		CustomFields: map[string]string{
+			"timeout":      timeout.String(),
+			"test_count":   fmt.Sprintf("%d", len(prob.TestCases)),
+		},
+	}
+	
+	// Log operation start
+	finishLog := logger.StartOperation(fmt.Sprintf("Execute Python tests for problem %s", prob.ID))
+	defer func() {
+		if r := recover(); r != nil {
+			if logging.GlobalErrorLogger != nil {
+				logging.GlobalErrorLogger.LogPanic(ctx, r, "execute_python_tests", sessionState)
+			}
+			finishLog(fmt.Errorf("panic: %v", r))
+			panic(r)
+		}
+	}()
+	
 	// Create a temporary directory for test execution
 	testDir, err := os.MkdirTemp("", "algo-scales-python-test")
 	if err != nil {
@@ -46,7 +84,7 @@ func (r *PythonTestRunner) ExecuteTests(prob *interfaces.Problem, code string, t
 	}
 	
 	// Run the test
-	cmd := exec.Command("python", testFile)
+	cmd := exec.CommandContext(ctx, "python", testFile)
 	
 	// Run the command with timeout
 	stdout, stderr, err := runCommandWithTimeout(cmd, timeout)

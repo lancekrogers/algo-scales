@@ -2,6 +2,7 @@
 package controller
 
 import (
+	"context"
 	"fmt"
 	"log"
 	"os"
@@ -68,10 +69,10 @@ func (c *Controller) Initialize() tea.Cmd {
 			log.Printf("Failed to load stats: %v", err)
 			// Non-critical error, continue without stats
 		} else {
-			// Update model with stats
-			c.Model.Stats.TotalSolved = summary.TotalSolved
-			c.Model.Stats.TotalAttempted = summary.TotalAttempted
-			c.Model.Stats.SuccessRate = summary.SuccessRate
+			// Update model with stats  
+			c.Model.Stats.ProblemsSolved = summary.TotalSolved
+			c.Model.Stats.ProblemsAttempted = summary.TotalAttempted
+			// SuccessRate can be calculated: summary.SuccessRate
 		}
 		
 		// Load pattern stats
@@ -86,7 +87,13 @@ func (c *Controller) Initialize() tea.Cmd {
 			}
 		}
 
-		return model.ProblemsLoadedMsg{Problems: problems}
+		// Convert interfaces.Problem to problem.Problem
+		convertedProblems := make([]problem.Problem, len(problems))
+		for i, p := range problems {
+			convertedProblems[i] = c.convertInterfaceToLocalProblem(p)
+		}
+
+		return model.ProblemsLoadedMsg{Problems: convertedProblems}
 	}
 }
 
@@ -241,9 +248,15 @@ func (c *Controller) handleSelection(index int) tea.Cmd {
 				c.Model.SelectedIndex = 0
 
 				// Filter problems by pattern
-				filtered, err := c.problemRepo.GetByPattern(pattern)
+				interfaceFiltered, err := c.problemRepo.GetByPattern(pattern)
 				if err != nil {
 					return model.ErrorMsg(fmt.Sprintf("Failed to filter problems: %v", err))
+				}
+				
+				// Convert to local problem type
+				filtered := make([]problem.Problem, len(interfaceFiltered))
+				for i, p := range interfaceFiltered {
+					filtered[i] = c.convertInterfaceToLocalProblem(p)
 				}
 
 				// Update available problems list
@@ -323,12 +336,15 @@ func (c *Controller) startSession(p problem.Problem, mode string) tea.Cmd {
 	c.activeSession = session
 
 	// Update the model with session info
-	problem := session.GetProblem()
+	interfaceProblem := session.GetProblem()
+	
+	// Convert interface problem to local problem type
+	localProblem := c.convertInterfaceToLocalProblem(*interfaceProblem)
 
 	c.Model.Session = model.Session{
 		Active:         true,
 		Mode:           string(options.Mode),
-		Problem:        problem,
+		Problem:        &localProblem,
 		StartTime:      session.GetStartTime(),
 		TimeRemaining:  session.GetTimeRemaining(),
 		ShowHints:      session.AreHintsShown(),
@@ -409,7 +425,7 @@ func (c *Controller) submitSolution() tea.Cmd {
 		c.Model.Loading = true
 
 		// Execute the tests using our session
-		results, allPassed, err := c.activeSession.RunTests()
+		results, allPassed, err := c.activeSession.RunTests(context.Background())
 		if err != nil {
 			return model.ErrorMsg(fmt.Sprintf("Failed to run tests: %v", err))
 		}
@@ -441,7 +457,7 @@ func (c *Controller) updateStatistics() {
 
 	// Update pattern stats if defined
 	problem := c.activeSession.GetProblem()
-	for _, pattern := range problem.Patterns {
+	for _, pattern := range problem.Tags {
 		c.Model.Stats.PatternCounts[pattern]++
 
 		// Update progress based on total problems with this pattern
@@ -478,7 +494,7 @@ func (c *Controller) updateStatistics() {
 	c.Model.Stats.LastPracticeDate = time.Now()
 	
 	// Store session stats
-	sessionStats := stats.SessionStats{
+	sessionStats := interfaces.SessionStats{
 		ProblemID:    problem.ID,
 		StartTime:    c.activeSession.GetStartTime(),
 		EndTime:      time.Now(),
@@ -487,7 +503,7 @@ func (c *Controller) updateStatistics() {
 		Mode:         c.Model.Session.Mode,
 		HintsUsed:    c.activeSession.AreHintsShown(),
 		SolutionUsed: c.activeSession.IsSolutionShown(),
-		Patterns:     problem.Patterns,
+		Patterns:     problem.Tags,
 		Difficulty:   problem.Difficulty,
 	}
 	
@@ -529,5 +545,43 @@ func (c *Controller) checkAchievements() tea.Cmd {
 		}
 
 		return nil
+	}
+}
+// convertInterfaceToLocalProblem converts an interfaces.Problem to a problem.Problem
+func (c *Controller) convertInterfaceToLocalProblem(p interfaces.Problem) problem.Problem {
+	// Convert test cases
+	testCases := make([]problem.TestCase, len(p.TestCases))
+	for i, tc := range p.TestCases {
+		testCases[i] = problem.TestCase{
+			Input:    tc.Input,
+			Expected: tc.Expected,
+		}
+	}
+	
+	// Create starter code map
+	starterCode := make(map[string]string)
+	if p.StarterCode != nil {
+		starterCode = p.StarterCode
+	} else {
+		for _, lang := range p.Languages {
+			starterCode[lang] = ""
+		}
+	}
+	
+	return problem.Problem{
+		ID:                  p.ID,
+		Title:               p.Title,
+		Description:         p.Description,
+		Difficulty:          p.Difficulty,
+		Patterns:            p.Tags, // Map Tags to Patterns
+		Companies:           p.Companies,
+		TestCases:           testCases,
+		StarterCode:         starterCode,
+		Solutions:           make(map[string]string),
+		EstimatedTime:       30, // Default value
+		Examples:            []problem.Example{}, // Empty for now
+		Constraints:         []string{}, // Empty for now
+		PatternExplanation:  "", // Empty for now
+		SolutionWalkthrough: []string{}, // Empty for now
 	}
 }

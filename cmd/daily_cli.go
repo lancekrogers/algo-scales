@@ -3,6 +3,7 @@ package cmd
 
 import (
 	"bytes"
+	"context"
 	"fmt"
 	"os"
 	"os/exec"
@@ -306,7 +307,11 @@ func testDailySolution() {
 	// If direct execution fails, fall back to the execution engine
 	if err != nil && !strings.Contains(output, "FAILED") {
 		fmt.Println("Direct execution failed, falling back to test runner...")
-		results, allPassed, err = execution.ExecuteTests(tempSession, 30*time.Second)
+		
+		// Convert to interfaces.Problem
+		interfaceProblem := convertToInterfaceProblem(tempSession.Problem)
+		
+		results, allPassed, err = execution.ExecuteTests(context.Background(), &interfaceProblem, tempSession.Code, tempSession.Options.Language, 30*time.Second)
 		if err != nil {
 			fmt.Printf("Error executing tests: %v\n", err)
 			return
@@ -666,5 +671,30 @@ func openEditorForDaily(path string) {
 	
 	if err := cmd.Run(); err != nil {
 		fmt.Printf("Error running editor: %v\n", err)
+	}
+}
+
+// convertToInterfaceProblem converts a problem.Problem to interfaces.Problem
+func convertToInterfaceProblem(p *problem.Problem) interfaces.Problem {
+	// Convert test cases
+	testCases := make([]interfaces.TestCase, len(p.TestCases))
+	for i, tc := range p.TestCases {
+		testCases[i] = interfaces.TestCase{
+			Input:    tc.Input,
+			Expected: tc.Expected,
+		}
+	}
+	
+	return interfaces.Problem{
+		ID:          p.ID,
+		Title:       p.Title,
+		Description: p.Description,
+		Pattern:     p.Patterns[0], // Use first pattern
+		Difficulty:  p.Difficulty,
+		Companies:   p.Companies,
+		Tags:        p.Patterns, // Map Patterns to Tags
+		TestCases:   testCases,
+		Languages:   make([]string, 0), // Empty for now
+		StarterCode: p.StarterCode,
 	}
 }

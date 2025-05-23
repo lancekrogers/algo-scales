@@ -2,6 +2,7 @@
 package cmd
 
 import (
+	"context"
 	"github.com/lancekrogers/algo-scales/internal/common/interfaces"
 	"github.com/lancekrogers/algo-scales/internal/session"
 )
@@ -31,7 +32,7 @@ func (s *SessionAdapter) SetCode(code string) error {
 }
 
 // RunTests implements the RunTests method for CLI usage
-func (s *SessionAdapter) RunTests() ([]interfaces.TestResult, bool, error) {
+func (s *SessionAdapter) RunTests(ctx context.Context) ([]interfaces.TestResult, bool, error) {
 	// Create an implementation if not already exists
 	if s.Implementation == nil {
 		// Create a simple SessionImpl adapter
@@ -45,7 +46,7 @@ func (s *SessionAdapter) RunTests() ([]interfaces.TestResult, bool, error) {
 		}
 	}
 	
-	return s.Implementation.RunTests()
+	return s.Implementation.RunTests(ctx)
 }
 
 // ShowHints implements the ShowHints method for CLI usage
