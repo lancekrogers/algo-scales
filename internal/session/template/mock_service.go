@@ -3,7 +3,7 @@ package template
 import (
 	"fmt"
 	
-	"github.com/lancekrogers/algo-scales/internal/problem"
+	"github.com/lancekrogers/algo-scales/internal/common/interfaces"
 )
 
 // MockService provides a mock implementation of TemplateService for testing
@@ -25,7 +25,7 @@ func NewMockService() *MockService {
 }
 
 // GetTemplate returns a code template for a given problem and language
-func (s *MockService) GetTemplate(prob *problem.Problem, language string) (string, error) {
+func (s *MockService) GetTemplate(prob *interfaces.Problem, language string) (string, error) {
 	key := fmt.Sprintf("%s:%s", prob.ID, language)
 	if template, ok := s.Templates[key]; ok {
 		return template, nil
@@ -36,7 +36,7 @@ func (s *MockService) GetTemplate(prob *problem.Problem, language string) (strin
 }
 
 // GetTestHarness generates a test harness for a language
-func (s *MockService) GetTestHarness(prob *problem.Problem, solutionCode, language string) (string, error) {
+func (s *MockService) GetTestHarness(prob *interfaces.Problem, solutionCode, language string) (string, error) {
 	key := fmt.Sprintf("%s:%s", prob.ID, language)
 	if harness, ok := s.TestHarnesses[key]; ok {
 		return harness, nil

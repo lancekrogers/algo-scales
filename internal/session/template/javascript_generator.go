@@ -5,7 +5,7 @@ import (
 	"regexp"
 	"strings"
 	
-	"github.com/lancekrogers/algo-scales/internal/problem"
+	"github.com/lancekrogers/algo-scales/internal/common/interfaces"
 )
 
 // JavaScriptGenerator generates JavaScript code templates
@@ -22,7 +22,7 @@ func (g *JavaScriptGenerator) GetLanguage() string {
 }
 
 // GetTemplate returns a code template for a problem
-func (g *JavaScriptGenerator) GetTemplate(prob *problem.Problem) string {
+func (g *JavaScriptGenerator) GetTemplate(prob interfaces.Problem) string {
 	// First check if a starter code is provided
 	if starterCode, ok := prob.StarterCode["javascript"]; ok && starterCode != "" {
 		return starterCode
@@ -51,7 +51,7 @@ runTests();
 }
 
 // GetTestHarness generates a test harness for JavaScript
-func (g *JavaScriptGenerator) GetTestHarness(prob *problem.Problem, solutionCode string) string {
+func (g *JavaScriptGenerator) GetTestHarness(prob interfaces.Problem, solutionCode string) string {
 	// Extract function name from solution code
 	funcName := g.GetFunctionName(solutionCode)
 	if funcName == "" {

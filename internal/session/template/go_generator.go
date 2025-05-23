@@ -5,7 +5,7 @@ import (
 	"regexp"
 	"strings"
 	
-	"github.com/lancekrogers/algo-scales/internal/problem"
+	"github.com/lancekrogers/algo-scales/internal/common/interfaces"
 )
 
 // GoGenerator generates Go code templates
@@ -22,7 +22,7 @@ func (g *GoGenerator) GetLanguage() string {
 }
 
 // GetTemplate returns a code template for a problem
-func (g *GoGenerator) GetTemplate(prob *problem.Problem) string {
+func (g *GoGenerator) GetTemplate(prob interfaces.Problem) string {
 	// First check if a starter code is provided
 	if starterCode, ok := prob.StarterCode["go"]; ok && starterCode != "" {
 		return starterCode
@@ -54,7 +54,7 @@ func main() {
 }
 
 // GetTestHarness generates a test harness for Go
-func (g *GoGenerator) GetTestHarness(prob *problem.Problem, solutionCode string) string {
+func (g *GoGenerator) GetTestHarness(prob interfaces.Problem, solutionCode string) string {
 	// Extract function name from solution code
 	funcName := g.GetFunctionName(solutionCode)
 	if funcName == "" {

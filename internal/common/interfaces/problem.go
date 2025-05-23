@@ -12,12 +12,13 @@ type Problem struct {
 	Tags        []string
 	TestCases   []TestCase
 	Languages   []string
+	StarterCode map[string]string
 }
 
 // TestCase represents a problem test case
 type TestCase struct {
-	Input    interface{}
-	Expected interface{}
+	Input    string
+	Expected string
 }
 
 // ProblemRepository defines the interface for accessing algorithm problems

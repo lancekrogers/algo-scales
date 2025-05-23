@@ -4,7 +4,7 @@ package template
 import (
 	"fmt"
 	
-	"github.com/lancekrogers/algo-scales/internal/problem"
+	"github.com/lancekrogers/algo-scales/internal/common/interfaces"
 )
 
 // Service implements the TemplateService interface
@@ -15,10 +15,10 @@ type Service struct {
 // LanguageGenerator generates code templates for a specific language
 type LanguageGenerator interface {
 	// GetTemplate returns a code template for a problem
-	GetTemplate(prob *problem.Problem) string
+	GetTemplate(prob interfaces.Problem) string
 	
 	// GetTestHarness generates a test harness
-	GetTestHarness(prob *problem.Problem, solutionCode string) string
+	GetTestHarness(prob interfaces.Problem, solutionCode string) string
 	
 	// GetLanguage returns the language this generator supports
 	GetLanguage() string
@@ -47,24 +47,24 @@ func (s *Service) RegisterGenerator(generator LanguageGenerator) {
 }
 
 // GetTemplate returns a code template for a given problem and language
-func (s *Service) GetTemplate(prob *problem.Problem, language string) (string, error) {
+func (s *Service) GetTemplate(prob *interfaces.Problem, language string) (string, error) {
 	generator, ok := s.generators[language]
 	if !ok {
 		// Fallback to a generic template
 		return s.getGenericTemplate(prob), nil
 	}
 	
-	return generator.GetTemplate(prob), nil
+	return generator.GetTemplate(*prob), nil
 }
 
 // GetTestHarness generates a test harness for a language
-func (s *Service) GetTestHarness(prob *problem.Problem, solutionCode, language string) (string, error) {
+func (s *Service) GetTestHarness(prob *interfaces.Problem, solutionCode, language string) (string, error) {
 	generator, ok := s.generators[language]
 	if !ok {
 		return "", fmt.Errorf("unsupported language: %s", language)
 	}
 	
-	return generator.GetTestHarness(prob, solutionCode), nil
+	return generator.GetTestHarness(*prob, solutionCode), nil
 }
 
 // GetSupportedLanguages returns a list of supported languages
@@ -87,7 +87,7 @@ func (s *Service) GetFunctionName(code, language string) (string, error) {
 }
 
 // getGenericTemplate returns a generic template for any language
-func (s *Service) getGenericTemplate(prob *problem.Problem) string {
+func (s *Service) getGenericTemplate(prob *interfaces.Problem) string {
 	return fmt.Sprintf(`// %s
 // %s
 

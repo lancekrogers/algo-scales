@@ -6,7 +6,6 @@ import (
 	
 	"github.com/stretchr/testify/assert"
 	"github.com/lancekrogers/algo-scales/internal/common/interfaces"
-	"github.com/lancekrogers/algo-scales/internal/problem"
 )
 
 func TestRunnerRegistry(t *testing.T) {
@@ -37,26 +36,27 @@ func TestRunnerRegistry(t *testing.T) {
 	assert.Error(t, err)
 }
 
+// MockTestRunner for testing
+type MockTestRunner struct {
+	BaseTestRunner
+	executeFn func(prob *interfaces.Problem, code string, timeout time.Duration) ([]interfaces.TestResult, bool, error)
+}
+
+// Implement TestRunner interface
+func (m *MockTestRunner) ExecuteTests(prob *interfaces.Problem, code string, timeout time.Duration) ([]interfaces.TestResult, bool, error) {
+	return m.executeFn(prob, code, timeout)
+}
+
+func (m *MockTestRunner) GenerateTestCode(prob *interfaces.Problem, solutionCode string) (string, error) {
+	return "mock test code", nil
+}
+
 func TestMockTestRunner(t *testing.T) {
-	// Create a mock test runner for testing
-	type MockTestRunner struct {
-		BaseTestRunner
-		executeFn func(prob *problem.Problem, code string, timeout time.Duration) ([]interfaces.TestResult, bool, error)
-	}
-	
-	// Implement TestRunner interface
-	func (m *MockTestRunner) ExecuteTests(prob *problem.Problem, code string, timeout time.Duration) ([]interfaces.TestResult, bool, error) {
-		return m.executeFn(prob, code, timeout)
-	}
-	
-	func (m *MockTestRunner) GenerateTestCode(prob *problem.Problem, solutionCode string) (string, error) {
-		return "mock test code", nil
-	}
 	
 	// Create a mock test runner
 	mockRunner := &MockTestRunner{
 		BaseTestRunner: NewBaseTestRunner("mock"),
-		executeFn: func(prob *problem.Problem, code string, timeout time.Duration) ([]interfaces.TestResult, bool, error) {
+		executeFn: func(prob *interfaces.Problem, code string, timeout time.Duration) ([]interfaces.TestResult, bool, error) {
 			results := []interfaces.TestResult{
 				{
 					Input:    "input1",
@@ -86,10 +86,10 @@ func TestMockTestRunner(t *testing.T) {
 	assert.Equal(t, "mock", runner.GetLanguage())
 	
 	// Execute tests with the mock runner
-	testProblem := &problem.Problem{
+	testProblem := &interfaces.Problem{
 		ID:    "test-problem",
 		Title: "Test Problem",
-		TestCases: []problem.TestCase{
+		TestCases: []interfaces.TestCase{
 			{Input: "input1", Expected: "expected1"},
 			{Input: "input2", Expected: "expected2"},
 		},
@@ -114,7 +114,7 @@ Got: wrong
 Test 3
 ✅ PASSED`
 
-	testCases := []problem.TestCase{
+	testCases := []interfaces.TestCase{
 		{Input: "input1", Expected: "result1"},
 		{Input: "input2", Expected: "result2"},
 		{Input: "input3", Expected: "result3"},

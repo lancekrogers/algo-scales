@@ -87,16 +87,9 @@ if __name__ == "__main__":
 	// Generate test code for each test case
 	var testCases strings.Builder
 	for i, tc := range prob.TestCases {
-		// Convert interface{} to string
-		inputStr := ""
-		if str, ok := tc.Input.(string); ok {
-			inputStr = str
-		}
-		
-		expectedStr := ""
-		if str, ok := tc.Expected.(string); ok {
-			expectedStr = str
-		}
+		// Use string fields directly
+		inputStr := tc.Input
+		expectedStr := tc.Expected
 		
 		testCases.WriteString(fmt.Sprintf("\n    # Test case %d\n", i+1))
 		testCases.WriteString(fmt.Sprintf("    print(\"Test %d\")\n", i+1))

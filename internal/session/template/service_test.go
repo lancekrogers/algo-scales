@@ -5,7 +5,6 @@ import (
 	
 	"github.com/stretchr/testify/assert"
 	"github.com/lancekrogers/algo-scales/internal/common/interfaces"
-	"github.com/lancekrogers/algo-scales/internal/problem"
 )
 
 func TestTemplateService(t *testing.T) {
@@ -16,14 +15,15 @@ func TestTemplateService(t *testing.T) {
 	var _ interfaces.TemplateService = service
 	
 	// Create a test problem
-	testProblem := &problem.Problem{
+	testProblem := &interfaces.Problem{
 		ID:          "test-problem",
 		Title:       "Test Problem",
 		Description: "This is a test problem",
-		TestCases: []problem.TestCase{
+		TestCases: []interfaces.TestCase{
 			{Input: "5", Expected: "25"},
 			{Input: "10", Expected: "100"},
 		},
+		Languages: []string{"go", "python", "javascript"},
 	}
 	
 	// Test GetSupportedLanguages
@@ -161,7 +161,7 @@ func TestMockTemplateService(t *testing.T) {
 	var _ interfaces.TemplateService = mockService
 	
 	// Create a test problem
-	testProblem := &problem.Problem{
+	testProblem := &interfaces.Problem{
 		ID:          "test-problem",
 		Title:       "Test Problem",
 		Description: "This is a test problem",

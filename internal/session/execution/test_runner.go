@@ -351,19 +351,9 @@ func convertInterfaceProblemToLocal(p *interfaces.Problem) problem.Problem {
 	// Convert test cases
 	testCases := make([]problem.TestCase, len(p.TestCases))
 	for i, tc := range p.TestCases {
-		inputStr := ""
-		if str, ok := tc.Input.(string); ok {
-			inputStr = str
-		}
-		
-		expectedStr := ""
-		if str, ok := tc.Expected.(string); ok {
-			expectedStr = str
-		}
-		
 		testCases[i] = problem.TestCase{
-			Input:    inputStr,
-			Expected: expectedStr,
+			Input:    tc.Input,
+			Expected: tc.Expected,
 		}
 	}
 	

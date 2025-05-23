@@ -44,20 +44,9 @@ func parseTestOutput(output string, testCases []interfaces.TestCase) []interface
 	
 	// Initialize with basic information
 	for i, tc := range testCases {
-		// Convert interface{} to string
-		inputStr := ""
-		if str, ok := tc.Input.(string); ok {
-			inputStr = str
-		}
-		
-		expectedStr := ""
-		if str, ok := tc.Expected.(string); ok {
-			expectedStr = str
-		}
-		
 		results[i] = interfaces.TestResult{
-			Input:    inputStr,
-			Expected: expectedStr,
+			Input:    tc.Input,
+			Expected: tc.Expected,
 			Actual:   "No output captured",
 			Passed:   false,
 		}

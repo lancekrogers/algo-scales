@@ -100,16 +100,9 @@ func (s *Service) TestSolution(problemID, code, language string) ([]struct {
 		// In a real implementation, we would execute the code against test cases
 		passed := true
 		
-		// Convert interface{} to string with type assertion
-		inputStr := ""
-		if str, ok := tc.Input.(string); ok {
-			inputStr = str
-		}
-		
-		expectedStr := ""
-		if str, ok := tc.Expected.(string); ok {
-			expectedStr = str
-		}
+		// TestCase already has string fields
+		inputStr := tc.Input
+		expectedStr := tc.Expected
 		
 		actual := expectedStr // For simulation
 
@@ -134,19 +127,9 @@ func (s *Service) convertFromInterface(p interfaces.Problem) Problem {
 	// Convert test cases
 	testCases := make([]TestCase, len(p.TestCases))
 	for i, tc := range p.TestCases {
-		inputStr := ""
-		if str, ok := tc.Input.(string); ok {
-			inputStr = str
-		}
-		
-		expectedStr := ""
-		if str, ok := tc.Expected.(string); ok {
-			expectedStr = str
-		}
-		
 		testCases[i] = TestCase{
-			Input:    inputStr,
-			Expected: expectedStr,
+			Input:    tc.Input,
+			Expected: tc.Expected,
 		}
 	}
 	
