@@ -12,6 +12,7 @@ import (
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+	"github.com/lancekrogers/algo-scales/internal/common/utils"
 )
 
 // Override config dir for testing
@@ -20,15 +21,25 @@ func withTestDir(t *testing.T) (string, func()) {
 	tempDir, err := os.MkdirTemp("", "algo-scales-test")
 	require.NoError(t, err)
 
-	// Override config dir for testing
+	// Override config dir for testing (both the local and utils version)
 	origGetConfigDir := getConfigDir
+	origUtilsGetConfigDir := utils.GetConfigDir
+	
 	getConfigDir = func() string {
 		return tempDir
 	}
+	utils.GetConfigDir = func() string {
+		return tempDir
+	}
+	
+	// Reset the default service so it picks up the new config dir
+	ResetDefaultService()
 
 	return tempDir, func() {
 		os.RemoveAll(tempDir)
 		getConfigDir = origGetConfigDir
+		utils.GetConfigDir = origUtilsGetConfigDir
+		ResetDefaultService() // Reset again to clean up
 	}
 }
 

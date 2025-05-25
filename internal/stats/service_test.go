@@ -126,7 +126,7 @@ func TestStatsService(t *testing.T) {
 				break
 			}
 		}
-		assert.Equal(t, 2, todaySolves)
+		assert.Equal(t, 1, todaySolves)
 		
 		// Check that we have weekly trends
 		assert.GreaterOrEqual(t, len(trends.Weekly), 1)

@@ -12,7 +12,20 @@ import (
 )
 
 // DefaultService is the default stats service instance
-var DefaultService = NewService()
+var DefaultService *Service
+
+// getDefaultService returns the default service, creating it if necessary
+func getDefaultService() *Service {
+	if DefaultService == nil {
+		DefaultService = NewService()
+	}
+	return DefaultService
+}
+
+// ResetDefaultService resets the default service (used for testing)
+func ResetDefaultService() {
+	DefaultService = nil
+}
 
 // RecordSession records a session's statistics
 var RecordSession = func(stats SessionStats) error {
@@ -29,12 +42,12 @@ var RecordSession = func(stats SessionStats) error {
 		Patterns:     stats.Patterns,
 		Difficulty:   stats.Difficulty,
 	}
-	return DefaultService.RecordSession(interfaceStats)
+	return getDefaultService().RecordSession(interfaceStats)
 }
 
 // GetSummary returns summary statistics
 var GetSummary = func() (*Summary, error) {
-	interfaceSummary, err := DefaultService.GetSummary()
+	interfaceSummary, err := getDefaultService().GetSummary()
 	if err != nil {
 		return nil, err
 	}
@@ -53,7 +66,7 @@ var GetSummary = func() (*Summary, error) {
 
 // GetByPattern returns statistics by pattern
 var GetByPattern = func() (map[string]PatternStats, error) {
-	interfaceStats, err := DefaultService.GetByPattern()
+	interfaceStats, err := getDefaultService().GetByPattern()
 	if err != nil {
 		return nil, err
 	}
@@ -74,7 +87,7 @@ var GetByPattern = func() (map[string]PatternStats, error) {
 
 // GetTrends returns usage trends over time
 var GetTrends = func() (*Trends, error) {
-	interfaceTrends, err := DefaultService.GetTrends()
+	interfaceTrends, err := getDefaultService().GetTrends()
 	if err != nil {
 		return nil, err
 	}
@@ -107,12 +120,12 @@ var GetTrends = func() (*Trends, error) {
 
 // Reset resets all statistics
 var Reset = func() error {
-	return DefaultService.Reset()
+	return getDefaultService().Reset()
 }
 
 // GetAllSessions returns all recorded sessions
 var GetAllSessions = func() ([]SessionStats, error) {
-	interfaceSessions, err := DefaultService.GetAllSessions()
+	interfaceSessions, err := getDefaultService().GetAllSessions()
 	if err != nil {
 		return nil, err
 	}
