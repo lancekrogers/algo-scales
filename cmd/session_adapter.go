@@ -13,39 +13,29 @@ type SessionAdapter struct {
 	Implementation interfaces.Session
 }
 
+// ensureImplementation creates a SessionImpl if it doesn't exist
+func (s *SessionAdapter) ensureImplementation() {
+	if s.Implementation == nil {
+		// Create a properly initialized SessionImpl
+		impl := session.NewSessionImpl(convertOptions(s.Options), s.Problem)
+		// Set additional fields that the constructor doesn't handle
+		impl.Workspace = s.Workspace
+		impl.CodeFile = s.CodeFile
+		impl.ShowPattern = s.ShowPattern
+		impl.StartTime = s.StartTime
+		s.Implementation = impl
+	}
+}
+
 // SetCode implements the SetCode method for CLI usage
 func (s *SessionAdapter) SetCode(code string) error {
-	// Create an implementation if not already exists
-	if s.Implementation == nil {
-		// Create a simple SessionImpl adapter
-		s.Implementation = &session.SessionImpl{
-			Problem:  s.Problem,
-			Options:  convertOptions(s.Options),
-			StartTime: s.StartTime,
-			Workspace: s.Workspace,
-			CodeFile:  s.CodeFile,
-			ShowPattern: s.ShowPattern,
-		}
-	}
-	
+	s.ensureImplementation()
 	return s.Implementation.SetCode(code)
 }
 
 // RunTests implements the RunTests method for CLI usage
 func (s *SessionAdapter) RunTests(ctx context.Context) ([]interfaces.TestResult, bool, error) {
-	// Create an implementation if not already exists
-	if s.Implementation == nil {
-		// Create a simple SessionImpl adapter
-		s.Implementation = &session.SessionImpl{
-			Problem:  s.Problem,
-			Options:  convertOptions(s.Options),
-			StartTime: s.StartTime,
-			Workspace: s.Workspace,
-			CodeFile:  s.CodeFile,
-			ShowPattern: s.ShowPattern,
-		}
-	}
-	
+	s.ensureImplementation()
 	return s.Implementation.RunTests(ctx)
 }
 
