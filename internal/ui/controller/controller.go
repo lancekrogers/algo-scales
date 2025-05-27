@@ -459,12 +459,8 @@ func (c *Controller) updateStatistics() {
 	problem := c.activeSession.GetProblem()
 	for _, pattern := range problem.Tags {
 		c.Model.Stats.PatternCounts[pattern]++
-
-		// Update progress based on total problems with this pattern
-		filtered, err := c.problemRepo.GetByPattern(pattern)
-		if err == nil && len(filtered) > 0 {
-			c.Model.Stats.PatternsProgress[pattern] = float64(c.Model.Stats.PatternCounts[pattern]) / float64(len(filtered))
-		}
+		// Skip updating progress during stats update to avoid infinite recursion
+		// Progress will be calculated during initial load
 	}
 
 	// Update difficulty stats

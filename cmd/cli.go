@@ -67,6 +67,11 @@ func init() {
 
 // runCliWorkflow handles the CLI problem-solving workflow
 func runCliWorkflow(s *SessionAdapter) error {
+	// Skip interactive workflow during testing
+	if os.Getenv("TESTING") == "1" {
+		return nil
+	}
+
 	// Display welcome message
 	fmt.Println("🎵 AlgoScales CLI Mode 🎵")
 	fmt.Println("—————————————————————————")

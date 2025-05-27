@@ -20,12 +20,26 @@ func executeCommand(root *cobra.Command, args ...string) (string, error) {
 	defer os.Unsetenv("TESTING")
 
 	buf := new(bytes.Buffer)
-	root.SetOut(buf)
-	root.SetErr(buf)
-	root.SetArgs(args)
+	
+	// Create a fresh copy of the command to avoid shared state issues
+	freshCmd := &cobra.Command{
+		Use:   root.Use,
+		Short: root.Short,
+		Long:  root.Long,
+		Run:   root.Run,
+	}
+	
+	// Add all subcommands from the original
+	for _, subCmd := range root.Commands() {
+		freshCmd.AddCommand(subCmd)
+	}
+	
+	freshCmd.SetOut(buf)
+	freshCmd.SetErr(buf)
+	freshCmd.SetArgs(args)
 
 	// Execute the command
-	err := root.Execute()
+	err := freshCmd.Execute()
 	
 	// Return buffer content
 	return buf.String(), err
