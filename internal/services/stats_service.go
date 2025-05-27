@@ -1,25 +1,26 @@
 package services
 
 import (
+	"context"
 	"github.com/lancekrogers/algo-scales/internal/common/interfaces"
 )
 
 // StatsCommandService provides business logic for stats command operations
 type StatsCommandService interface {
 	// GetOverallStats returns overall performance statistics
-	GetOverallStats() (*interfaces.OverallStats, error)
+	GetOverallStats(ctx context.Context) (*interfaces.OverallStats, error)
 	
 	// GetPatternStats returns performance by algorithm pattern
-	GetPatternStats() (map[string]*interfaces.PatternStats, error)
+	GetPatternStats(ctx context.Context) (map[string]*interfaces.PatternStats, error)
 	
 	// GetDifficultyStats returns performance by difficulty level
-	GetDifficultyStats() (map[string]*interfaces.DifficultyStats, error)
+	GetDifficultyStats(ctx context.Context) (map[string]*interfaces.DifficultyStats, error)
 	
 	// GetLanguageStats returns performance by programming language
-	GetLanguageStats() (map[string]*interfaces.LanguageStats, error)
+	GetLanguageStats(ctx context.Context) (map[string]*interfaces.LanguageStats, error)
 	
 	// GetRecentActivity returns recent session activity
-	GetRecentActivity(days int) ([]*interfaces.DailyStats, error)
+	GetRecentActivity(ctx context.Context, days int) ([]*interfaces.DailyStats, error)
 }
 
 // StatsCommandServiceImpl implements StatsCommandService
@@ -40,13 +41,13 @@ func NewStatsCommandService(statsService interfaces.StatsService) StatsCommandSe
 }
 
 // GetOverallStats returns overall performance statistics
-func (s *StatsCommandServiceImpl) GetOverallStats() (*interfaces.OverallStats, error) {
-	summary, err := s.statsService.GetSummary()
+func (s *StatsCommandServiceImpl) GetOverallStats(ctx context.Context) (*interfaces.OverallStats, error) {
+	summary, err := s.statsService.GetSummary(ctx)
 	if err != nil {
 		return nil, err
 	}
 	
-	trends, err := s.statsService.GetTrends()
+	trends, err := s.statsService.GetTrends(ctx)
 	if err != nil {
 		return nil, err
 	}
@@ -58,8 +59,8 @@ func (s *StatsCommandServiceImpl) GetOverallStats() (*interfaces.OverallStats, e
 }
 
 // GetPatternStats returns performance by algorithm pattern
-func (s *StatsCommandServiceImpl) GetPatternStats() (map[string]*interfaces.PatternStats, error) {
-	patternStats, err := s.statsService.GetByPattern()
+func (s *StatsCommandServiceImpl) GetPatternStats(ctx context.Context) (map[string]*interfaces.PatternStats, error) {
+	patternStats, err := s.statsService.GetByPattern(ctx)
 	if err != nil {
 		return nil, err
 	}
@@ -75,21 +76,21 @@ func (s *StatsCommandServiceImpl) GetPatternStats() (map[string]*interfaces.Patt
 }
 
 // GetDifficultyStats returns performance by difficulty level
-func (s *StatsCommandServiceImpl) GetDifficultyStats() (map[string]*interfaces.DifficultyStats, error) {
+func (s *StatsCommandServiceImpl) GetDifficultyStats(ctx context.Context) (map[string]*interfaces.DifficultyStats, error) {
 	// This would need to be implemented by analyzing sessions
 	// For now, return empty map
 	return make(map[string]*interfaces.DifficultyStats), nil
 }
 
 // GetLanguageStats returns performance by programming language
-func (s *StatsCommandServiceImpl) GetLanguageStats() (map[string]*interfaces.LanguageStats, error) {
+func (s *StatsCommandServiceImpl) GetLanguageStats(ctx context.Context) (map[string]*interfaces.LanguageStats, error) {
 	// This would need to be implemented by analyzing sessions
 	// For now, return empty map
 	return make(map[string]*interfaces.LanguageStats), nil
 }
 
 // GetRecentActivity returns recent session activity
-func (s *StatsCommandServiceImpl) GetRecentActivity(days int) ([]*interfaces.DailyStats, error) {
+func (s *StatsCommandServiceImpl) GetRecentActivity(ctx context.Context, days int) ([]*interfaces.DailyStats, error) {
 	// This would need to be implemented by analyzing recent sessions
 	// For now, return empty slice
 	return make([]*interfaces.DailyStats, 0), nil
@@ -99,7 +100,7 @@ func (s *StatsCommandServiceImpl) GetRecentActivity(days int) ([]*interfaces.Dai
 type LegacyStatsCommandService struct{}
 
 // GetOverallStats returns overall performance statistics using legacy functions
-func (s *LegacyStatsCommandService) GetOverallStats() (*interfaces.OverallStats, error) {
+func (s *LegacyStatsCommandService) GetOverallStats(ctx context.Context) (*interfaces.OverallStats, error) {
 	// Legacy implementation with basic fallback
 	summary := &interfaces.Summary{
 		TotalAttempted: 0,
@@ -121,25 +122,25 @@ func (s *LegacyStatsCommandService) GetOverallStats() (*interfaces.OverallStats,
 }
 
 // GetPatternStats returns performance by algorithm pattern using legacy functions
-func (s *LegacyStatsCommandService) GetPatternStats() (map[string]*interfaces.PatternStats, error) {
+func (s *LegacyStatsCommandService) GetPatternStats(ctx context.Context) (map[string]*interfaces.PatternStats, error) {
 	// Legacy implementation with basic fallback
 	return make(map[string]*interfaces.PatternStats), nil
 }
 
 // GetDifficultyStats returns performance by difficulty level using legacy functions
-func (s *LegacyStatsCommandService) GetDifficultyStats() (map[string]*interfaces.DifficultyStats, error) {
+func (s *LegacyStatsCommandService) GetDifficultyStats(ctx context.Context) (map[string]*interfaces.DifficultyStats, error) {
 	// Legacy implementation with basic fallback
 	return make(map[string]*interfaces.DifficultyStats), nil
 }
 
 // GetLanguageStats returns performance by programming language using legacy functions
-func (s *LegacyStatsCommandService) GetLanguageStats() (map[string]*interfaces.LanguageStats, error) {
+func (s *LegacyStatsCommandService) GetLanguageStats(ctx context.Context) (map[string]*interfaces.LanguageStats, error) {
 	// Legacy implementation with basic fallback
 	return make(map[string]*interfaces.LanguageStats), nil
 }
 
 // GetRecentActivity returns recent session activity using legacy functions
-func (s *LegacyStatsCommandService) GetRecentActivity(days int) ([]*interfaces.DailyStats, error) {
+func (s *LegacyStatsCommandService) GetRecentActivity(ctx context.Context, days int) ([]*interfaces.DailyStats, error) {
 	// Legacy implementation with basic fallback
 	return make([]*interfaces.DailyStats, 0), nil
 }

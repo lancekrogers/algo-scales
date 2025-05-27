@@ -1,6 +1,7 @@
 package problem
 
 import (
+	"context"
 	"testing"
 	
 	"github.com/stretchr/testify/assert"
@@ -43,44 +44,44 @@ func TestMockRepository(t *testing.T) {
 	
 	// Test GetAll
 	t.Run("GetAll", func(t *testing.T) {
-		problems, err := mockRepo.GetAll()
+		problems, err := mockRepo.GetAll(context.Background())
 		assert.NoError(t, err)
 		assert.Len(t, problems, 2)
 	})
 	
 	// Test GetByID
 	t.Run("GetByID", func(t *testing.T) {
-		problem, err := mockRepo.GetByID("test-problem-1")
+		problem, err := mockRepo.GetByID(context.Background(), "test-problem-1")
 		assert.NoError(t, err)
 		assert.Equal(t, "Test Problem 1", problem.Title)
 		
 		// Non-existent problem
-		_, err = mockRepo.GetByID("non-existent")
+		_, err = mockRepo.GetByID(context.Background(), "non-existent")
 		assert.Error(t, err)
 		assert.Equal(t, ErrProblemNotFound, err)
 	})
 	
 	// Test GetByPattern
 	t.Run("GetByPattern", func(t *testing.T) {
-		problems, err := mockRepo.GetByPattern("sliding-window")
+		problems, err := mockRepo.GetByPattern(context.Background(), "sliding-window")
 		assert.NoError(t, err)
 		assert.Len(t, problems, 1)
 		assert.Equal(t, "test-problem-1", problems[0].ID)
 		
-		problems, err = mockRepo.GetByPattern("dynamic-programming")
+		problems, err = mockRepo.GetByPattern(context.Background(), "dynamic-programming")
 		assert.NoError(t, err)
 		assert.Len(t, problems, 1)
 		assert.Equal(t, "test-problem-2", problems[0].ID)
 		
 		// Empty pattern returns all
-		problems, err = mockRepo.GetByPattern("")
+		problems, err = mockRepo.GetByPattern(context.Background(), "")
 		assert.NoError(t, err)
 		assert.Len(t, problems, 2)
 	})
 	
 	// Test GetPatterns
 	t.Run("GetPatterns", func(t *testing.T) {
-		patterns, err := mockRepo.GetPatterns()
+		patterns, err := mockRepo.GetPatterns(context.Background())
 		assert.NoError(t, err)
 		assert.Len(t, patterns, 3)
 		assert.Contains(t, patterns, "two-pointers")
@@ -90,7 +91,7 @@ func TestMockRepository(t *testing.T) {
 	
 	// Test GetLanguages
 	t.Run("GetLanguages", func(t *testing.T) {
-		languages, err := mockRepo.GetLanguages()
+		languages, err := mockRepo.GetLanguages(context.Background())
 		assert.NoError(t, err)
 		assert.Len(t, languages, 3)
 		assert.Contains(t, languages, "go")
@@ -100,36 +101,36 @@ func TestMockRepository(t *testing.T) {
 	
 	// Test GetByDifficulty
 	t.Run("GetByDifficulty", func(t *testing.T) {
-		problems, err := mockRepo.GetByDifficulty("easy")
+		problems, err := mockRepo.GetByDifficulty(context.Background(), "easy")
 		assert.NoError(t, err)
 		assert.Len(t, problems, 1)
 		assert.Equal(t, "test-problem-1", problems[0].ID)
 		
-		problems, err = mockRepo.GetByDifficulty("medium")
+		problems, err = mockRepo.GetByDifficulty(context.Background(), "medium")
 		assert.NoError(t, err)
 		assert.Len(t, problems, 1)
 		assert.Equal(t, "test-problem-2", problems[0].ID)
 		
 		// No problems with this difficulty
-		problems, err = mockRepo.GetByDifficulty("hard")
+		problems, err = mockRepo.GetByDifficulty(context.Background(), "hard")
 		assert.NoError(t, err)
 		assert.Len(t, problems, 0)
 	})
 	
 	// Test GetByCompany
 	t.Run("GetByCompany", func(t *testing.T) {
-		problems, err := mockRepo.GetByCompany("google")
+		problems, err := mockRepo.GetByCompany(context.Background(), "google")
 		assert.NoError(t, err)
 		assert.Len(t, problems, 1)
 		assert.Equal(t, "test-problem-1", problems[0].ID)
 		
-		problems, err = mockRepo.GetByCompany("microsoft")
+		problems, err = mockRepo.GetByCompany(context.Background(), "microsoft")
 		assert.NoError(t, err)
 		assert.Len(t, problems, 1)
 		assert.Equal(t, "test-problem-2", problems[0].ID)
 		
 		// No problems for this company
-		problems, err = mockRepo.GetByCompany("apple")
+		problems, err = mockRepo.GetByCompany(context.Background(), "apple")
 		assert.NoError(t, err)
 		assert.Len(t, problems, 0)
 	})

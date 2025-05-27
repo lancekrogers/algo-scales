@@ -21,7 +21,7 @@ MAIN_PATH=./
 SERVER_PATH=./server
 
 # Targets
-.PHONY: all build clean test test-chart test-coverage fix-tests fmt lint run server install vet
+.PHONY: all build clean test test-chart test-coverage test-context test-integration test-short fix-tests fmt lint run server install vet
 
 all: test-chart build
 
@@ -46,8 +46,8 @@ test-chart:
 	@echo "│                 🎵  AlgoScales Test Results  🎵                │"
 	@echo "╰───────────────────────────────────────────────────────────────╯"
 	@echo ""
-	@$(GOTEST) $(PKG) 2>&1 | tee /tmp/test-output.txt | awk ' \
-		BEGIN { passed=0; failed=0; buildfail=0; notests=0; } \
+	@$(GOTEST) -v $(PKG) 2>&1 | tee /tmp/test-output.txt | awk ' \
+		BEGIN { passed=0; failed=0; buildfail=0; notests=0; testspassed=0; testsfailed=0; } \
 		/^ok / { passed += 1; printf "✅ \033[32m%-50s\033[0m %s\n", $$2, "PASS" } \
 		/^FAIL.*/ { if (match($$0, /\[build failed\]/)) { \
 						buildfail += 1; printf "🔨 \033[33m%-50s\033[0m %s\n", $$2, "BUILD FAILED" \
@@ -56,6 +56,8 @@ test-chart:
 					} \
 		} \
 		/\?\s+/ { notests += 1; printf "🔍 \033[36m%-50s\033[0m %s\n", $$2, "NO TESTS" } \
+		/--- PASS:/ { testspassed += 1 } \
+		/--- FAIL:/ { testsfailed += 1 } \
 		END { total = passed + failed + buildfail + notests; \
 			printf "\n📊 \033[1mTest Summary:\033[0m\n"; \
 			printf "   Total Packages: %d\n", total; \
@@ -63,25 +65,53 @@ test-chart:
 			printf "   ❌ Failed:      %d (%d%%)\n", failed, (total>0 ? failed*100/total : 0); \
 			printf "   🔨 Build Failed: %d (%d%%)\n", buildfail, (total>0 ? buildfail*100/total : 0); \
 			printf "   🔍 No Tests:     %d (%d%%)\n", notests, (total>0 ? notests*100/total : 0); \
+			printf "\n🧪 \033[1mTest Cases:\033[0m\n"; \
+			printf "   Total Tests:   %d\n", testspassed + testsfailed; \
+			printf "   ✅ Passed:      %d\n", testspassed; \
+			if (testsfailed > 0) { \
+				printf "   ❌ Failed:      %d\n", testsfailed; \
+			} \
 		} \
 	'
 	@echo ""
 	@echo "╭───────────────────────────────────────────────────────────────╮"
 	@echo "│ Legend: ✅ Passed  ❌ Failed  🔨 Build Failed  🔍 No Tests     │"
 	@echo "╰───────────────────────────────────────────────────────────────╯"
-	@echo ""
-	@if grep -q "\-\-\- PASS:" /tmp/test-output.txt; then \
-		grep -o "\-\-\- PASS: Test[^[:space:]]*" /tmp/test-output.txt | wc -l | xargs -I{} echo "🧪 Total Test Cases: \033[1m{}\033[0m passed"; \
-	else \
-		echo "🧪 No individual test cases passed"; \
-	fi
-	@echo ""
 	@rm -f /tmp/test-output.txt
-	@$(GOTEST) $(PKG) > /dev/null 2>&1 || echo "⚠️  Some tests are failing! Run 'make test' for details."
+	@if [ $$? -ne 0 ]; then \
+		echo ""; \
+		echo "⚠️  Some tests are failing! Run 'make test' for details."; \
+		exit 1; \
+	fi
 
 test-coverage:
 	$(GOTEST) -coverprofile=coverage.out $(PKG)
 	$(GOCMD) tool cover -html=coverage.out
+
+test-context:
+	@echo "╭───────────────────────────────────────────────────────────────╮"
+	@echo "│             🔄  Testing Context Integration  🔄                │"
+	@echo "╰───────────────────────────────────────────────────────────────╯"
+	@echo ""
+	@echo "Testing packages with context.Context integration..."
+	@echo ""
+	$(GOTEST) -v ./internal/problem ./internal/stats ./internal/registry ./internal/services ./internal/session
+	@echo ""
+	@echo "✅ Context integration tests completed!"
+
+test-integration:
+	@echo "╭───────────────────────────────────────────────────────────────╮"
+	@echo "│             🧪  Running Integration Tests  🧪                  │"
+	@echo "╰───────────────────────────────────────────────────────────────╯"
+	@echo ""
+	$(GOTEST) -v -tags=integration $(PKG)
+
+test-short:
+	@echo "╭───────────────────────────────────────────────────────────────╮"
+	@echo "│             ⚡  Running Quick Tests  ⚡                        │"
+	@echo "╰───────────────────────────────────────────────────────────────╯"
+	@echo ""
+	$(GOTEST) -short $(PKG)
 
 fix-tests:
 	@echo "╭───────────────────────────────────────────────────────────────╮"
@@ -108,9 +138,20 @@ fix-tests:
 	@echo "5️⃣  \033[1mFailed stats tests\033[0m"
 	@echo "   ➡️  Ensure mock data is properly initialized in stats_test.go"
 	@echo ""
+	@echo "6️⃣  \033[1mContext parameter missing errors\033[0m"
+	@echo "   ➡️  All service/repository methods now require context.Context as first parameter"
+	@echo "   ➡️  Update calls to pass context.Background() or appropriate context"
+	@echo ""
+	@echo "7️⃣  \033[1mMock implementations don't match interfaces\033[0m"
+	@echo "   ➡️  Update mock methods to accept context.Context parameter"
+	@echo "   ➡️  Check MockProblemRepository, MockStatsService, MockStorage"
+	@echo ""
 	@echo "Run specific test packages:"
 	@echo "   make test PKG=./internal/session"
 	@echo "   make test PKG=./internal/problem"
+	@echo ""
+	@echo "Test context integration:"
+	@echo "   make test-context"
 	@echo ""
 	@echo "For more details on test failures:"
 	@echo "   make test"

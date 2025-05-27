@@ -1,6 +1,7 @@
 package services
 
 import (
+	"context"
 	"github.com/lancekrogers/algo-scales/internal/common/interfaces"
 	"github.com/lancekrogers/algo-scales/internal/problem"
 )
@@ -8,19 +9,19 @@ import (
 // ProblemService provides business logic for problem management
 type ProblemService interface {
 	// ListAll returns all available problems
-	ListAll() ([]problem.Problem, error)
+	ListAll(ctx context.Context) ([]problem.Problem, error)
 	
 	// ListByPattern returns problems organized by pattern
-	ListByPattern() (map[string][]problem.Problem, error)
+	ListByPattern(ctx context.Context) (map[string][]problem.Problem, error)
 	
 	// ListByDifficulty returns problems organized by difficulty
-	ListByDifficulty() (map[string][]problem.Problem, error)
+	ListByDifficulty(ctx context.Context) (map[string][]problem.Problem, error)
 	
 	// GetByID retrieves a specific problem by ID
-	GetByID(id string) (*problem.Problem, error)
+	GetByID(ctx context.Context, id string) (*problem.Problem, error)
 	
 	// GetRandom returns a random problem with optional filters
-	GetRandom(pattern, difficulty string) (*problem.Problem, error)
+	GetRandom(ctx context.Context, pattern, difficulty string) (*problem.Problem, error)
 }
 
 // ProblemServiceImpl implements ProblemService
@@ -41,8 +42,8 @@ func NewProblemService(repo interfaces.ProblemRepository) ProblemService {
 }
 
 // ListAll returns all available problems
-func (s *ProblemServiceImpl) ListAll() ([]problem.Problem, error) {
-	interfaceProblems, err := s.repo.GetAll()
+func (s *ProblemServiceImpl) ListAll(ctx context.Context) ([]problem.Problem, error) {
+	interfaceProblems, err := s.repo.GetAll(ctx)
 	if err != nil {
 		return nil, err
 	}
@@ -57,8 +58,8 @@ func (s *ProblemServiceImpl) ListAll() ([]problem.Problem, error) {
 }
 
 // ListByPattern returns problems organized by pattern
-func (s *ProblemServiceImpl) ListByPattern() (map[string][]problem.Problem, error) {
-	interfaceProblems, err := s.repo.GetAll()
+func (s *ProblemServiceImpl) ListByPattern(ctx context.Context) (map[string][]problem.Problem, error) {
+	interfaceProblems, err := s.repo.GetAll(ctx)
 	if err != nil {
 		return nil, err
 	}
@@ -75,8 +76,8 @@ func (s *ProblemServiceImpl) ListByPattern() (map[string][]problem.Problem, erro
 }
 
 // ListByDifficulty returns problems organized by difficulty
-func (s *ProblemServiceImpl) ListByDifficulty() (map[string][]problem.Problem, error) {
-	interfaceProblems, err := s.repo.GetAll()
+func (s *ProblemServiceImpl) ListByDifficulty(ctx context.Context) (map[string][]problem.Problem, error) {
+	interfaceProblems, err := s.repo.GetAll(ctx)
 	if err != nil {
 		return nil, err
 	}
@@ -91,8 +92,8 @@ func (s *ProblemServiceImpl) ListByDifficulty() (map[string][]problem.Problem, e
 }
 
 // GetByID retrieves a specific problem by ID
-func (s *ProblemServiceImpl) GetByID(id string) (*problem.Problem, error) {
-	interfaceProb, err := s.repo.GetByID(id)
+func (s *ProblemServiceImpl) GetByID(ctx context.Context, id string) (*problem.Problem, error) {
+	interfaceProb, err := s.repo.GetByID(ctx, id)
 	if err != nil {
 		return nil, err
 	}
@@ -107,13 +108,13 @@ func (s *ProblemServiceImpl) GetByID(id string) (*problem.Problem, error) {
 }
 
 // GetRandom returns a random problem with optional filters
-func (s *ProblemServiceImpl) GetRandom(pattern, difficulty string) (*problem.Problem, error) {
+func (s *ProblemServiceImpl) GetRandom(ctx context.Context, pattern, difficulty string) (*problem.Problem, error) {
 	var interfaceProb *interfaces.Problem
 	var err error
 	
 	if pattern != "" && difficulty != "" {
 		// Filter by both pattern and difficulty
-		byPattern, err := s.repo.GetByPattern(pattern)
+		byPattern, err := s.repo.GetByPattern(ctx, pattern)
 		if err != nil {
 			return nil, err
 		}
@@ -126,17 +127,17 @@ func (s *ProblemServiceImpl) GetRandom(pattern, difficulty string) (*problem.Pro
 		}
 		
 		if len(filtered) == 0 {
-			interfaceProb, err = s.repo.GetRandom()
+			interfaceProb, err = s.repo.GetRandom(ctx)
 		} else {
 			// Return random from filtered set
-			interfaceProb, err = s.repo.GetRandomByTags([]string{pattern})
+			interfaceProb, err = s.repo.GetRandomByTags(ctx, []string{pattern})
 		}
 	} else if pattern != "" {
-		interfaceProb, err = s.repo.GetRandomByPattern(pattern)
+		interfaceProb, err = s.repo.GetRandomByPattern(ctx, pattern)
 	} else if difficulty != "" {
-		interfaceProb, err = s.repo.GetRandomByDifficulty(difficulty)
+		interfaceProb, err = s.repo.GetRandomByDifficulty(ctx, difficulty)
 	} else {
-		interfaceProb, err = s.repo.GetRandom()
+		interfaceProb, err = s.repo.GetRandom(ctx)
 	}
 	
 	if err != nil {
@@ -156,22 +157,22 @@ func (s *ProblemServiceImpl) GetRandom(pattern, difficulty string) (*problem.Pro
 type LegacyProblemService struct{}
 
 // ListAll returns all available problems using legacy functions
-func (s *LegacyProblemService) ListAll() ([]problem.Problem, error) {
+func (s *LegacyProblemService) ListAll(ctx context.Context) ([]problem.Problem, error) {
 	return problem.ListAll()
 }
 
 // ListByPattern returns problems organized by pattern using legacy functions
-func (s *LegacyProblemService) ListByPattern() (map[string][]problem.Problem, error) {
+func (s *LegacyProblemService) ListByPattern(ctx context.Context) (map[string][]problem.Problem, error) {
 	return problem.ListPatterns()
 }
 
 // ListByDifficulty returns problems organized by difficulty using legacy functions
-func (s *LegacyProblemService) ListByDifficulty() (map[string][]problem.Problem, error) {
+func (s *LegacyProblemService) ListByDifficulty(ctx context.Context) (map[string][]problem.Problem, error) {
 	return problem.ListByDifficulty()
 }
 
 // GetByID retrieves a specific problem by ID using legacy functions
-func (s *LegacyProblemService) GetByID(id string) (*problem.Problem, error) {
+func (s *LegacyProblemService) GetByID(ctx context.Context, id string) (*problem.Problem, error) {
 	return problem.GetByID(id)
 }
 
@@ -215,7 +216,7 @@ func (s *ProblemServiceImpl) convertFromInterface(p interfaces.Problem) problem.
 }
 
 // GetRandom returns a random problem with optional filters using legacy functions
-func (s *LegacyProblemService) GetRandom(pattern, difficulty string) (*problem.Problem, error) {
+func (s *LegacyProblemService) GetRandom(ctx context.Context, pattern, difficulty string) (*problem.Problem, error) {
 	// Use simple random selection for legacy service
 	// This is a simplified implementation
 	return problem.GetRandomProblem()

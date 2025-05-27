@@ -78,19 +78,19 @@ type Session interface {
 	RunTests(ctx context.Context) ([]TestResult, bool, error)
 	
 	// Finish completes the session and records stats
-	Finish(solved bool) error
+	Finish(ctx context.Context, solved bool) error
 }
 
 // SessionManager creates and manages problem-solving sessions
 type SessionManager interface {
 	// StartSession begins a new practice session
-	StartSession(opts SessionOptions) (Session, error)
+	StartSession(ctx context.Context, opts SessionOptions) (Session, error)
 	
 	// GetSessionByID retrieves an active session
-	GetSessionByID(id string) (Session, bool)
+	GetSessionByID(ctx context.Context, id string) (Session, bool)
 	
 	// FinishSession completes a session
-	FinishSession(sessionID string, solved bool) error
+	FinishSession(ctx context.Context, sessionID string, solved bool) error
 }
 
 // ProblemFormatter handles problem text formatting
@@ -124,7 +124,7 @@ type CodeManager interface {
 
 // SessionStatsRecorder handles session statistics recording
 type SessionStatsRecorder interface {
-	RecordSession(stats SessionStats) error
+	RecordSession(ctx context.Context, stats SessionStats) error
 }
 
 // SessionStats contains session performance data

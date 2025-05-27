@@ -144,19 +144,25 @@ func (r *GoTestRunner) ExecuteTests(ctx context.Context, prob *interfaces.Proble
 	finishLog(nil)
 	return results, allPassed, nil
 }
+
 // GenerateTestCode creates test code for a given problem
 func (r *GoTestRunner) GenerateTestCode(prob *interfaces.Problem, solutionCode string) (string, error) {
 	return r.generateTestTemplate(prob, solutionCode)
 }
 
-// generateTestTemplate generates the Go test template (extracted from ExecuteTests)
+// generateTestTemplate generates the Go test template with proper two_sum implementation
 func (r *GoTestRunner) generateTestTemplate(prob *interfaces.Problem, solutionCode string) (string, error) {
+	// For two_sum problem, we need specific parsing logic
+	if prob.ID == "two_sum" {
+		return r.generateTwoSumTestTemplate(prob, solutionCode)
+	}
+	
+	// Generic template for other problems
 	testTemplate := `package main
 
 import (
 	"fmt"
 	"os"
-	"strings"
 )
 
 // User's solution
@@ -168,7 +174,84 @@ func main() {
 	
 	%s
 	
-	if \!allPassed {
+	if !allPassed {
+		os.Exit(1)
+	}
+}
+`
+	
+	// Generate test code for each test case
+	var testCases strings.Builder
+	for i := range prob.TestCases {
+		testCases.WriteString(fmt.Sprintf("\n\t// Test case %d\n", i+1))
+		testCases.WriteString(fmt.Sprintf("\tfmt.Printf(\"Test %d\\n\")\n", i+1))
+		testCases.WriteString("\t// TODO: Implement test logic for this problem type\n")
+		testCases.WriteString("\tfmt.Println(\"❌ FAILED: Test not implemented\")\n")
+		testCases.WriteString("\tallPassed = false\n")
+	}
+	
+	return fmt.Sprintf(testTemplate, solutionCode, testCases.String()), nil
+}
+
+// generateTwoSumTestTemplate generates specific test template for two_sum problem
+func (r *GoTestRunner) generateTwoSumTestTemplate(prob *interfaces.Problem, solutionCode string) (string, error) {
+	testTemplate := `package main
+
+import (
+	"fmt"
+	"os"
+	"strconv"
+	"strings"
+)
+
+// User's solution
+%s
+
+// parseIntArray parses a string like "[1,2,3]" into []int
+func parseIntArray(s string) ([]int, error) {
+	s = strings.TrimSpace(s)
+	s = strings.TrimPrefix(s, "[")
+	s = strings.TrimSuffix(s, "]")
+	
+	if s == "" {
+		return []int{}, nil
+	}
+	
+	parts := strings.Split(s, ",")
+	result := make([]int, len(parts))
+	
+	for i, part := range parts {
+		num, err := strconv.Atoi(strings.TrimSpace(part))
+		if err != nil {
+			return nil, err
+		}
+		result[i] = num
+	}
+	
+	return result, nil
+}
+
+// formatIntArray formats []int as a string like "[1,2]"
+func formatIntArray(arr []int) string {
+	if len(arr) == 0 {
+		return "[]"
+	}
+	
+	parts := make([]string, len(arr))
+	for i, num := range arr {
+		parts[i] = strconv.Itoa(num)
+	}
+	
+	return "[" + strings.Join(parts, ",") + "]"
+}
+
+func main() {
+	// Run tests
+	allPassed := true
+	
+	%s
+	
+	if !allPassed {
 		os.Exit(1)
 	}
 }
@@ -177,36 +260,44 @@ func main() {
 	// Generate test code for each test case
 	var testCases strings.Builder
 	for i, tc := range prob.TestCases {
-		// Use string fields directly
-		inputStr := tc.Input
-		expectedStr := tc.Expected
-		
 		testCases.WriteString(fmt.Sprintf("\n\t// Test case %d\n", i+1))
 		testCases.WriteString(fmt.Sprintf("\tfmt.Printf(\"Test %d\\n\")\n", i+1))
-		testCases.WriteString(fmt.Sprintf("\t{\n\t\tinputStr := `%s`\n", inputStr))
-		testCases.WriteString(fmt.Sprintf("\t\texpectedStr := `%s`\n", expectedStr))
 		
-		// Parse input based on the problem
+		// Parse the input - for two_sum it's "array, target"
+		testCases.WriteString(fmt.Sprintf("\t{\n\t\tinputStr := `%s`\n", tc.Input))
+		testCases.WriteString(fmt.Sprintf("\t\texpectedStr := `%s`\n", tc.Expected))
+		
+		// Parse input
 		testCases.WriteString("\t\t// Parse input\n")
-		testCases.WriteString("\t\t// Note: This parsing logic needs to be customized for each problem type\n")
 		testCases.WriteString("\t\tparts := strings.Split(inputStr, \", \")\n")
-		testCases.WriteString("\t\tif len(parts) < 1 {\n\t\t\tfmt.Printf(\"Error parsing input: %s\\n\", inputStr)\n\t\t\tallPassed = false\n\t\t\tcontinue\n\t\t}\n")
+		testCases.WriteString("\t\tif len(parts) != 2 {\n")
+		testCases.WriteString("\t\t\tfmt.Printf(\"Error: Invalid input format: %s\\n\", inputStr)\n")
+		testCases.WriteString("\t\t\tallPassed = false\n")
+		testCases.WriteString("\t\t} else {\n")
+		testCases.WriteString("\t\t\tnums, err1 := parseIntArray(parts[0])\n")
+		testCases.WriteString("\t\t\ttarget, err2 := strconv.Atoi(strings.TrimSpace(parts[1]))\n")
+		testCases.WriteString("\t\t\tif err1 != nil || err2 != nil {\n")
+		testCases.WriteString("\t\t\t\tfmt.Printf(\"Error parsing input: %v, %v\\n\", err1, err2)\n")
+		testCases.WriteString("\t\t\t\tallPassed = false\n")
+		testCases.WriteString("\t\t\t} else {\n")
 		
-		// Actual test execution - simplified for demonstration
-		testCases.WriteString("\t\t// Execute solution with the input\n")
-		testCases.WriteString("\t\tresult := \"PLACEHOLDER\" // Replace with actual function call\n")
+		// Execute solution
+		testCases.WriteString("\t\t\t\t// Execute solution\n")
+		testCases.WriteString("\t\t\t\tresult := twoSum(nums, target)\n")
 		
 		// Check result
-		testCases.WriteString("\t\t// Check result\n")
-		testCases.WriteString("\t\tif fmt.Sprintf(\"%v\", result) == expectedStr {\n")
-		testCases.WriteString("\t\t\tfmt.Println(\"✅ PASSED\")\n")
-		testCases.WriteString("\t\t} else {\n")
-		testCases.WriteString("\t\t\tfmt.Printf(\"❌ FAILED\\nExpected: %s\\nGot: %v\\n\", expectedStr, result)\n")
-		testCases.WriteString("\t\t\tallPassed = false\n")
+		testCases.WriteString("\t\t\t\t// Check result\n")
+		testCases.WriteString("\t\t\t\tresultStr := formatIntArray(result)\n")
+		testCases.WriteString("\t\t\t\tif resultStr == expectedStr {\n")
+		testCases.WriteString("\t\t\t\t\tfmt.Println(\"✅ PASSED\")\n")
+		testCases.WriteString("\t\t\t\t} else {\n")
+		testCases.WriteString("\t\t\t\t\tfmt.Printf(\"❌ FAILED\\nExpected: %s\\nGot: %s\\n\", expectedStr, resultStr)\n")
+		testCases.WriteString("\t\t\t\t\tallPassed = false\n")
+		testCases.WriteString("\t\t\t\t}\n")
+		testCases.WriteString("\t\t\t}\n")
 		testCases.WriteString("\t\t}\n")
 		testCases.WriteString("\t}\n")
 	}
 	
-	// Complete the test code
 	return fmt.Sprintf(testTemplate, solutionCode, testCases.String()), nil
 }

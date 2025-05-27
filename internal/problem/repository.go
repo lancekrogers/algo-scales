@@ -1,6 +1,7 @@
 package problem
 
 import (
+	"context"
 	"encoding/json"
 	"fmt"
 	"path/filepath"
@@ -29,8 +30,8 @@ func (r *Repository) WithFileSystem(fs interfaces.FileSystem) *Repository {
 }
 
 // GetAll returns all available problems
-func (r *Repository) GetAll() ([]interfaces.Problem, error) {
-	problems, err := r.getAllLocal()
+func (r *Repository) GetAll(ctx context.Context) ([]interfaces.Problem, error) {
+	problems, err := r.getAllLocal(ctx)
 	if err != nil {
 		return nil, err
 	}
@@ -44,7 +45,7 @@ func (r *Repository) GetAll() ([]interfaces.Problem, error) {
 }
 
 // getAllLocal returns all problems as local Problem types
-func (r *Repository) getAllLocal() ([]Problem, error) {
+func (r *Repository) getAllLocal(ctx context.Context) ([]Problem, error) {
 	// First try the standard config dir location
 	configDir := r.fs.GetConfigDir()
 	problemsDir := filepath.Join(configDir, "problems")
@@ -165,8 +166,8 @@ func (r *Repository) getAllLocal() ([]Problem, error) {
 }
 
 // GetByID retrieves a specific problem by its ID
-func (r *Repository) GetByID(id string) (*interfaces.Problem, error) {
-	problem, err := r.getByIDLocal(id)
+func (r *Repository) GetByID(ctx context.Context, id string) (*interfaces.Problem, error) {
+	problem, err := r.getByIDLocal(ctx, id)
 	if err != nil {
 		return nil, err
 	}
@@ -176,7 +177,7 @@ func (r *Repository) GetByID(id string) (*interfaces.Problem, error) {
 }
 
 // getByIDLocal retrieves a specific problem by its ID as local type
-func (r *Repository) getByIDLocal(id string) (*Problem, error) {
+func (r *Repository) getByIDLocal(ctx context.Context, id string) (*Problem, error) {
 	configDir := r.fs.GetConfigDir()
 	
 	// Search in all pattern directories
@@ -213,8 +214,8 @@ func (r *Repository) getByIDLocal(id string) (*Problem, error) {
 }
 
 // GetByPattern returns problems matching a specific pattern
-func (r *Repository) GetByPattern(pattern string) ([]interfaces.Problem, error) {
-	allProblems, err := r.getAllLocal()
+func (r *Repository) GetByPattern(ctx context.Context, pattern string) ([]interfaces.Problem, error) {
+	allProblems, err := r.getAllLocal(ctx)
 	if err != nil {
 		return nil, err
 	}
@@ -242,8 +243,8 @@ func (r *Repository) GetByPattern(pattern string) ([]interfaces.Problem, error) 
 }
 
 // GetPatterns returns all available algorithm patterns
-func (r *Repository) GetPatterns() ([]string, error) {
-	allProblems, err := r.getAllLocal()
+func (r *Repository) GetPatterns(ctx context.Context) ([]string, error) {
+	allProblems, err := r.getAllLocal(ctx)
 	if err != nil {
 		return nil, err
 	}
@@ -272,8 +273,8 @@ func (r *Repository) GetPatterns() ([]string, error) {
 }
 
 // GetLanguages returns all available programming languages
-func (r *Repository) GetLanguages() ([]string, error) {
-	allProblems, err := r.getAllLocal()
+func (r *Repository) GetLanguages(ctx context.Context) ([]string, error) {
+	allProblems, err := r.getAllLocal(ctx)
 	if err != nil {
 		return nil, err
 	}
@@ -300,8 +301,8 @@ func (r *Repository) GetLanguages() ([]string, error) {
 }
 
 // GetByDifficulty returns problems with a specific difficulty level
-func (r *Repository) GetByDifficulty(difficulty string) ([]interfaces.Problem, error) {
-	allProblems, err := r.getAllLocal()
+func (r *Repository) GetByDifficulty(ctx context.Context, difficulty string) ([]interfaces.Problem, error) {
+	allProblems, err := r.getAllLocal(ctx)
 	if err != nil {
 		return nil, err
 	}
@@ -322,8 +323,8 @@ func (r *Repository) GetByDifficulty(difficulty string) ([]interfaces.Problem, e
 }
 
 // GetByCompany returns problems from a specific company
-func (r *Repository) GetByCompany(company string) ([]Problem, error) {
-	allProblems, err := r.getAllLocal()
+func (r *Repository) GetByCompany(ctx context.Context, company string) ([]Problem, error) {
+	allProblems, err := r.getAllLocal(ctx)
 	if err != nil {
 		return nil, err
 	}
@@ -376,8 +377,8 @@ func (r *Repository) convertToInterface(p Problem) interfaces.Problem {
 }
 
 // GetByTags returns problems matching any of the specified tags
-func (r *Repository) GetByTags(tags []string) ([]interfaces.Problem, error) {
-	allProblems, err := r.getAllLocal()
+func (r *Repository) GetByTags(ctx context.Context, tags []string) ([]interfaces.Problem, error) {
+	allProblems, err := r.getAllLocal(ctx)
 	if err != nil {
 		return nil, err
 	}
@@ -405,8 +406,8 @@ func (r *Repository) GetByTags(tags []string) ([]interfaces.Problem, error) {
 }
 
 // GetRandom returns a random problem
-func (r *Repository) GetRandom() (*interfaces.Problem, error) {
-	problems, err := r.GetAll()
+func (r *Repository) GetRandom(ctx context.Context) (*interfaces.Problem, error) {
+	problems, err := r.GetAll(ctx)
 	if err != nil {
 		return nil, err
 	}
@@ -421,8 +422,8 @@ func (r *Repository) GetRandom() (*interfaces.Problem, error) {
 }
 
 // GetRandomByPattern returns a random problem matching a pattern
-func (r *Repository) GetRandomByPattern(pattern string) (*interfaces.Problem, error) {
-	problems, err := r.GetByPattern(pattern)
+func (r *Repository) GetRandomByPattern(ctx context.Context, pattern string) (*interfaces.Problem, error) {
+	problems, err := r.GetByPattern(ctx, pattern)
 	if err != nil {
 		return nil, err
 	}
@@ -437,8 +438,8 @@ func (r *Repository) GetRandomByPattern(pattern string) (*interfaces.Problem, er
 }
 
 // GetRandomByDifficulty returns a random problem with a difficulty
-func (r *Repository) GetRandomByDifficulty(difficulty string) (*interfaces.Problem, error) {
-	problems, err := r.GetByDifficulty(difficulty)
+func (r *Repository) GetRandomByDifficulty(ctx context.Context, difficulty string) (*interfaces.Problem, error) {
+	problems, err := r.GetByDifficulty(ctx, difficulty)
 	if err != nil {
 		return nil, err
 	}
@@ -453,8 +454,8 @@ func (r *Repository) GetRandomByDifficulty(difficulty string) (*interfaces.Probl
 }
 
 // GetRandomByTags returns a random problem matching tags
-func (r *Repository) GetRandomByTags(tags []string) (*interfaces.Problem, error) {
-	problems, err := r.GetByTags(tags)
+func (r *Repository) GetRandomByTags(ctx context.Context, tags []string) (*interfaces.Problem, error) {
+	problems, err := r.GetByTags(ctx, tags)
 	if err != nil {
 		return nil, err
 	}

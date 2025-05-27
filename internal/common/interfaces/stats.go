@@ -1,6 +1,8 @@
 // Package interfaces defines the core interfaces for Algo Scales
 package interfaces
 
+import "context"
+
 // Summary represents summary statistics
 type Summary struct {
 	TotalAttempted int     `json:"total_attempted"`
@@ -56,22 +58,22 @@ type OverallStats struct {
 // StatsService defines the interface for accessing algorithm practice statistics
 type StatsService interface {
 	// RecordSession records a session's statistics
-	RecordSession(sessionStats SessionStats) error
+	RecordSession(ctx context.Context, sessionStats SessionStats) error
 	
 	// GetSummary returns summary statistics
-	GetSummary() (*Summary, error)
+	GetSummary(ctx context.Context) (*Summary, error)
 	
 	// GetByPattern returns statistics by pattern
-	GetByPattern() (map[string]PatternStats, error)
+	GetByPattern(ctx context.Context) (map[string]PatternStats, error)
 	
 	// GetTrends returns usage trends over time
-	GetTrends() (*Trends, error)
+	GetTrends(ctx context.Context) (*Trends, error)
 	
 	// Reset resets all statistics
-	Reset() error
+	Reset(ctx context.Context) error
 	
 	// GetAllSessions returns all recorded sessions
-	GetAllSessions() ([]SessionStats, error)
+	GetAllSessions(ctx context.Context) ([]SessionStats, error)
 }
 
 // DifficultyStats represents statistics by difficulty level
@@ -104,11 +106,11 @@ type DailyStats struct {
 // StatsStorage defines the interface for storing and retrieving statistics
 type StatsStorage interface {
 	// SaveSession saves a session's statistics
-	SaveSession(session SessionStats) error
+	SaveSession(ctx context.Context, session SessionStats) error
 	
 	// LoadAllSessions loads all session statistics
-	LoadAllSessions() ([]SessionStats, error)
+	LoadAllSessions(ctx context.Context) ([]SessionStats, error)
 	
 	// ClearAllSessions removes all session statistics
-	ClearAllSessions() error
+	ClearAllSessions(ctx context.Context) error
 }

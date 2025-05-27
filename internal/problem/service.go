@@ -1,6 +1,7 @@
 package problem
 
 import (
+	"context"
 	"github.com/lancekrogers/algo-scales/internal/common/interfaces"
 )
 
@@ -24,7 +25,7 @@ func (s *Service) WithRepository(repo interfaces.ProblemRepository) *Service {
 
 // ListAll returns all available problems
 func (s *Service) ListAll() ([]Problem, error) {
-	interfaceProblems, err := s.repository.GetAll()
+	interfaceProblems, err := s.repository.GetAll(context.TODO())
 	if err != nil {
 		return nil, err
 	}
@@ -39,7 +40,7 @@ func (s *Service) ListAll() ([]Problem, error) {
 
 // GetByID retrieves a problem by its ID
 func (s *Service) GetByID(id string) (*Problem, error) {
-	interfaceProblem, err := s.repository.GetByID(id)
+	interfaceProblem, err := s.repository.GetByID(context.TODO(), id)
 	if err != nil {
 		return nil, err
 	}
@@ -50,7 +51,7 @@ func (s *Service) GetByID(id string) (*Problem, error) {
 
 // GetByPattern returns problems matching a specific pattern
 func (s *Service) GetByPattern(pattern string) ([]Problem, error) {
-	interfaceProblems, err := s.repository.GetByPattern(pattern)
+	interfaceProblems, err := s.repository.GetByPattern(context.TODO(), pattern)
 	if err != nil {
 		return nil, err
 	}
@@ -65,12 +66,12 @@ func (s *Service) GetByPattern(pattern string) ([]Problem, error) {
 
 // GetPatterns returns all available algorithm patterns
 func (s *Service) GetPatterns() ([]string, error) {
-	return s.repository.GetPatterns()
+	return s.repository.GetPatterns(context.TODO())
 }
 
 // GetLanguages returns all available programming languages
 func (s *Service) GetLanguages() ([]string, error) {
-	return s.repository.GetLanguages()
+	return s.repository.GetLanguages(context.TODO())
 }
 
 // TestSolution tests a user's solution against test cases
@@ -81,7 +82,7 @@ func (s *Service) TestSolution(problemID, code, language string) ([]struct {
 	Passed   bool
 }, error) {
 	// Get the problem
-	p, err := s.repository.GetByID(problemID)
+	p, err := s.repository.GetByID(context.TODO(), problemID)
 	if err != nil {
 		return nil, err
 	}

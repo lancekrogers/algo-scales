@@ -2,6 +2,7 @@
 package cmd
 
 import (
+	"context"
 	"fmt"
 	"time"
 
@@ -18,7 +19,8 @@ var RefactoredStatsCmd = &cobra.Command{
 		statsService := services.DefaultRegistry.GetStatsService()
 		
 		// Get overall stats
-		overall, err := statsService.GetOverallStats()
+		ctx := context.Background()
+		overall, err := statsService.GetOverallStats(ctx)
 		if err != nil {
 			fmt.Fprintf(cmd.ErrOrStderr(), "Error getting overall stats: %v\n", err)
 			return
@@ -52,7 +54,8 @@ var RefactoredPatternStatsCmd = &cobra.Command{
 	Run: func(cmd *cobra.Command, args []string) {
 		statsService := services.DefaultRegistry.GetStatsService()
 		
-		patternStats, err := statsService.GetPatternStats()
+		ctx := context.Background()
+		patternStats, err := statsService.GetPatternStats(ctx)
 		if err != nil {
 			fmt.Fprintf(cmd.ErrOrStderr(), "Error getting pattern stats: %v\n", err)
 			return
@@ -77,7 +80,8 @@ var RefactoredDifficultyStatsCmd = &cobra.Command{
 	Run: func(cmd *cobra.Command, args []string) {
 		statsService := services.DefaultRegistry.GetStatsService()
 		
-		difficultyStats, err := statsService.GetDifficultyStats()
+		ctx := context.Background()
+		difficultyStats, err := statsService.GetDifficultyStats(ctx)
 		if err != nil {
 			fmt.Fprintf(cmd.ErrOrStderr(), "Error getting difficulty stats: %v\n", err)
 			return
@@ -110,7 +114,8 @@ var RefactoredRecentActivityCmd = &cobra.Command{
 			}
 		}
 		
-		recentActivity, err := statsService.GetRecentActivity(days)
+		ctx := context.Background()
+		recentActivity, err := statsService.GetRecentActivity(ctx, days)
 		if err != nil {
 			fmt.Fprintf(cmd.ErrOrStderr(), "Error getting recent activity: %v\n", err)
 			return

@@ -1,6 +1,7 @@
 package problem
 
 import (
+	"context"
 	"github.com/lancekrogers/algo-scales/internal/common/interfaces"
 	"github.com/lancekrogers/algo-scales/internal/common/utils"
 )
@@ -54,7 +55,7 @@ func (m *MockRepository) SetLanguages(languages []string) *MockRepository {
 var _ interfaces.ProblemRepository = (*MockRepository)(nil)
 
 // GetAll returns all available problems
-func (m *MockRepository) GetAll() ([]interfaces.Problem, error) {
+func (m *MockRepository) GetAll(ctx context.Context) ([]interfaces.Problem, error) {
 	result := make([]interfaces.Problem, len(m.Problems))
 	for i, p := range m.Problems {
 		result[i] = m.convertToInterface(p)
@@ -63,7 +64,7 @@ func (m *MockRepository) GetAll() ([]interfaces.Problem, error) {
 }
 
 // GetByID retrieves a specific problem by its ID
-func (m *MockRepository) GetByID(id string) (*interfaces.Problem, error) {
+func (m *MockRepository) GetByID(ctx context.Context, id string) (*interfaces.Problem, error) {
 	if problem, ok := m.ProblemsByID[id]; ok {
 		converted := m.convertToInterface(*problem)
 		return &converted, nil
@@ -72,7 +73,7 @@ func (m *MockRepository) GetByID(id string) (*interfaces.Problem, error) {
 }
 
 // GetByPattern returns problems matching a specific pattern
-func (m *MockRepository) GetByPattern(pattern string) ([]interfaces.Problem, error) {
+func (m *MockRepository) GetByPattern(ctx context.Context, pattern string) ([]interfaces.Problem, error) {
 	var filtered []Problem
 	if pattern == "" {
 		filtered = m.Problems
@@ -95,7 +96,7 @@ func (m *MockRepository) GetByPattern(pattern string) ([]interfaces.Problem, err
 }
 
 // GetByDifficulty returns problems with a specific difficulty level
-func (m *MockRepository) GetByDifficulty(difficulty string) ([]interfaces.Problem, error) {
+func (m *MockRepository) GetByDifficulty(ctx context.Context, difficulty string) ([]interfaces.Problem, error) {
 	var filtered []Problem
 	for _, p := range m.Problems {
 		if p.Difficulty == difficulty {
@@ -111,7 +112,7 @@ func (m *MockRepository) GetByDifficulty(difficulty string) ([]interfaces.Proble
 }
 
 // GetByTags returns problems matching any of the specified tags
-func (m *MockRepository) GetByTags(tags []string) ([]interfaces.Problem, error) {
+func (m *MockRepository) GetByTags(ctx context.Context, tags []string) ([]interfaces.Problem, error) {
 	var filtered []Problem
 	for _, p := range m.Problems {
 		// Check if any pattern matches any tag
@@ -134,7 +135,7 @@ func (m *MockRepository) GetByTags(tags []string) ([]interfaces.Problem, error) 
 }
 
 // GetRandom returns a random problem
-func (m *MockRepository) GetRandom() (*interfaces.Problem, error) {
+func (m *MockRepository) GetRandom(ctx context.Context) (*interfaces.Problem, error) {
 	if len(m.Problems) == 0 {
 		return nil, ErrProblemNotFound
 	}
@@ -146,8 +147,8 @@ func (m *MockRepository) GetRandom() (*interfaces.Problem, error) {
 }
 
 // GetRandomByPattern returns a random problem matching a pattern
-func (m *MockRepository) GetRandomByPattern(pattern string) (*interfaces.Problem, error) {
-	problems, err := m.GetByPattern(pattern)
+func (m *MockRepository) GetRandomByPattern(ctx context.Context, pattern string) (*interfaces.Problem, error) {
+	problems, err := m.GetByPattern(ctx, pattern)
 	if err != nil {
 		return nil, err
 	}
@@ -162,8 +163,8 @@ func (m *MockRepository) GetRandomByPattern(pattern string) (*interfaces.Problem
 }
 
 // GetRandomByDifficulty returns a random problem with a difficulty
-func (m *MockRepository) GetRandomByDifficulty(difficulty string) (*interfaces.Problem, error) {
-	problems, err := m.GetByDifficulty(difficulty)
+func (m *MockRepository) GetRandomByDifficulty(ctx context.Context, difficulty string) (*interfaces.Problem, error) {
+	problems, err := m.GetByDifficulty(ctx, difficulty)
 	if err != nil {
 		return nil, err
 	}
@@ -178,8 +179,8 @@ func (m *MockRepository) GetRandomByDifficulty(difficulty string) (*interfaces.P
 }
 
 // GetRandomByTags returns a random problem matching tags
-func (m *MockRepository) GetRandomByTags(tags []string) (*interfaces.Problem, error) {
-	problems, err := m.GetByTags(tags)
+func (m *MockRepository) GetRandomByTags(ctx context.Context, tags []string) (*interfaces.Problem, error) {
+	problems, err := m.GetByTags(ctx, tags)
 	if err != nil {
 		return nil, err
 	}
@@ -194,17 +195,17 @@ func (m *MockRepository) GetRandomByTags(tags []string) (*interfaces.Problem, er
 }
 
 // GetPatterns returns all available algorithm patterns
-func (m *MockRepository) GetPatterns() ([]string, error) {
+func (m *MockRepository) GetPatterns(ctx context.Context) ([]string, error) {
 	return m.AvailablePatterns, nil
 }
 
 // GetLanguages returns all available programming languages
-func (m *MockRepository) GetLanguages() ([]string, error) {
+func (m *MockRepository) GetLanguages(ctx context.Context) ([]string, error) {
 	return m.Languages, nil
 }
 
 // GetByCompany returns problems from a specific company
-func (m *MockRepository) GetByCompany(company string) ([]Problem, error) {
+func (m *MockRepository) GetByCompany(ctx context.Context, company string) ([]Problem, error) {
 	var filtered []Problem
 	for _, p := range m.Problems {
 		for _, c := range p.Companies {

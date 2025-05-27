@@ -188,7 +188,7 @@ func (s *RefactoredSessionImpl) RunTests(ctx context.Context) ([]interfaces.Test
 }
 
 // Finish completes the session and records stats using the stats recorder
-func (s *RefactoredSessionImpl) Finish(solved bool) error {
+func (s *RefactoredSessionImpl) Finish(ctx context.Context, solved bool) error {
 	s.EndTime = time.Now()
 
 	// Create session stats
@@ -205,7 +205,7 @@ func (s *RefactoredSessionImpl) Finish(solved bool) error {
 		Difficulty:   s.Problem.Difficulty,
 	}
 
-	return s.statsRecorder.RecordSession(sessionStats)
+	return s.statsRecorder.RecordSession(ctx, sessionStats)
 }
 
 // convertProblemToInterface converts a local problem.Problem to interfaces.Problem

@@ -1,6 +1,7 @@
 package stats
 
 import (
+	"context"
 	"fmt"
 	"sync"
 	
@@ -21,7 +22,7 @@ func NewMockStorage() *MockStorage {
 }
 
 // SaveSession saves a session's statistics
-func (s *MockStorage) SaveSession(session interfaces.SessionStats) error {
+func (s *MockStorage) SaveSession(ctx context.Context, session interfaces.SessionStats) error {
 	s.mutex.Lock()
 	defer s.mutex.Unlock()
 	
@@ -32,7 +33,7 @@ func (s *MockStorage) SaveSession(session interfaces.SessionStats) error {
 }
 
 // LoadAllSessions loads all session statistics
-func (s *MockStorage) LoadAllSessions() ([]interfaces.SessionStats, error) {
+func (s *MockStorage) LoadAllSessions(ctx context.Context) ([]interfaces.SessionStats, error) {
 	s.mutex.RLock()
 	defer s.mutex.RUnlock()
 	
@@ -45,7 +46,7 @@ func (s *MockStorage) LoadAllSessions() ([]interfaces.SessionStats, error) {
 }
 
 // ClearAllSessions removes all session statistics
-func (s *MockStorage) ClearAllSessions() error {
+func (s *MockStorage) ClearAllSessions(ctx context.Context) error {
 	s.mutex.Lock()
 	defer s.mutex.Unlock()
 	

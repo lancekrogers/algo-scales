@@ -1,6 +1,7 @@
 package session
 
 import (
+	"context"
 	"github.com/lancekrogers/algo-scales/internal/common/interfaces"
 	"github.com/lancekrogers/algo-scales/internal/stats"
 )
@@ -18,7 +19,7 @@ func NewSessionStatsRecorder(statsService interfaces.StatsService) interfaces.Se
 }
 
 // RecordSession records session statistics
-func (sr *SessionStatsRecorderImpl) RecordSession(sessionStats interfaces.SessionStats) error {
+func (sr *SessionStatsRecorderImpl) RecordSession(ctx context.Context, sessionStats interfaces.SessionStats) error {
 	// Convert to stats package format if needed
 	statsSession := stats.SessionStats{
 		ProblemID:    sessionStats.ProblemID,

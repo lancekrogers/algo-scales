@@ -161,8 +161,8 @@ func handleVimModeStart(s *session.Session) error {
 	return nil
 }
 
-// handleVimModeList handles the list command in Vim mode
-func handleVimModeList(problems []problem.Problem) error {
+// handleVimModeListProblems handles the list command in Vim mode
+func handleVimModeListProblems(problems []problem.Problem) error {
 	resp := VimListResponse{
 		Problems: problems,
 	}

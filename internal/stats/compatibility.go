@@ -4,6 +4,7 @@ package stats
 // to maintain the same exported API while using the new service internally
 
 import (
+	"context"
 	"fmt"
 	"path/filepath"
 	"time"
@@ -42,12 +43,12 @@ var RecordSession = func(stats SessionStats) error {
 		Patterns:     stats.Patterns,
 		Difficulty:   stats.Difficulty,
 	}
-	return getDefaultService().RecordSession(interfaceStats)
+	return getDefaultService().RecordSession(context.Background(), interfaceStats)
 }
 
 // GetSummary returns summary statistics
 var GetSummary = func() (*Summary, error) {
-	interfaceSummary, err := getDefaultService().GetSummary()
+	interfaceSummary, err := getDefaultService().GetSummary(context.Background())
 	if err != nil {
 		return nil, err
 	}
@@ -66,7 +67,7 @@ var GetSummary = func() (*Summary, error) {
 
 // GetByPattern returns statistics by pattern
 var GetByPattern = func() (map[string]PatternStats, error) {
-	interfaceStats, err := getDefaultService().GetByPattern()
+	interfaceStats, err := getDefaultService().GetByPattern(context.Background())
 	if err != nil {
 		return nil, err
 	}
@@ -87,7 +88,7 @@ var GetByPattern = func() (map[string]PatternStats, error) {
 
 // GetTrends returns usage trends over time
 var GetTrends = func() (*Trends, error) {
-	interfaceTrends, err := getDefaultService().GetTrends()
+	interfaceTrends, err := getDefaultService().GetTrends(context.Background())
 	if err != nil {
 		return nil, err
 	}
@@ -120,12 +121,12 @@ var GetTrends = func() (*Trends, error) {
 
 // Reset resets all statistics
 var Reset = func() error {
-	return getDefaultService().Reset()
+	return getDefaultService().Reset(context.Background())
 }
 
 // GetAllSessions returns all recorded sessions
 var GetAllSessions = func() ([]SessionStats, error) {
-	interfaceSessions, err := getDefaultService().GetAllSessions()
+	interfaceSessions, err := getDefaultService().GetAllSessions(context.Background())
 	if err != nil {
 		return nil, err
 	}

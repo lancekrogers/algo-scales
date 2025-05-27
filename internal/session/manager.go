@@ -1,6 +1,7 @@
 package session
 
 import (
+	"context"
 	"fmt"
 	"math/rand"
 	"path/filepath"
@@ -52,14 +53,14 @@ func (m *Manager) WithTestRunnerRegistry(registry interfaces.TestRunnerRegistry)
 }
 
 // StartSession begins a new practice session
-func (m *Manager) StartSession(opts interfaces.SessionOptions) (interfaces.Session, error) {
+func (m *Manager) StartSession(ctx context.Context, opts interfaces.SessionOptions) (interfaces.Session, error) {
 	// Choose problem based on options
 	var p *problem.Problem
 	var err error
 	
 	if opts.ProblemID != "" {
 		// Specific problem requested
-		interfaceProb, err := m.problemRepo.GetByID(opts.ProblemID)
+		interfaceProb, err := m.problemRepo.GetByID(ctx, opts.ProblemID)
 		if err != nil {
 			return nil, fmt.Errorf("failed to load problem: %v", err)
 		}
@@ -69,13 +70,13 @@ func (m *Manager) StartSession(opts interfaces.SessionOptions) (interfaces.Sessi
 		p = &localProb
 	} else if opts.Mode == interfaces.CramMode {
 		// Cram mode - choose problems from common patterns
-		p, err = m.selectCramProblem()
+		p, err = m.selectCramProblem(ctx)
 		if err != nil {
 			return nil, fmt.Errorf("failed to select problem for cram mode: %v", err)
 		}
 	} else {
 		// Filter by pattern/difficulty if specified
-		p, err = m.selectProblem(opts.Pattern, opts.Difficulty)
+		p, err = m.selectProblem(ctx, opts.Pattern, opts.Difficulty)
 		if err != nil {
 			return nil, fmt.Errorf("failed to select problem: %v", err)
 		}
@@ -105,7 +106,7 @@ func (m *Manager) StartSession(opts interfaces.SessionOptions) (interfaces.Sessi
 }
 
 // GetSessionByID retrieves an active session
-func (m *Manager) GetSessionByID(id string) (interfaces.Session, bool) {
+func (m *Manager) GetSessionByID(ctx context.Context, id string) (interfaces.Session, bool) {
 	m.sessionMutex.RLock()
 	defer m.sessionMutex.RUnlock()
 	
@@ -114,7 +115,7 @@ func (m *Manager) GetSessionByID(id string) (interfaces.Session, bool) {
 }
 
 // FinishSession completes a session
-func (m *Manager) FinishSession(sessionID string, solved bool) error {
+func (m *Manager) FinishSession(ctx context.Context, sessionID string, solved bool) error {
 	m.sessionMutex.Lock()
 	defer m.sessionMutex.Unlock()
 	
@@ -124,7 +125,7 @@ func (m *Manager) FinishSession(sessionID string, solved bool) error {
 	}
 	
 	// Finish the session
-	err := session.Finish(solved)
+	err := session.Finish(ctx, solved)
 	if err != nil {
 		return err
 	}
@@ -177,13 +178,13 @@ func (m *Manager) createWorkspace(s *SessionImpl) error {
 }
 
 // selectProblem chooses a problem based on pattern and difficulty
-func (m *Manager) selectProblem(pattern, difficulty string) (*problem.Problem, error) {
+func (m *Manager) selectProblem(ctx context.Context, pattern, difficulty string) (*problem.Problem, error) {
 	// Get all problems
 	var problems []problem.Problem
 	
 	if pattern != "" && difficulty != "" {
 		// Filter by both pattern and difficulty
-		interfaceProbs, err := m.problemRepo.GetByPattern(pattern)
+		interfaceProbs, err := m.problemRepo.GetByPattern(ctx, pattern)
 		if err != nil {
 			return nil, err
 		}
@@ -197,21 +198,21 @@ func (m *Manager) selectProblem(pattern, difficulty string) (*problem.Problem, e
 		}
 	} else if pattern != "" {
 		// Filter by pattern only
-		interfaceProbs, err := m.problemRepo.GetByPattern(pattern)
+		interfaceProbs, err := m.problemRepo.GetByPattern(ctx, pattern)
 		if err != nil {
 			return nil, err
 		}
 		problems = m.convertInterfaceProblemsToLocal(interfaceProbs)
 	} else if difficulty != "" {
 		// Filter by difficulty only
-		interfaceProbs, err := m.problemRepo.GetByDifficulty(difficulty)
+		interfaceProbs, err := m.problemRepo.GetByDifficulty(ctx, difficulty)
 		if err != nil {
 			return nil, err
 		}
 		problems = m.convertInterfaceProblemsToLocal(interfaceProbs)
 	} else {
 		// No filters, get all problems
-		interfaceProbs, err := m.problemRepo.GetAll()
+		interfaceProbs, err := m.problemRepo.GetAll(ctx)
 		if err != nil {
 			return nil, err
 		}
@@ -229,7 +230,7 @@ func (m *Manager) selectProblem(pattern, difficulty string) (*problem.Problem, e
 }
 
 // selectCramProblem chooses a problem for cram mode
-func (m *Manager) selectCramProblem() (*problem.Problem, error) {
+func (m *Manager) selectCramProblem(ctx context.Context) (*problem.Problem, error) {
 	// For cram mode, we typically want to focus on common patterns
 	// This is a simplified implementation - may be improved in the future
 	commonPatterns := []string{
@@ -248,7 +249,7 @@ func (m *Manager) selectCramProblem() (*problem.Problem, error) {
 	selectedPattern := commonPatterns[patternIndex]
 	
 	// Get problems for this pattern
-	interfaceProbs, err := m.problemRepo.GetByPattern(selectedPattern)
+	interfaceProbs, err := m.problemRepo.GetByPattern(ctx, selectedPattern)
 	if err != nil {
 		return nil, err
 	}

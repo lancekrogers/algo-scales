@@ -250,7 +250,7 @@ func (s *SessionImpl) RunTests(ctx context.Context) ([]interfaces.TestResult, bo
 }
 
 // Finish completes the session and records stats
-func (s *SessionImpl) Finish(solved bool) error {
+func (s *SessionImpl) Finish(ctx context.Context, solved bool) error {
 	s.EndTime = time.Now()
 
 	// Record stats

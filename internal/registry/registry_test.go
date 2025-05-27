@@ -1,6 +1,7 @@
 package registry
 
 import (
+	"context"
 	"os"
 	"os/exec"
 	"testing"
@@ -12,17 +13,17 @@ import (
 // MockProblemRepository for testing
 type MockProblemRepository struct{}
 
-func (m *MockProblemRepository) GetAll() ([]interfaces.Problem, error) { return nil, nil }
-func (m *MockProblemRepository) GetByID(id string) (*interfaces.Problem, error) { return nil, nil }
-func (m *MockProblemRepository) GetByPattern(pattern string) ([]interfaces.Problem, error) { return nil, nil }
-func (m *MockProblemRepository) GetByDifficulty(difficulty string) ([]interfaces.Problem, error) { return nil, nil }
-func (m *MockProblemRepository) GetByTags(tags []string) ([]interfaces.Problem, error) { return nil, nil }
-func (m *MockProblemRepository) GetRandom() (*interfaces.Problem, error) { return nil, nil }
-func (m *MockProblemRepository) GetRandomByPattern(pattern string) (*interfaces.Problem, error) { return nil, nil }
-func (m *MockProblemRepository) GetRandomByDifficulty(difficulty string) (*interfaces.Problem, error) { return nil, nil }
-func (m *MockProblemRepository) GetRandomByTags(tags []string) (*interfaces.Problem, error) { return nil, nil }
-func (m *MockProblemRepository) GetPatterns() ([]string, error) { return nil, nil }
-func (m *MockProblemRepository) GetLanguages() ([]string, error) { return nil, nil }
+func (m *MockProblemRepository) GetAll(ctx context.Context) ([]interfaces.Problem, error) { return nil, nil }
+func (m *MockProblemRepository) GetByID(ctx context.Context, id string) (*interfaces.Problem, error) { return nil, nil }
+func (m *MockProblemRepository) GetByPattern(ctx context.Context, pattern string) ([]interfaces.Problem, error) { return nil, nil }
+func (m *MockProblemRepository) GetByDifficulty(ctx context.Context, difficulty string) ([]interfaces.Problem, error) { return nil, nil }
+func (m *MockProblemRepository) GetByTags(ctx context.Context, tags []string) ([]interfaces.Problem, error) { return nil, nil }
+func (m *MockProblemRepository) GetRandom(ctx context.Context) (*interfaces.Problem, error) { return nil, nil }
+func (m *MockProblemRepository) GetRandomByPattern(ctx context.Context, pattern string) (*interfaces.Problem, error) { return nil, nil }
+func (m *MockProblemRepository) GetRandomByDifficulty(ctx context.Context, difficulty string) (*interfaces.Problem, error) { return nil, nil }
+func (m *MockProblemRepository) GetRandomByTags(ctx context.Context, tags []string) (*interfaces.Problem, error) { return nil, nil }
+func (m *MockProblemRepository) GetPatterns(ctx context.Context) ([]string, error) { return nil, nil }
+func (m *MockProblemRepository) GetLanguages(ctx context.Context) ([]string, error) { return nil, nil }
 
 // MockFileSystem for testing
 type MockFileSystem struct{}
@@ -53,12 +54,12 @@ func (m *MockFileSystem) UserHomeDir() (string, error) { return "", nil }
 // MockStatsService for testing
 type MockStatsService struct{}
 
-func (m *MockStatsService) RecordSession(sessionStats interfaces.SessionStats) error { return nil }
-func (m *MockStatsService) GetSummary() (*interfaces.Summary, error) { return nil, nil }
-func (m *MockStatsService) GetByPattern() (map[string]interfaces.PatternStats, error) { return nil, nil }
-func (m *MockStatsService) GetTrends() (*interfaces.Trends, error) { return nil, nil }
-func (m *MockStatsService) Reset() error { return nil }
-func (m *MockStatsService) GetAllSessions() ([]interfaces.SessionStats, error) { return nil, nil }
+func (m *MockStatsService) RecordSession(ctx context.Context, sessionStats interfaces.SessionStats) error { return nil }
+func (m *MockStatsService) GetSummary(ctx context.Context) (*interfaces.Summary, error) { return nil, nil }
+func (m *MockStatsService) GetByPattern(ctx context.Context) (map[string]interfaces.PatternStats, error) { return nil, nil }
+func (m *MockStatsService) GetTrends(ctx context.Context) (*interfaces.Trends, error) { return nil, nil }
+func (m *MockStatsService) Reset(ctx context.Context) error { return nil }
+func (m *MockStatsService) GetAllSessions(ctx context.Context) ([]interfaces.SessionStats, error) { return nil, nil }
 
 // MockTemplateService for testing
 type MockTemplateService struct{}

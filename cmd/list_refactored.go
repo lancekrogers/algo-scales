@@ -2,6 +2,7 @@
 package cmd
 
 import (
+	"context"
 	"fmt"
 
 	"github.com/lancekrogers/algo-scales/internal/services"
@@ -14,9 +15,10 @@ var RefactoredListCmd = &cobra.Command{
 	Short: "List available problems (refactored version)",
 	Long:  `List the available algorithm problems by various criteria using the service layer.`,
 	Run: func(cmd *cobra.Command, args []string) {
+		ctx := context.Background()
 		problemService := services.DefaultRegistry.GetProblemService()
 		
-		problems, err := problemService.ListAll()
+		problems, err := problemService.ListAll(ctx)
 		if err != nil {
 			fmt.Fprintf(cmd.ErrOrStderr(), "Error listing problems: %v\n", err)
 			return
@@ -35,9 +37,10 @@ var RefactoredPatternsCmd = &cobra.Command{
 	Short: "List problems by pattern (refactored version)",
 	Long:  `List the available algorithm problems organized by pattern using the service layer.`,
 	Run: func(cmd *cobra.Command, args []string) {
+		ctx := context.Background()
 		problemService := services.DefaultRegistry.GetProblemService()
 		
-		patterns, err := problemService.ListByPattern()
+		patterns, err := problemService.ListByPattern(ctx)
 		if err != nil {
 			fmt.Fprintf(cmd.ErrOrStderr(), "Error listing patterns: %v\n", err)
 			return
@@ -59,9 +62,10 @@ var RefactoredDifficultyCmd = &cobra.Command{
 	Short: "List problems by difficulty (refactored version)",
 	Long:  `List the available algorithm problems organized by difficulty using the service layer.`,
 	Run: func(cmd *cobra.Command, args []string) {
+		ctx := context.Background()
 		problemService := services.DefaultRegistry.GetProblemService()
 		
-		difficulties, err := problemService.ListByDifficulty()
+		difficulties, err := problemService.ListByDifficulty(ctx)
 		if err != nil {
 			fmt.Fprintf(cmd.ErrOrStderr(), "Error listing by difficulty: %v\n", err)
 			return

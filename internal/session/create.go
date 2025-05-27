@@ -2,6 +2,7 @@
 package session
 
 import (
+	"context"
 	"fmt"
 
 	"github.com/lancekrogers/algo-scales/internal/common/interfaces"
@@ -24,7 +25,7 @@ func CreateSession(opts Options) (*Session, error) {
 	manager := NewManager()
 	
 	// Use the manager to start the session
-	interfaceSession, err := manager.StartSession(sessionOpts)
+	interfaceSession, err := manager.StartSession(context.Background(), sessionOpts)
 	if err != nil {
 		return nil, err
 	}

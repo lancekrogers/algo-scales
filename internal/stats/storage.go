@@ -1,6 +1,7 @@
 package stats
 
 import (
+	"context"
 	"encoding/json"
 	"fmt"
 	"path/filepath"
@@ -28,7 +29,7 @@ func (s *FileStorage) WithFileSystem(fs interfaces.FileSystem) *FileStorage {
 }
 
 // SaveSession saves a session's statistics
-func (s *FileStorage) SaveSession(session interfaces.SessionStats) error {
+func (s *FileStorage) SaveSession(ctx context.Context, session interfaces.SessionStats) error {
 	// Convert to local type for storage
 	localSession := SessionStats{
 		ProblemID:    session.ProblemID,
@@ -62,7 +63,7 @@ func (s *FileStorage) SaveSession(session interfaces.SessionStats) error {
 }
 
 // LoadAllSessions loads all session statistics
-func (s *FileStorage) LoadAllSessions() ([]interfaces.SessionStats, error) {
+func (s *FileStorage) LoadAllSessions(ctx context.Context) ([]interfaces.SessionStats, error) {
 	var localSessions []SessionStats
 
 	statsDir := filepath.Join(s.fs.GetConfigDir(), "stats")
@@ -118,7 +119,7 @@ func (s *FileStorage) LoadAllSessions() ([]interfaces.SessionStats, error) {
 }
 
 // ClearAllSessions removes all session statistics
-func (s *FileStorage) ClearAllSessions() error {
+func (s *FileStorage) ClearAllSessions(ctx context.Context) error {
 	statsDir := filepath.Join(s.fs.GetConfigDir(), "stats")
 
 	// Check if directory exists

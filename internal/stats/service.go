@@ -1,6 +1,7 @@
 package stats
 
 import (
+	"context"
 	"sort"
 	"time"
 	
@@ -26,14 +27,14 @@ func (s *Service) WithStorage(storage interfaces.StatsStorage) *Service {
 }
 
 // RecordSession records a session's statistics
-func (s *Service) RecordSession(sessionStats interfaces.SessionStats) error {
-	return s.storage.SaveSession(sessionStats)
+func (s *Service) RecordSession(ctx context.Context, sessionStats interfaces.SessionStats) error {
+	return s.storage.SaveSession(ctx, sessionStats)
 }
 
 // GetSummary returns summary statistics
-func (s *Service) GetSummary() (*interfaces.Summary, error) {
+func (s *Service) GetSummary(ctx context.Context) (*interfaces.Summary, error) {
 	// Load all session stats
-	sessions, err := s.storage.LoadAllSessions()
+	sessions, err := s.storage.LoadAllSessions(ctx)
 	if err != nil {
 		return nil, err
 	}
@@ -128,9 +129,9 @@ func (s *Service) GetSummary() (*interfaces.Summary, error) {
 }
 
 // GetByPattern returns statistics by pattern
-func (s *Service) GetByPattern() (map[string]interfaces.PatternStats, error) {
+func (s *Service) GetByPattern(ctx context.Context) (map[string]interfaces.PatternStats, error) {
 	// Load all session stats
-	sessions, err := s.storage.LoadAllSessions()
+	sessions, err := s.storage.LoadAllSessions(ctx)
 	if err != nil {
 		return nil, err
 	}
@@ -186,9 +187,9 @@ func (s *Service) GetByPattern() (map[string]interfaces.PatternStats, error) {
 }
 
 // GetTrends returns usage trends over time
-func (s *Service) GetTrends() (*interfaces.Trends, error) {
+func (s *Service) GetTrends(ctx context.Context) (*interfaces.Trends, error) {
 	// Load all session stats
-	sessions, err := s.storage.LoadAllSessions()
+	sessions, err := s.storage.LoadAllSessions(ctx)
 	if err != nil {
 		return nil, err
 	}
@@ -298,13 +299,13 @@ func (s *Service) GetTrends() (*interfaces.Trends, error) {
 }
 
 // Reset resets all statistics
-func (s *Service) Reset() error {
-	return s.storage.ClearAllSessions()
+func (s *Service) Reset(ctx context.Context) error {
+	return s.storage.ClearAllSessions(ctx)
 }
 
 // GetAllSessions returns all recorded sessions
-func (s *Service) GetAllSessions() ([]interfaces.SessionStats, error) {
-	sessions, err := s.storage.LoadAllSessions()
+func (s *Service) GetAllSessions(ctx context.Context) ([]interfaces.SessionStats, error) {
+	sessions, err := s.storage.LoadAllSessions(ctx)
 	if err != nil {
 		return nil, err
 	}

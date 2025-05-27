@@ -58,13 +58,13 @@ func (c *Controller) Initialize() tea.Cmd {
 	// Load initial problems
 	return func() tea.Msg {
 		// Load all problems using the problem repository
-		problems, err := c.problemRepo.GetAll()
+		problems, err := c.problemRepo.GetAll(context.Background())
 		if err != nil {
 			return model.ErrorMsg(fmt.Sprintf("Failed to load problems: %v", err))
 		}
 
 		// Load stats using StatsService
-		summary, err := c.statsService.GetSummary()
+		summary, err := c.statsService.GetSummary(context.Background())
 		if err != nil {
 			log.Printf("Failed to load stats: %v", err)
 			// Non-critical error, continue without stats
@@ -76,7 +76,7 @@ func (c *Controller) Initialize() tea.Cmd {
 		}
 		
 		// Load pattern stats
-		patternStats, err := c.statsService.GetByPattern()
+		patternStats, err := c.statsService.GetByPattern(context.Background())
 		if err == nil {
 			// Update model with pattern stats
 			for pattern, stat := range patternStats {
@@ -158,7 +158,7 @@ func (c *Controller) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		c.Model.Session.TestResults = msg.Results
 		if msg.AllPassed {
 			// Problem solved!
-			if c.activeSession.Finish(true) != nil {
+			if c.activeSession.Finish(context.Background(), true) != nil {
 				c.updateStatistics()
 				cmd = c.checkAchievements()
 			}
@@ -248,7 +248,7 @@ func (c *Controller) handleSelection(index int) tea.Cmd {
 				c.Model.SelectedIndex = 0
 
 				// Filter problems by pattern
-				interfaceFiltered, err := c.problemRepo.GetByPattern(pattern)
+				interfaceFiltered, err := c.problemRepo.GetByPattern(context.Background(), pattern)
 				if err != nil {
 					return model.ErrorMsg(fmt.Sprintf("Failed to filter problems: %v", err))
 				}
@@ -325,7 +325,7 @@ func (c *Controller) startSession(p problem.Problem, mode string) tea.Cmd {
 	}
 
 	// Create session
-	session, err := c.sessionManager.StartSession(options)
+	session, err := c.sessionManager.StartSession(context.Background(), options)
 	if err != nil {
 		return func() tea.Msg {
 			return model.ErrorMsg(fmt.Sprintf("Failed to start session: %v", err))
@@ -504,7 +504,7 @@ func (c *Controller) updateStatistics() {
 	}
 	
 	// Record stats using the stats service
-	if err := c.statsService.RecordSession(sessionStats); err != nil {
+	if err := c.statsService.RecordSession(context.Background(), sessionStats); err != nil {
 		log.Printf("Failed to record session stats: %v", err)
 	}
 }

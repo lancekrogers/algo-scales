@@ -3,6 +3,7 @@
 package session
 
 import (
+	"context"
 	"fmt"
 	"os"
 	"path/filepath"
@@ -69,13 +70,13 @@ var Start = func(opts Options) error {
 		}
 	} else if opts.Mode == CramMode {
 		// Cram mode - choose problems from common patterns
-		session.Problem, err = manager.selectCramProblem()
+		session.Problem, err = manager.selectCramProblem(context.TODO())
 		if err != nil {
 			return fmt.Errorf("failed to select problem for cram mode: %v", err)
 		}
 	} else {
 		// Filter by pattern/difficulty if specified
-		session.Problem, err = manager.selectProblem(opts.Pattern, opts.Difficulty)
+		session.Problem, err = manager.selectProblem(context.TODO(), opts.Pattern, opts.Difficulty)
 		if err != nil {
 			return fmt.Errorf("failed to select problem: %v", err)
 		}
