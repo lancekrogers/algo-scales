@@ -68,7 +68,7 @@ Before committing changes to CLI commands, test these scenarios:
 - [ ] `./bin/algo-scales start learn`
 - [ ] `./bin/algo-scales start practice`
 - [ ] `./bin/algo-scales start cram --language python`
-- [ ] `./bin/algo-scales start learn --tui`
+- [ ] `./bin/algo-scales start learn --tui` (TUI mode - work in progress)
 - [ ] `./bin/algo-scales start practice --split`
 
 ### CLI Commands

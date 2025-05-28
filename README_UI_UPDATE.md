@@ -1,6 +1,8 @@
-# Enhanced UI for Algo Scales
+# Enhanced UI for Algo Scales (Work in Progress)
 
-This update introduces an enhanced terminal user interface for Algo Scales, making the application more interactive, visually appealing, and engaging for users.
+> **⚠️ Important**: The Terminal UI (TUI) mode is currently under active development and is not yet functional. This document describes the planned features and architecture. Please use the standard CLI mode for a stable experience.
+
+This document outlines the planned enhanced terminal user interface for Algo Scales, which will make the application more interactive, visually appealing, and engaging for users.
 
 ## New Features
 
@@ -41,18 +43,18 @@ This update introduces the following dependencies:
 - [Bubbles](https://github.com/charmbracelet/bubbles): Common UI components
 - [Chroma](https://github.com/alecthomas/chroma): Syntax highlighting
 
-## Usage
+## Usage (When Available)
 
-The enhanced UI is now the default interface. Simply run:
+Once development is complete, the enhanced UI will be accessible via:
+
+```bash
+./algo-scales --tui
+```
+
+Currently, the CLI interface is the default and recommended mode:
 
 ```bash
 ./algo-scales
-```
-
-For compatibility with scripts or the Neovim plugin, the legacy CLI interface can still be accessed with:
-
-```bash
-./algo-scales --cli
 ```
 
 ## Compatibility

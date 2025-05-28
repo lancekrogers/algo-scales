@@ -1,6 +1,13 @@
 # Changelog
 
-## CLI Flag Fix (Current)
+## Current Status
+
+### Work in Progress
+- Terminal UI (TUI) mode is under active development and not yet functional
+- The `--tui` flag and split-screen mode are disabled pending completion
+- CLI mode is the stable, recommended interface for all users
+
+## CLI Flag Fix
 
 ### Fixed
 - Fixed `--cli` flag handling to properly work with Cobra, enabling CLI mode without errors

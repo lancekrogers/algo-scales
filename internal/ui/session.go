@@ -433,7 +433,13 @@ func getDefaultTemplate(language string, problem problem.Problem) string {
 # %s
 
 def solution():
-    # TODO: Implement your solution here
+    """Solution implementation.
+    
+    Step 1: Understand the problem
+    Step 2: Plan your approach  
+    Step 3: Implement your solution
+    """
+    # Your implementation here
     pass
 
 if __name__ == "__main__":
@@ -445,7 +451,11 @@ if __name__ == "__main__":
 // %s
 
 function solution() {
-    // TODO: Implement your solution here
+    // Step 1: Understand the problem
+    // Step 2: Plan your approach
+    // Step 3: Implement your solution
+    
+    // Your implementation here
 }
 
 // Test your solution here
@@ -459,7 +469,11 @@ package main
 import "fmt"
 
 func solution() {
-    // TODO: Implement your solution here
+    // Step 1: Understand the problem
+    // Step 2: Plan your approach
+    // Step 3: Implement your solution
+    
+    // Your implementation here
 }
 
 func main() {
@@ -471,7 +485,11 @@ func main() {
 		return fmt.Sprintf(`// %s
 // %s
 
-// TODO: Implement your solution here
+// Step 1: Understand the problem
+// Step 2: Plan your approach
+// Step 3: Implement your solution
+
+// Your implementation here
 `, problem.Title, problem.Description)
 	}
 }

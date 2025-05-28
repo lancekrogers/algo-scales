@@ -14,7 +14,7 @@ algo-scales start practice
 algo-scales solve
 ```
 
-If you prefer the Terminal UI interface, you can use the `--tui` flag with any command.
+> **Note**: The Terminal UI mode (`--tui` flag) is currently a work in progress and may not function as expected.
 
 ## Available Commands in CLI Mode
 

@@ -38,9 +38,22 @@ import (
 	"fmt"
 )
 
-// Implement your solution here
-func solution() {
-	// Your code goes here
+// solution implements the algorithm
+func solution() interface{} {
+	// Step 1: Understand the problem
+	// - Read the problem description carefully
+	// - Identify input/output requirements
+	// - Consider edge cases
+	
+	// Step 2: Plan your approach
+	// - What algorithm pattern applies here?
+	// - What data structures do you need?
+	// - What's the time/space complexity?
+	
+	// Step 3: Implement your solution
+	// Replace this with your actual implementation
+	
+	return nil // Update return value as needed
 }
 
 func main() {

@@ -12,8 +12,8 @@ To begin your daily scale practice from the command line:
 # Use CLI mode (default):
 algo-scales daily
 
-# Use TUI mode (Terminal User Interface):
-algo-scales daily --tui
+# TUI mode (work in progress - not recommended):
+# algo-scales daily --tui
 ```
 
 This will start a sequence of problem-solving sessions, one for each of the 11 core algorithm patterns ("scales").

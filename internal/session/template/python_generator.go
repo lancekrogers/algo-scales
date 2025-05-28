@@ -32,10 +32,25 @@ func (g *PythonGenerator) GetTemplate(prob interfaces.Problem) string {
 	return fmt.Sprintf(`# %s
 # %s
 
-# Implement your solution here
 def solution():
-    # Your code goes here
-    pass
+    """
+    Implement your solution here.
+    
+    Step 1: Understand the problem
+    - Read the problem description carefully
+    - Identify input/output requirements
+    - Consider edge cases
+    
+    Step 2: Plan your approach
+    - What algorithm pattern applies here?
+    - What data structures do you need?
+    - What's the time/space complexity?
+    
+    Step 3: Implement your solution
+    - Replace this with your actual implementation
+    """
+    # Your implementation here
+    return None  # Update return value as needed
 
 # Test your solution here
 if __name__ == "__main__":

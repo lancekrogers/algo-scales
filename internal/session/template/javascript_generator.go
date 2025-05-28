@@ -32,9 +32,25 @@ func (g *JavaScriptGenerator) GetTemplate(prob interfaces.Problem) string {
 	return fmt.Sprintf(`// %s
 // %s
 
-// Implement your solution here
+/**
+ * Implement your solution here
+ * 
+ * Step 1: Understand the problem
+ * - Read the problem description carefully
+ * - Identify input/output requirements
+ * - Consider edge cases
+ * 
+ * Step 2: Plan your approach
+ * - What algorithm pattern applies here?
+ * - What data structures do you need?
+ * - What's the time/space complexity?
+ * 
+ * Step 3: Implement your solution
+ * - Replace this with your actual implementation
+ */
 function solution() {
-    // Your code goes here
+    // Your implementation here
+    return null; // Update return value as needed
 }
 
 // Test your solution here

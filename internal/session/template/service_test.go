@@ -66,7 +66,7 @@ func TestTemplateService(t *testing.T) {
 		template, err := service.GetTemplate(testProblem, "unsupported")
 		assert.NoError(t, err) // Should not error, but provide a generic template
 		assert.Contains(t, template, "Test Problem")
-		assert.Contains(t, template, "TODO")
+		assert.Contains(t, template, "Step 1: Understand the problem")
 	})
 	
 	// Test GetTestHarness for Go
