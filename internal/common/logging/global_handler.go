@@ -168,7 +168,25 @@ func InitializeGlobalErrorHandling(ctx context.Context) (*GlobalErrorHandler, er
 	// Set up global recovery
 	handler.SetupGlobalRecovery()
 	
-	log.Printf("Global error handling initialized - logs at: %s", logPath)
+	// Only log initialization message if not in vim mode or JSON output mode
+	// Check if we're running with --vim-mode flag or in a context that requires pure JSON output
+	isVimMode := false
+	isJSONOutput := false
+	for _, arg := range os.Args {
+		if arg == "--vim-mode" || arg == "--vim" {
+			isVimMode = true
+			break
+		}
+		if arg == "--json" {
+			isJSONOutput = true
+			break
+		}
+	}
+	
+	// Don't pollute stdout with log messages in vim/JSON modes
+	if !isVimMode && !isJSONOutput {
+		log.Printf("Global error handling initialized - logs at: %s", logPath)
+	}
 	
 	return handler, nil
 }

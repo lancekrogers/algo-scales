@@ -2,7 +2,7 @@
 
 module github.com/lancekrogers/algo-scales
 
-go 1.24
+go 1.24.2
 
 require (
 	github.com/alecthomas/chroma v0.10.0
@@ -38,6 +38,7 @@ require (
 	github.com/inconshreveable/mousetrap v1.1.0 // indirect
 	github.com/json-iterator/go v1.1.12 // indirect
 	github.com/klauspost/cpuid/v2 v2.2.7 // indirect
+	github.com/lancekrogers/claude-code-go v0.1.0 // indirect
 	github.com/leodido/go-urn v1.4.0 // indirect
 	github.com/lucasb-eyer/go-colorful v1.2.0 // indirect
 	github.com/mattn/go-isatty v0.0.20 // indirect

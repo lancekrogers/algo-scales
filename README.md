@@ -10,6 +10,8 @@ Algo Scales is a command-line application that helps developers practice and mas
 
 ## Features
 
+- **🤖 AI-Powered Assistant**: Get intelligent hints, code reviews, and pattern explanations from Claude or Ollama ([Learn more](AI_ASSISTANT.md))
+
 - **Multiple Learning Modes**:
 
   - **Learn Mode**: Shows pattern explanations and detailed walkthroughs
@@ -69,6 +71,23 @@ The first time you run Algo Scales, you'll be asked to enter your license key an
 ```
 
 By default, Algo Scales runs in CLI mode.
+
+### AI Assistant Setup (Optional)
+
+Enhance your learning with AI-powered hints and explanations:
+
+```bash
+# Configure AI provider (Claude or Ollama)
+./algo-scales ai config
+
+# Get intelligent hints while solving problems
+./algo-scales hint --ai
+
+# Start interactive AI chat
+./algo-scales hint --ai --interactive
+```
+
+See the [AI Assistant Guide](AI_ASSISTANT.md) for detailed setup and usage instructions.
 
 ### Available Commands
 
@@ -162,11 +181,50 @@ Contributions are welcome! Please feel free to submit a Pull Request.
 
 ## Roadmap
 
-- Neovim/LazyVim plugin integration
-- AI-powered hints and code reviews
+### Current Features
+- ✅ AI-powered hints and code reviews (Available now!)
+- ✅ Neovim plugin integration (Available now!)
+- 🚧 Terminal UI with interactive visualizations (In progress)
+
+### Upcoming Features
+
+#### Phase 1: Content & Learning
 - More algorithm patterns and problems
 - Interactive visualizations for algorithms
 - Simulated interview mode with AI interviewers
+- Additional AI providers (OpenAI, Google Gemini)
+- Pattern-specific AI fine-tuning
+
+#### Phase 2: Cloud Sync & Progress Tracking
+- **User Progress Synchronization**
+  - Store practice statistics server-side
+  - Sync progress across devices
+  - Detailed attempt history and time tracking
+  - Performance analytics dashboard
+
+#### Phase 3: Community & Gamification
+- **Social Learning Features**
+  - Anonymous leaderboards by pattern mastery
+  - Achievement system with badges
+  - Daily coding challenges
+  - Competitive practice modes
+  - Share progress without revealing solutions
+
+#### Phase 4: Personalized Learning
+- **AI-Driven Recommendations**
+  - Identify knowledge gaps automatically
+  - Personalized problem recommendations
+  - Custom learning paths based on goals
+  - Interview readiness scoring
+  - Weakness-focused practice sessions
+
+#### Phase 5: Teams & Enterprise
+- **Organization Features**
+  - Team licenses with centralized billing
+  - Manager dashboards for progress tracking
+  - Custom private problem sets
+  - Integration with recruiting platforms
+  - Bulk license management
 
 ## Credits
 
