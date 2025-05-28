@@ -103,9 +103,19 @@ test-dashboard:
 	'
 	@echo ""
 	@echo "════════════════════════════════════════════════════════════════"
+	@echo "                    🤖 AI Assistant Tests                        "
+	@echo "════════════════════════════════════════════════════════════════"
+	@$(GOTEST) -v ./internal/ai 2>&1 | grep -E "(PASS|FAIL|ok|---)" | awk ' \
+		/--- PASS:/ { printf "✅ %s\n", $$0 } \
+		/--- FAIL:/ { printf "❌ %s\n", $$0 } \
+		/^ok/ { printf "\033[32m✅ AI Assistant Tests: PASSED\033[0m\n" } \
+		/^FAIL/ { printf "\033[31m❌ AI Assistant Tests: FAILED\033[0m\n" } \
+	'
+	@echo ""
+	@echo "════════════════════════════════════════════════════════════════"
 	@echo "                   🔄 Context Integration                        "
 	@echo "════════════════════════════════════════════════════════════════"
-	@$(GOTEST) -v ./internal/problem ./internal/stats ./internal/registry ./internal/services ./internal/session 2>&1 | \
+	@$(GOTEST) -v ./internal/problem ./internal/stats ./internal/registry ./internal/services ./internal/session ./internal/ai 2>&1 | \
 		grep -E "(ok|FAIL)" | awk ' \
 		/^ok/ { printf "✅ \033[32m%-50s\033[0m %s\n", $$2, "PASS" } \
 		/^FAIL/ { printf "❌ \033[31m%-50s\033[0m %s\n", $$2, "FAIL" } \
@@ -210,7 +220,7 @@ test-context:
 	@echo ""
 	@echo "Testing packages with context.Context integration..."
 	@echo ""
-	$(GOTEST) -v ./internal/problem ./internal/stats ./internal/registry ./internal/services ./internal/session
+	$(GOTEST) -v ./internal/problem ./internal/stats ./internal/registry ./internal/services ./internal/session ./internal/ai
 	@echo ""
 	@echo "✅ Context integration tests completed!"
 
