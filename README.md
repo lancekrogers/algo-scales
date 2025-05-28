@@ -48,7 +48,9 @@ curl -fsSL https://raw.githubusercontent.com/lancekrogers/algo-scales/main/insta
 go install github.com/lancekrogers/algo-scales@latest
 ```
 
-Both methods install AlgoScales without requiring sudo privileges.
+Both methods install to user directories that are typically already in your PATH:
+- `~/go/bin/algo-scales` (Go's default, usually in PATH automatically)
+- `~/.local/bin/algo-scales` (standard user bin directory)
 
 ### Build from Source
 
@@ -57,10 +59,11 @@ Both methods install AlgoScales without requiring sudo privileges.
 git clone https://github.com/Blockhead-Consulting/algo-scales.git
 cd algo-scales
 
-# Option 1: Install to user directory (no sudo required) - RECOMMENDED
+# Option 1: Install to user directory (no sudo required) - RECOMMENDED  
 make install-user
+# This installs to ~/go/bin or ~/.local/bin (usually already in PATH)
 
-# Option 2: Build and see installation options
+# Option 2: Build and see all installation options
 make install
 
 # Option 3: Just build (use with ./bin/algo-scales)

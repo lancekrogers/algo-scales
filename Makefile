@@ -336,34 +336,48 @@ install:
 	@echo ""
 	@echo "📁 Binary location: $(BIN_DIR)/$(BINARY_NAME)"
 	@echo ""
-	@echo "🔧 Installation options:"
+	@echo "🔧 Installation options (no sudo required):"
 	@echo ""
-	@echo "1. Add to PATH (recommended - no sudo required):"
+	@echo "1. Install to user directory (RECOMMENDED):"
+	@echo "   make install-user"
+	@echo "   (Installs to ~/go/bin or ~/.local/bin - usually already in PATH)"
+	@echo ""
+	@echo "2. Use Go install (if you have Go):"
+	@echo "   go install github.com/lancekrogers/algo-scales@latest"
+	@echo ""
+	@echo "3. Add current directory to PATH:"
 	@echo "   export PATH=\$$PATH:$(PWD)/$(BIN_DIR)"
 	@echo "   echo 'export PATH=\$$PATH:$(PWD)/$(BIN_DIR)' >> ~/.bashrc  # or ~/.zshrc"
 	@echo ""
-	@echo "2. Copy to user bin directory (no sudo required):"
-	@echo "   mkdir -p ~/bin"
-	@echo "   cp $(BIN_DIR)/$(BINARY_NAME) ~/bin/"
-	@echo "   export PATH=\$$PATH:~/bin"
-	@echo ""
-	@echo "3. Use directly from build directory:"
+	@echo "4. Use directly from build directory:"
 	@echo "   ./$(BIN_DIR)/$(BINARY_NAME)"
 	@echo ""
-	@echo "4. Copy to system directory (requires sudo):"
+	@echo "5. Copy to system directory (requires sudo - NOT recommended):"
 	@echo "   sudo cp $(BIN_DIR)/$(BINARY_NAME) /usr/local/bin/"
 
 install-user:
 	mkdir -p $(BIN_DIR)
 	$(GOBUILD) -o $(BIN_DIR)/$(BINARY_NAME) -v $(MAIN_PATH)
-	mkdir -p ~/bin
-	cp $(BIN_DIR)/$(BINARY_NAME) ~/bin/
 	@echo ""
-	@echo "✅ AlgoScales installed to ~/bin/$(BINARY_NAME)"
+	@echo "🔧 Installing AlgoScales to user directory..."
 	@echo ""
-	@echo "🔧 Add ~/bin to your PATH if not already done:"
-	@echo "   export PATH=\$$PATH:~/bin"
-	@echo "   echo 'export PATH=\$$PATH:~/bin' >> ~/.bashrc  # or ~/.zshrc"
+	@# Try Go bin directory first (most likely to be in PATH)
+	@if [ -d "$$HOME/go/bin" ]; then \
+		cp $(BIN_DIR)/$(BINARY_NAME) ~/go/bin/ && \
+		echo "✅ AlgoScales installed to ~/go/bin/$(BINARY_NAME)" && \
+		echo "   (~/go/bin is usually already in PATH with Go installation)"; \
+	elif [ -d "$$HOME/.local/bin" ]; then \
+		cp $(BIN_DIR)/$(BINARY_NAME) ~/.local/bin/ && \
+		echo "✅ AlgoScales installed to ~/.local/bin/$(BINARY_NAME)" && \
+		echo "   (~/.local/bin is a standard user bin directory)"; \
+	else \
+		mkdir -p ~/.local/bin && \
+		cp $(BIN_DIR)/$(BINARY_NAME) ~/.local/bin/ && \
+		echo "✅ AlgoScales installed to ~/.local/bin/$(BINARY_NAME)" && \
+		echo "🔧 Add ~/.local/bin to your PATH:" && \
+		echo "   export PATH=\$$PATH:~/.local/bin" && \
+		echo "   echo 'export PATH=\$$PATH:~/.local/bin' >> ~/.bashrc  # or ~/.zshrc"; \
+	fi
 
 # Cross-compile targets
 .PHONY: build-linux build-windows build-darwin
