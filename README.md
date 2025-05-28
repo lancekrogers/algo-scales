@@ -35,6 +35,21 @@ Algo Scales is a command-line application that helps developers practice and mas
 - Go 1.16 or higher
 - A terminal editor (vim, nano, etc.) configured through the `EDITOR` environment variable
 
+### Quick Install (Recommended)
+
+**Option 1: One-line installer (no sudo required)**
+```bash
+curl -fsSL https://raw.githubusercontent.com/lancekrogers/algo-scales/main/install.sh | bash
+```
+
+**Option 2: Go install (if you have Go)**
+```bash
+# Install directly from source (no sudo required)
+go install github.com/lancekrogers/algo-scales@latest
+```
+
+Both methods install AlgoScales without requiring sudo privileges.
+
 ### Build from Source
 
 ```bash
@@ -42,13 +57,17 @@ Algo Scales is a command-line application that helps developers practice and mas
 git clone https://github.com/Blockhead-Consulting/algo-scales.git
 cd algo-scales
 
-# Build the CLI
-go build -o algo-scales
+# Option 1: Install to user directory (no sudo required) - RECOMMENDED
+make install-user
 
-# Build the API server (optional)
-cd server
-go build -o algo-scales-server
+# Option 2: Build and see installation options
+make install
+
+# Option 3: Just build (use with ./bin/algo-scales)
+make build
 ```
+
+The `make install-user` command installs AlgoScales to `~/bin/` without requiring sudo privileges. You'll need to add `~/bin` to your PATH if it's not already there.
 
 ### Download Binary
 

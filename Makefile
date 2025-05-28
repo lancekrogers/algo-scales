@@ -21,7 +21,7 @@ MAIN_PATH=./
 SERVER_PATH=./server
 
 # Targets
-.PHONY: all build clean test test-all test-dashboard test-chart test-coverage test-context test-integration test-vim test-short fix-tests fmt lint run server install vet
+.PHONY: all build clean test test-all test-dashboard test-chart test-coverage test-context test-integration test-vim test-short fix-tests fmt lint run server install install-user vet
 
 all: test-dashboard build-all
 
@@ -331,7 +331,39 @@ server:
 install:
 	mkdir -p $(BIN_DIR)
 	$(GOBUILD) -o $(BIN_DIR)/$(BINARY_NAME) -v $(MAIN_PATH)
-	sudo mv $(BIN_DIR)/$(BINARY_NAME) /usr/local/bin/$(BINARY_NAME)
+	@echo ""
+	@echo "✅ AlgoScales built successfully!"
+	@echo ""
+	@echo "📁 Binary location: $(BIN_DIR)/$(BINARY_NAME)"
+	@echo ""
+	@echo "🔧 Installation options:"
+	@echo ""
+	@echo "1. Add to PATH (recommended - no sudo required):"
+	@echo "   export PATH=\$$PATH:$(PWD)/$(BIN_DIR)"
+	@echo "   echo 'export PATH=\$$PATH:$(PWD)/$(BIN_DIR)' >> ~/.bashrc  # or ~/.zshrc"
+	@echo ""
+	@echo "2. Copy to user bin directory (no sudo required):"
+	@echo "   mkdir -p ~/bin"
+	@echo "   cp $(BIN_DIR)/$(BINARY_NAME) ~/bin/"
+	@echo "   export PATH=\$$PATH:~/bin"
+	@echo ""
+	@echo "3. Use directly from build directory:"
+	@echo "   ./$(BIN_DIR)/$(BINARY_NAME)"
+	@echo ""
+	@echo "4. Copy to system directory (requires sudo):"
+	@echo "   sudo cp $(BIN_DIR)/$(BINARY_NAME) /usr/local/bin/"
+
+install-user:
+	mkdir -p $(BIN_DIR)
+	$(GOBUILD) -o $(BIN_DIR)/$(BINARY_NAME) -v $(MAIN_PATH)
+	mkdir -p ~/bin
+	cp $(BIN_DIR)/$(BINARY_NAME) ~/bin/
+	@echo ""
+	@echo "✅ AlgoScales installed to ~/bin/$(BINARY_NAME)"
+	@echo ""
+	@echo "🔧 Add ~/bin to your PATH if not already done:"
+	@echo "   export PATH=\$$PATH:~/bin"
+	@echo "   echo 'export PATH=\$$PATH:~/bin' >> ~/.bashrc  # or ~/.zshrc"
 
 # Cross-compile targets
 .PHONY: build-linux build-windows build-darwin
