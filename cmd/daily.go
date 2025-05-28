@@ -22,6 +22,13 @@ Just as musicians practice scales daily to build technique, developers can pract
 algorithm patterns daily to build problem-solving intuition. This command will guide
 you through one problem from each major algorithm pattern (musical scale).`,
 	Run: func(cmd *cobra.Command, args []string) {
+		// Check if vim mode is requested
+		useVim, _ := rootCmd.PersistentFlags().GetBool("vim-mode")
+		if useVim {
+			startDailyVimMode()
+			return
+		}
+		
 		// Check if TUI mode is requested
 		useTUI, _ := rootCmd.PersistentFlags().GetBool("tui")
 		useSplit, _ := rootCmd.PersistentFlags().GetBool("split")
@@ -36,7 +43,75 @@ you through one problem from each major algorithm pattern (musical scale).`,
 	},
 }
 
-// startDailyScale starts the daily scale practice session
+// startDailyVimMode starts daily practice in vim mode (JSON output only)
+func startDailyVimMode() {
+	// Load progress or start fresh
+	progress, err := daily.LoadProgress()
+	if err != nil {
+		progress = daily.ScaleProgress{
+			Current:       0,
+			LastPracticed: time.Time{},
+			Completed:     []string{},
+			Streak:        0,
+			LongestStreak: 0,
+		}
+	}
+
+	// Update streak based on last practice date
+	daily.UpdateStreak(&progress)
+
+	// Check if we're continuing from a previous day
+	today := time.Now().Format("2006-01-02")
+	var lastPracticedDay string
+	if !progress.LastPracticed.IsZero() {
+		lastPracticedDay = progress.LastPracticed.Format("2006-01-02")
+	}
+
+	if lastPracticedDay != today {
+		// Starting a new day, reset completed scales
+		progress.Completed = []string{}
+		progress.Current = 0
+	}
+
+	// Find the next scale to practice
+	nextScale := daily.GetNextScale(progress.Completed)
+
+	// If all scales are completed, return success message
+	if nextScale == nil {
+		fmt.Printf(`{"error": "All daily scales completed for today", "completed": %d, "streak": %d}`, len(progress.Completed), progress.Streak)
+		return
+	}
+
+	// Update progress with current pattern
+	progress.Current = daily.GetPatternIndex(nextScale.Pattern)
+	progress.LastPracticed = time.Now()
+
+	// Save progress
+	if err := daily.SaveProgress(progress); err != nil {
+		fmt.Printf(`{"error": "Error saving progress: %v"}`, err)
+		os.Exit(1)
+	}
+
+	// Start practice session with this pattern
+	opts := session.Options{
+		Mode:       session.PracticeMode,
+		Language:   language,
+		Timer:      timer,
+		Pattern:    nextScale.Pattern,
+		Difficulty: difficulty,
+	}
+
+	s, err := session.CreateSession(opts)
+	if err != nil {
+		fmt.Printf(`{"error": "Error creating session: %v"}`, err)
+		os.Exit(1)
+	}
+	
+	// Output JSON for vim mode
+	handleVimModeStart(s)
+}
+
+// startDailyScale starts the daily scale practice session (TUI mode)
 func startDailyScale() {
 	// Display welcome message
 	fmt.Println("╭───────────────────────────────────────────────────────────────╮")
@@ -121,66 +196,57 @@ func startDailyScale() {
 		Difficulty: difficulty,
 	}
 
-	// Create session for Vim mode or start directly
-	if vimMode {
-		s, err := session.CreateSession(opts)
-		if err != nil {
-			fmt.Printf("Error creating session: %v\n", err)
-			os.Exit(1)
+	// Start session
+	if err := session.Start(opts); err != nil {
+		fmt.Printf("Error starting session: %v\n", err)
+		os.Exit(1)
+	}
+
+	// When the session completes, mark this scale as completed
+	progress.Completed = append(progress.Completed, nextScale.Pattern)
+
+	// Save updated progress
+	if err := daily.SaveProgress(progress); err != nil {
+		fmt.Printf("Warning: Error saving progress: %v\n", err)
+	}
+
+	// Get the next scale (if any)
+	nextScale = daily.GetNextScale(progress.Completed)
+
+	// If there are more scales, ask if user wants to continue
+	if nextScale != nil {
+		fmt.Println()
+		fmt.Printf("Pattern completed! Next scale: %s (%s)\n", 
+			nextScale.MusicalName, nextScale.Pattern)
+		fmt.Print("Continue to next scale? (y/n): ")
+
+		var response string
+		fmt.Scanln(&response)
+
+		if response == "y" || response == "Y" {
+			startDailyScale() // Recursively start the next scale
+		} else {
+			fmt.Println("Practice session paused. You can continue later with 'algo-scales daily'")
+			fmt.Printf("Patterns completed today: %d/11\n", len(progress.Completed))
 		}
-		handleVimModeStart(s)
 	} else {
-		if err := session.Start(opts); err != nil {
-			fmt.Printf("Error starting session: %v\n", err)
-			os.Exit(1)
-		}
+		// All scales completed!
+		fmt.Println()
+		fmt.Println("╭───────────────────────────────────────────────────────────────╮")
+		fmt.Println("│         🎵 Congratulations! Daily Scales Complete! 🎵         │")
+		fmt.Println("╰───────────────────────────────────────────────────────────────╯")
+		fmt.Println()
+		fmt.Println("You've completed all 11 algorithm pattern scales for today!")
+		fmt.Println("Keep up the good work and maintain your practice streak.")
+		fmt.Println()
+		fmt.Printf("Current streak: %d days\n", progress.Streak)
+		fmt.Printf("Longest streak: %d days\n", progress.LongestStreak)
 
-		// When the session completes, mark this scale as completed
-		progress.Completed = append(progress.Completed, nextScale.Pattern)
-
-		// Save updated progress
+		// Reset completion list for tomorrow but keep streak data
+		progress.Completed = []string{}
+		progress.Current = 0
 		if err := daily.SaveProgress(progress); err != nil {
 			fmt.Printf("Warning: Error saving progress: %v\n", err)
-		}
-
-		// Get the next scale (if any)
-		nextScale = daily.GetNextScale(progress.Completed)
-
-		// If there are more scales, ask if user wants to continue
-		if nextScale != nil {
-			fmt.Println()
-			fmt.Printf("Pattern completed! Next scale: %s (%s)\n", 
-				nextScale.MusicalName, nextScale.Pattern)
-			fmt.Print("Continue to next scale? (y/n): ")
-
-			var response string
-			fmt.Scanln(&response)
-
-			if response == "y" || response == "Y" {
-				startDailyScale() // Recursively start the next scale
-			} else {
-				fmt.Println("Practice session paused. You can continue later with 'algo-scales daily'")
-				fmt.Printf("Patterns completed today: %d/11\n", len(progress.Completed))
-			}
-		} else {
-			// All scales completed!
-			fmt.Println()
-			fmt.Println("╭───────────────────────────────────────────────────────────────╮")
-			fmt.Println("│         🎵 Congratulations! Daily Scales Complete! 🎵         │")
-			fmt.Println("╰───────────────────────────────────────────────────────────────╯")
-			fmt.Println()
-			fmt.Println("You've completed all 11 algorithm pattern scales for today!")
-			fmt.Println("Keep up the good work and maintain your practice streak.")
-			fmt.Println()
-			fmt.Printf("Current streak: %d days\n", progress.Streak)
-			fmt.Printf("Longest streak: %d days\n", progress.LongestStreak)
-
-			// Reset completion list for tomorrow but keep streak data
-			progress.Completed = []string{}
-			progress.Current = 0
-			if err := daily.SaveProgress(progress); err != nil {
-				fmt.Printf("Warning: Error saving progress: %v\n", err)
-			}
 		}
 	}
 }
