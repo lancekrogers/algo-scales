@@ -63,6 +63,7 @@ func TestVimCommands(t *testing.T) {
 			args: []string{},
 			flags: map[string]string{
 				"problem-id": "two_sum",
+				"language":   "go",
 				"vim-mode":   "true",
 			},
 			wantJSON: true,
@@ -71,6 +72,7 @@ func TestVimCommands(t *testing.T) {
 				err := json.Unmarshal([]byte(output), &resp)
 				assert.NoError(t, err, "output should be valid JSON")
 				assert.NotEmpty(t, resp.Hint, "should have hint text")
+				assert.Equal(t, 1, resp.Level, "first hint should be level 1")
 			},
 		},
 		{
@@ -121,6 +123,7 @@ func TestVimCommands(t *testing.T) {
 				tt.cmd.Flags().Bool("vim-mode", false, "Enable vim mode output")
 			case hintCmd:
 				tt.cmd.Flags().String("problem-id", "", "Problem ID")
+				tt.cmd.Flags().String("language", "go", "Programming language")
 				tt.cmd.Flags().Bool("vim-mode", false, "Enable vim mode output")
 			case solutionCmd:
 				tt.cmd.Flags().String("problem-id", "", "Problem ID")
@@ -314,4 +317,73 @@ func TestGetPatternHint(t *testing.T) {
 			assert.Equal(t, tt.want, got)
 		})
 	}
+}
+
+func TestMultiLevelHints(t *testing.T) {
+	// Reset hint levels before test
+	hintLevels = make(map[string]int)
+	
+	// Mock problem service to return a problem with walkthrough
+	// This test verifies that hint levels increase with each call
+	
+	problemID := "pair_with_target_sum"
+	
+	// First hint - should be level 1
+	cmd1 := hintCmd
+	cmd1.Flags().Set("problem-id", problemID)
+	cmd1.Flags().Set("language", "go")
+	cmd1.Flags().Set("vim-mode", "true")
+	
+	// Capture output
+	oldStdout := os.Stdout
+	r1, w1, _ := os.Pipe()
+	os.Stdout = w1
+	
+	cmd1.Run(cmd1, []string{})
+	
+	w1.Close()
+	os.Stdout = oldStdout
+	output1, _ := ioutil.ReadAll(r1)
+	
+	var resp1 VimHintResponse
+	err := json.Unmarshal(output1, &resp1)
+	assert.NoError(t, err)
+	assert.Equal(t, 1, resp1.Level, "First call should be level 1")
+	assert.NotEmpty(t, resp1.Hint, "Should have hint text")
+	assert.Empty(t, resp1.Walkthrough, "Level 1 should not have walkthrough")
+	assert.Empty(t, resp1.Solution, "Level 1 should not have solution")
+	
+	// Second hint - should be level 2
+	r2, w2, _ := os.Pipe()
+	os.Stdout = w2
+	
+	cmd1.Run(cmd1, []string{})
+	
+	w2.Close()
+	os.Stdout = oldStdout
+	output2, _ := ioutil.ReadAll(r2)
+	
+	var resp2 VimHintResponse
+	err = json.Unmarshal(output2, &resp2)
+	assert.NoError(t, err)
+	assert.Equal(t, 2, resp2.Level, "Second call should be level 2")
+	assert.NotEmpty(t, resp2.Hint, "Should have hint text")
+	// Note: walkthrough presence depends on problem data
+	
+	// Third hint - should be level 3
+	r3, w3, _ := os.Pipe()
+	os.Stdout = w3
+	
+	cmd1.Run(cmd1, []string{})
+	
+	w3.Close()
+	os.Stdout = oldStdout
+	output3, _ := ioutil.ReadAll(r3)
+	
+	var resp3 VimHintResponse
+	err = json.Unmarshal(output3, &resp3)
+	assert.NoError(t, err)
+	assert.Equal(t, 3, resp3.Level, "Third call should be level 3")
+	assert.NotEmpty(t, resp3.Hint, "Should have hint text")
+	// Note: solution presence depends on problem data
 }

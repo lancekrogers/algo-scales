@@ -13,6 +13,9 @@ import (
 // Flag to enable vim mode output (JSON format)
 var vimMode bool
 
+// Track hint levels for each problem in the current session
+var hintLevels = make(map[string]int)
+
 // VimProblemResponse represents the JSON response for a problem in vim mode
 type VimProblemResponse struct {
 	ID          string            `json:"id"`
@@ -47,7 +50,11 @@ type VimSubmitResponse struct {
 
 // VimHintResponse represents the JSON response for a hint in vim mode
 type VimHintResponse struct {
-	Hint string `json:"hint"`
+	Hint      string   `json:"hint"`
+	Level     int      `json:"level"`
+	Walkthrough []string `json:"walkthrough,omitempty"`
+	Solution  string   `json:"solution,omitempty"`
+	Language  string   `json:"language,omitempty"`
 }
 
 // VimSolutionResponse represents the JSON response for a solution in vim mode

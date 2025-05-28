@@ -21,9 +21,9 @@ MAIN_PATH=./
 SERVER_PATH=./server
 
 # Targets
-.PHONY: all build clean test test-chart test-coverage test-context test-integration test-short fix-tests fmt lint run server install vet
+.PHONY: all build clean test test-all test-dashboard test-chart test-coverage test-context test-integration test-vim test-short fix-tests fmt lint run server install vet
 
-all: test-chart build
+all: test-dashboard build-all
 
 build:
 	mkdir -p $(BIN_DIR)
@@ -40,6 +40,121 @@ clean:
 
 test:
 	$(GOTEST) -v $(PKG)
+
+# Run all tests including integration and vim mode tests
+test-all: test-chart test-vim
+	@echo ""
+	@echo "╭───────────────────────────────────────────────────────────────╮"
+	@echo "│             ✅  All Tests Completed  ✅                        │"
+	@echo "╰───────────────────────────────────────────────────────────────╯"
+
+# Comprehensive test dashboard showing all test results
+test-dashboard:
+	@echo "╭───────────────────────────────────────────────────────────────╮"
+	@echo "│           🎵  AlgoScales Complete Test Suite  🎵              │"
+	@echo "╰───────────────────────────────────────────────────────────────╯"
+	@echo ""
+	@echo "Running all tests..."
+	@echo ""
+	@echo "════════════════════════════════════════════════════════════════"
+	@echo "                    📦 Package Tests                             "
+	@echo "════════════════════════════════════════════════════════════════"
+	@$(GOTEST) -v $(PKG) 2>&1 | tee /tmp/test-output.txt | awk ' \
+		BEGIN { passed=0; failed=0; buildfail=0; notests=0; testspassed=0; testsfailed=0; } \
+		/^ok / { passed += 1; printf "✅ \033[32m%-50s\033[0m %s\n", $$2, "PASS" } \
+		/^FAIL.*/ { if (match($$0, /\[build failed\]/)) { \
+						buildfail += 1; printf "🔨 \033[33m%-50s\033[0m %s\n", $$2, "BUILD FAILED" \
+					} else { \
+						failed += 1; printf "❌ \033[31m%-50s\033[0m %s\n", $$2, "FAIL" \
+					} \
+		} \
+		/\?\s+/ { notests += 1; printf "🔍 \033[36m%-50s\033[0m %s\n", $$2, "NO TESTS" } \
+		/--- PASS:/ { testspassed += 1 } \
+		/--- FAIL:/ { testsfailed += 1 } \
+		END { \
+			print "\n"; \
+			printf "Package Summary: %d passed, %d failed, %d no tests\n", passed, failed, notests; \
+			printf "Test Cases: %d passed, %d failed\n", testspassed, testsfailed; \
+		} \
+	'
+	@echo ""
+	@echo "════════════════════════════════════════════════════════════════"
+	@echo "                    🎹 Vim Mode Tests                            "
+	@echo "════════════════════════════════════════════════════════════════"
+	@$(GOTEST) -v ./cmd -run TestVimModeIntegration -timeout 30s 2>&1 | grep -E "(PASS|FAIL|ok|---)" | awk ' \
+		/--- PASS:/ { printf "✅ %s\n", $$0 } \
+		/--- FAIL:/ { printf "❌ %s\n", $$0 } \
+		/^PASS$$/ { printf "\033[32m✅ Vim Integration Tests: PASSED\033[0m\n" } \
+		/^FAIL$$/ { printf "\033[31m❌ Vim Integration Tests: FAILED\033[0m\n" } \
+	'
+	@echo ""
+	@$(GOTEST) -v ./cmd -run TestVimCommands 2>&1 | grep -E "(PASS|FAIL|ok|---)" | awk ' \
+		/--- PASS:/ { printf "✅ %s\n", $$0 } \
+		/--- FAIL:/ { printf "❌ %s\n", $$0 } \
+		/^PASS$$/ { printf "\033[32m✅ Vim Commands Tests: PASSED\033[0m\n" } \
+		/^FAIL$$/ { printf "\033[31m❌ Vim Commands Tests: FAILED\033[0m\n" } \
+	'
+	@echo ""
+	@$(GOTEST) -v ./cmd -run TestMultiLevelHints 2>&1 | grep -E "(PASS|FAIL|ok|---)" | awk ' \
+		/--- PASS:/ { printf "✅ %s\n", $$0 } \
+		/--- FAIL:/ { printf "❌ %s\n", $$0 } \
+		/^PASS$$/ { printf "\033[32m✅ Multi-level Hints Tests: PASSED\033[0m\n" } \
+		/^FAIL$$/ { printf "\033[31m❌ Multi-level Hints Tests: FAILED\033[0m\n" } \
+	'
+	@echo ""
+	@echo "════════════════════════════════════════════════════════════════"
+	@echo "                   🔄 Context Integration                        "
+	@echo "════════════════════════════════════════════════════════════════"
+	@$(GOTEST) -v ./internal/problem ./internal/stats ./internal/registry ./internal/services ./internal/session 2>&1 | \
+		grep -E "(ok|FAIL)" | awk ' \
+		/^ok/ { printf "✅ \033[32m%-50s\033[0m %s\n", $$2, "PASS" } \
+		/^FAIL/ { printf "❌ \033[31m%-50s\033[0m %s\n", $$2, "FAIL" } \
+	'
+	@echo ""
+	@echo "════════════════════════════════════════════════════════════════"
+	@echo "                    🔧 Manual Tests                              "
+	@echo "════════════════════════════════════════════════════════════════"
+	@if [ -f ./tests/manual_vim_test.sh ]; then \
+		./tests/manual_vim_test.sh 2>&1 | grep -E "(Testing:|PASS|FAIL)" | awk ' \
+			/PASS/ { printf "✅ %s\n", $$0 } \
+			/FAIL/ { printf "❌ %s\n", $$0 } \
+			/Testing:/ && !/Testing complete/ { printf "🧪 %s\n", $$0 } \
+		'; \
+	else \
+		echo "⚠️  Manual test script not found"; \
+	fi
+	@echo ""
+	@echo "════════════════════════════════════════════════════════════════"
+	@echo "                    📊 Final Summary                             "
+	@echo "════════════════════════════════════════════════════════════════"
+	@cat /tmp/test-output.txt | awk ' \
+		BEGIN { packages=0; passed=0; failed=0; tests=0; testspassed=0; testsfailed=0; } \
+		/^ok / { packages++; passed++; } \
+		/^FAIL/ && !/\[no test files\]/ { packages++; failed++; } \
+		/--- PASS:/ { tests++; testspassed++; } \
+		/--- FAIL:/ { tests++; testsfailed++; } \
+		END { \
+			printf "📦 Total Packages Tested: %d\n", packages; \
+			printf "   ✅ Passed: %d (%d%%)\n", passed, (packages>0 ? passed*100/packages : 0); \
+			printf "   ❌ Failed: %d (%d%%)\n", failed, (packages>0 ? failed*100/packages : 0); \
+			printf "\n"; \
+			printf "🧪 Total Test Cases: %d\n", tests; \
+			printf "   ✅ Passed: %d (%d%%)\n", testspassed, (tests>0 ? testspassed*100/tests : 0); \
+			printf "   ❌ Failed: %d (%d%%)\n", testsfailed, (tests>0 ? testsfailed*100/tests : 0); \
+			printf "\n"; \
+			if (failed == 0 && testsfailed == 0) { \
+				printf "\033[32m🎉 All tests passed! Ready to build.\033[0m\n"; \
+			} else { \
+				printf "\033[31m⚠️  Some tests failed. Please fix before proceeding.\033[0m\n"; \
+				exit 1; \
+			} \
+		} \
+	'
+	@rm -f /tmp/test-output.txt
+	@echo ""
+	@echo "╭───────────────────────────────────────────────────────────────╮"
+	@echo "│                    Test Suite Complete                         │"
+	@echo "╰───────────────────────────────────────────────────────────────╯"
 
 test-chart:
 	@echo "╭───────────────────────────────────────────────────────────────╮"
@@ -104,7 +219,35 @@ test-integration:
 	@echo "│             🧪  Running Integration Tests  🧪                  │"
 	@echo "╰───────────────────────────────────────────────────────────────╯"
 	@echo ""
+	@echo "Running standard integration tests..."
 	$(GOTEST) -v -tags=integration $(PKG)
+	@echo ""
+	@echo "Running vim mode integration tests..."
+	$(GOTEST) -v ./cmd -run TestVimModeIntegration -timeout 30s
+
+test-vim:
+	@echo "╭───────────────────────────────────────────────────────────────╮"
+	@echo "│             🎹  Testing Vim Mode Integration  🎹               │"
+	@echo "╰───────────────────────────────────────────────────────────────╯"
+	@echo ""
+	@echo "Building binary..."
+	@$(GOBUILD) -o $(BIN_DIR)/$(BINARY_NAME) -v $(MAIN_PATH)
+	@echo ""
+	@echo "Running vim mode integration tests..."
+	@$(GOTEST) -v ./cmd -run TestVimModeIntegration -timeout 30s
+	@echo ""
+	@echo "Running vim commands tests..."
+	@$(GOTEST) -v ./cmd -run TestVimCommands
+	@echo ""
+	@echo "Running multi-level hints tests..."
+	@$(GOTEST) -v ./cmd -run TestMultiLevelHints
+	@echo ""
+	@if [ -f ./tests/manual_vim_test.sh ]; then \
+		echo "Running manual vim tests..."; \
+		./tests/manual_vim_test.sh; \
+	fi
+	@echo ""
+	@echo "✅ Vim mode tests completed!"
 
 test-short:
 	@echo "╭───────────────────────────────────────────────────────────────╮"
@@ -184,22 +327,49 @@ install:
 .PHONY: build-linux build-windows build-darwin
 
 build-linux:
-	mkdir -p $(BIN_DIR)
-	GOOS=linux GOARCH=amd64 $(GOBUILD) -o $(BIN_DIR)/$(BINARY_NAME)-linux-amd64 -v $(MAIN_PATH)
-	GOOS=linux GOARCH=amd64 $(GOBUILD) -o $(BIN_DIR)/$(SERVER_BINARY_NAME)-linux-amd64 -v $(SERVER_PATH)
+	@mkdir -p $(BIN_DIR)
+	@GOOS=linux GOARCH=amd64 $(GOBUILD) -o $(BIN_DIR)/$(BINARY_NAME)-linux-amd64 $(MAIN_PATH)
+	@GOOS=linux GOARCH=amd64 $(GOBUILD) -o $(BIN_DIR)/$(SERVER_BINARY_NAME)-linux-amd64 $(SERVER_PATH)
 
 build-windows:
-	mkdir -p $(BIN_DIR)
-	GOOS=windows GOARCH=amd64 $(GOBUILD) -o $(BIN_DIR)/$(BINARY_NAME)-windows-amd64.exe -v $(MAIN_PATH)
-	GOOS=windows GOARCH=amd64 $(GOBUILD) -o $(BIN_DIR)/$(SERVER_BINARY_NAME)-windows-amd64.exe -v $(SERVER_PATH)
+	@mkdir -p $(BIN_DIR)
+	@GOOS=windows GOARCH=amd64 $(GOBUILD) -o $(BIN_DIR)/$(BINARY_NAME)-windows-amd64.exe $(MAIN_PATH)
+	@GOOS=windows GOARCH=amd64 $(GOBUILD) -o $(BIN_DIR)/$(SERVER_BINARY_NAME)-windows-amd64.exe $(SERVER_PATH)
 
 build-darwin:
-	mkdir -p $(BIN_DIR)
-	GOOS=darwin GOARCH=amd64 $(GOBUILD) -o $(BIN_DIR)/$(BINARY_NAME)-darwin-amd64 -v $(MAIN_PATH)
-	GOOS=darwin GOARCH=amd64 $(GOBUILD) -o $(BIN_DIR)/$(SERVER_BINARY_NAME)-darwin-amd64 -v $(SERVER_PATH)
-	GOOS=darwin GOARCH=arm64 $(GOBUILD) -o $(BIN_DIR)/$(BINARY_NAME)-darwin-arm64 -v $(MAIN_PATH)
-	GOOS=darwin GOARCH=arm64 $(GOBUILD) -o $(BIN_DIR)/$(SERVER_BINARY_NAME)-darwin-arm64 -v $(SERVER_PATH)
+	@mkdir -p $(BIN_DIR)
+	@GOOS=darwin GOARCH=amd64 $(GOBUILD) -o $(BIN_DIR)/$(BINARY_NAME)-darwin-amd64 $(MAIN_PATH)
+	@GOOS=darwin GOARCH=amd64 $(GOBUILD) -o $(BIN_DIR)/$(SERVER_BINARY_NAME)-darwin-amd64 $(SERVER_PATH)
+	@GOOS=darwin GOARCH=arm64 $(GOBUILD) -o $(BIN_DIR)/$(BINARY_NAME)-darwin-arm64 $(MAIN_PATH)
+	@GOOS=darwin GOARCH=arm64 $(GOBUILD) -o $(BIN_DIR)/$(SERVER_BINARY_NAME)-darwin-arm64 $(SERVER_PATH)
 
 # Build all platforms
 .PHONY: build-all
-build-all: build-linux build-windows build-darwin
+build-all: 
+	@echo ""
+	@echo "╭───────────────────────────────────────────────────────────────╮"
+	@echo "│              🔨  Building All Platforms  🔨                    │"
+	@echo "╰───────────────────────────────────────────────────────────────╯"
+	@echo ""
+	@echo "Building Linux binaries..."
+	@$(MAKE) -s build-linux
+	@echo "✅ Linux builds complete"
+	@echo ""
+	@echo "Building Windows binaries..."
+	@$(MAKE) -s build-windows
+	@echo "✅ Windows builds complete"
+	@echo ""
+	@echo "Building Darwin (macOS) binaries..."
+	@$(MAKE) -s build-darwin
+	@echo "✅ Darwin builds complete"
+	@echo ""
+	@echo "╭───────────────────────────────────────────────────────────────╮"
+	@echo "│         🎉  All Builds Complete!  🎉                           │"
+	@echo "│                                                                │"
+	@echo "│  Binaries available in: bin/                                   │"
+	@echo "│                                                                │"
+	@echo "│  Linux:   algo-scales-linux-amd64                             │"
+	@echo "│  Windows: algo-scales-windows-amd64.exe                        │"
+	@echo "│  macOS:   algo-scales-darwin-amd64 (Intel)                    │"
+	@echo "│           algo-scales-darwin-arm64 (Apple Silicon)            │"
+	@echo "╰───────────────────────────────────────────────────────────────╯"

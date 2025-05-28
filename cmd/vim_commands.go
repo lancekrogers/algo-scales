@@ -8,6 +8,7 @@ import (
 	"fmt"
 	"io/ioutil"
 	"os"
+	"strings"
 	"time"
 
 	"github.com/lancekrogers/algo-scales/internal/common/interfaces"
@@ -133,6 +134,7 @@ var hintCmd = &cobra.Command{
 	Run: func(cmd *cobra.Command, args []string) {
 		// Get flags
 		problemID, _ := cmd.Flags().GetString("problem-id")
+		language, _ := cmd.Flags().GetString("language")
 		isVimMode, _ := cmd.Flags().GetBool("vim-mode")
 
 		if !isVimMode {
@@ -151,15 +153,47 @@ var hintCmd = &cobra.Command{
 			return
 		}
 
-		// Get hint text
-		hintText := prob.PatternExplanation
-		if hintText == "" {
-			hintText = "Think about the pattern: " + getPatternHint(prob.Patterns)
+		// Get current hint level for this problem
+		currentLevel := hintLevels[problemID]
+		currentLevel++ // Increment for this request
+		hintLevels[problemID] = currentLevel
+
+		// Create response with appropriate level of detail
+		resp := VimHintResponse{
+			Level: currentLevel,
 		}
 
-		// Create and output response
-		resp := VimHintResponse{
-			Hint: hintText,
+		// Level 1: Pattern explanation
+		if currentLevel >= 1 {
+			if prob.PatternExplanation != "" {
+				resp.Hint = prob.PatternExplanation
+			} else {
+				// Fallback to generic pattern hint
+				resp.Hint = "Think about the pattern: " + getPatternHint(prob.Patterns)
+			}
+		}
+
+		// Level 2: Add solution walkthrough
+		if currentLevel >= 2 && len(prob.SolutionWalkthrough) > 0 {
+			resp.Walkthrough = prob.SolutionWalkthrough
+		}
+
+		// Level 3: Add actual solution code
+		if currentLevel >= 3 {
+			// Get solution in the requested language
+			if prob.Solutions != nil {
+				if solution, ok := prob.Solutions[language]; ok {
+					resp.Solution = solution
+					resp.Language = language
+				} else {
+					// Try to get any solution
+					for lang, sol := range prob.Solutions {
+						resp.Solution = sol
+						resp.Language = lang
+						break
+					}
+				}
+			}
 		}
 
 		jsonResp, err := json.Marshal(resp)
@@ -232,6 +266,78 @@ var solutionCmd = &cobra.Command{
 	},
 }
 
+// aiHintCmd represents the AI hint command for vim mode
+var aiHintCmd = &cobra.Command{
+	Use:   "ai-hint",
+	Short: "Get AI-powered hints for problem (vim mode)",
+	Long:  `Get AI-powered hints using claude-code-go or Ollama. Used by the Neovim plugin.`,
+	Run: func(cmd *cobra.Command, args []string) {
+		// Get flags
+		problemID, _ := cmd.Flags().GetString("problem-id")
+		language, _ := cmd.Flags().GetString("language")
+		userCode, _ := cmd.Flags().GetString("user-code")
+		provider, _ := cmd.Flags().GetString("provider") // "claude" or "ollama"
+		model, _ := cmd.Flags().GetString("model")
+		isVimMode, _ := cmd.Flags().GetBool("vim-mode")
+
+		if !isVimMode {
+			fmt.Println("This command is for vim mode only")
+			return
+		}
+
+		// Create context
+		ctx := context.Background()
+
+		// Get problem from repository
+		problemService := services.DefaultRegistry.GetProblemService()
+		prob, err := problemService.GetByID(ctx, problemID)
+		if err != nil {
+			outputVimError(fmt.Errorf("failed to get problem: %v", err))
+			return
+		}
+
+		// Prepare system prompt
+		systemPrompt := fmt.Sprintf(`You are an algorithm tutor helping a student learn the %s pattern.
+
+Problem: %s
+Pattern: %s
+Pattern Explanation: %s
+
+The student is working on this problem and may need help understanding the approach or debugging their solution.
+Focus on teaching the pattern and guiding them to understand the solution rather than just giving the answer.
+If they share their code, help them identify issues and guide them toward the correct approach.`, 
+			strings.Join(prob.Patterns, ", "),
+			prob.Title,
+			strings.Join(prob.Patterns, ", "),
+			prob.PatternExplanation,
+		)
+
+		// Prepare user message
+		userMessage := "I need help with this problem."
+		if userCode != "" {
+			userMessage = fmt.Sprintf("I need help with this problem. Here's my current solution:\n\n```%s\n%s\n```", language, userCode)
+		}
+
+		// For now, return a response indicating AI hint is ready
+		// In a full implementation, this would integrate with claude-code-go or Ollama
+		resp := map[string]interface{}{
+			"ready": true,
+			"system_prompt": systemPrompt,
+			"user_message": userMessage,
+			"provider": provider,
+			"model": model,
+		}
+
+		jsonResp, err := json.Marshal(resp)
+		if err != nil {
+			outputVimError(fmt.Errorf("failed to marshal response: %v", err))
+			return
+		}
+
+		fmt.Println(string(jsonResp))
+	},
+}
+
 // Helper function to output vim mode errors
 func outputVimError(err error) {
 	errResp := map[string]string{
@@ -260,6 +366,7 @@ func init() {
 	rootCmd.AddCommand(testCmd)
 	rootCmd.AddCommand(hintCmd)
 	rootCmd.AddCommand(solutionCmd)
+	rootCmd.AddCommand(aiHintCmd)
 
 	// Add flags for submit/test commands
 	submitCmd.Flags().String("problem-id", "", "Problem ID")
@@ -278,6 +385,7 @@ func init() {
 
 	// Add flags for hint command
 	hintCmd.Flags().String("problem-id", "", "Problem ID")
+	hintCmd.Flags().String("language", "go", "Programming language")
 	hintCmd.Flags().Bool("vim-mode", false, "Enable vim mode output")
 	hintCmd.MarkFlagRequired("problem-id")
 
@@ -286,4 +394,13 @@ func init() {
 	solutionCmd.Flags().String("language", "go", "Programming language")
 	solutionCmd.Flags().Bool("vim-mode", false, "Enable vim mode output")
 	solutionCmd.MarkFlagRequired("problem-id")
+
+	// Add flags for AI hint command
+	aiHintCmd.Flags().String("problem-id", "", "Problem ID")
+	aiHintCmd.Flags().String("language", "go", "Programming language")
+	aiHintCmd.Flags().String("user-code", "", "User's current solution code")
+	aiHintCmd.Flags().String("provider", "claude", "AI provider (claude or ollama)")
+	aiHintCmd.Flags().String("model", "", "AI model to use")
+	aiHintCmd.Flags().Bool("vim-mode", false, "Enable vim mode output")
+	aiHintCmd.MarkFlagRequired("problem-id")
 }
