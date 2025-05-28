@@ -83,8 +83,14 @@ Enhance your learning with AI-powered hints and explanations:
 # Get intelligent hints while solving problems
 ./algo-scales hint --ai
 
+# Get AI code review for your solution
+./algo-scales review --ai
+
 # Start interactive AI chat
 ./algo-scales hint --ai --interactive
+
+# Test AI configuration
+./algo-scales ai test
 ```
 
 See the [AI Assistant Guide](AI_ASSISTANT.md) for detailed setup and usage instructions.
