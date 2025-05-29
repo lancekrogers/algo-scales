@@ -18,15 +18,17 @@ var hintLevels = make(map[string]int)
 
 // VimProblemResponse represents the JSON response for a problem in vim mode
 type VimProblemResponse struct {
-	ID          string            `json:"id"`
-	Title       string            `json:"title"`
-	Difficulty  string            `json:"difficulty"`
-	Description string            `json:"description"`
-	StarterCode string            `json:"starter_code"`
-	Language    string            `json:"language"`
-	Patterns    []string          `json:"patterns"`
-	Scale       string            `json:"scale,omitempty"` // Musical scale name
-	ScaleDesc   string            `json:"scale_desc,omitempty"` // Musical scale description
+	ID            string            `json:"id"`
+	Title         string            `json:"title"`
+	Difficulty    string            `json:"difficulty"`
+	Description   string            `json:"description"`
+	StarterCode   string            `json:"starter_code"`
+	Language      string            `json:"language"`
+	Patterns      []string          `json:"patterns"`
+	Scale         string            `json:"scale,omitempty"` // Musical scale name
+	ScaleDesc     string            `json:"scale_desc,omitempty"` // Musical scale description
+	WorkspacePath string            `json:"workspace_path,omitempty"` // Path to workspace directory
+	SessionID     string            `json:"session_id,omitempty"` // Session identifier
 }
 
 // VimTestResponse represents the JSON response for test results in vim mode

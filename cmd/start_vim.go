@@ -71,7 +71,14 @@ func handleVimModeSession(opts session.Options) {
 		prob = &problems[0]
 	}
 
-	// Create the response
+	// Create a session and workspace for this problem
+	sess, err := session.CreateSession(opts)
+	if err != nil {
+		outputVimError(fmt.Errorf("failed to create session: %v", err))
+		return
+	}
+
+	// Create the response with workspace information
 	resp := VimProblemResponse{
 		ID:          prob.ID,
 		Title:       prob.Title,
@@ -79,6 +86,8 @@ func handleVimModeSession(opts session.Options) {
 		Patterns:    prob.Patterns,
 		Language:    opts.Language,
 		Description: formatProblemDescriptionForVim(prob),
+		WorkspacePath: sess.Workspace,
+		SessionID:   sess.Problem.ID, // Use problem ID as session identifier
 	}
 
 	// Get the starter code

@@ -156,17 +156,16 @@ func (o *OllamaProvider) GetHint(ctx context.Context, prob problem.Problem, user
 			return
 		}
 
-		// Collect full response
-		var fullHint strings.Builder
+		// Stream the response as it comes
 		for resp := range respChan {
 			if resp.Error != nil {
 				hintChan <- fmt.Sprintf("Error: %v", resp.Error)
 				return
 			}
-			fullHint.WriteString(resp.Content)
+			if resp.Content != "" {
+				hintChan <- resp.Content
+			}
 		}
-
-		hintChan <- fullHint.String()
 	}()
 
 	return hintChan, nil

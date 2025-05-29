@@ -11,6 +11,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/lancekrogers/algo-scales/internal/ai"
 	"github.com/lancekrogers/algo-scales/internal/common/interfaces"
 	"github.com/lancekrogers/algo-scales/internal/services"
 	"github.com/lancekrogers/algo-scales/internal/session/execution"
@@ -276,9 +277,11 @@ var aiHintCmd = &cobra.Command{
 		problemID, _ := cmd.Flags().GetString("problem-id")
 		language, _ := cmd.Flags().GetString("language")
 		userCode, _ := cmd.Flags().GetString("user-code")
+		filePath, _ := cmd.Flags().GetString("file")
 		provider, _ := cmd.Flags().GetString("provider") // "claude" or "ollama"
 		model, _ := cmd.Flags().GetString("model")
 		isVimMode, _ := cmd.Flags().GetBool("vim-mode")
+		chatMode, _ := cmd.Flags().GetBool("chat")
 
 		if !isVimMode {
 			fmt.Println("This command is for vim mode only")
@@ -296,35 +299,109 @@ var aiHintCmd = &cobra.Command{
 			return
 		}
 
-		// Prepare system prompt
-		systemPrompt := fmt.Sprintf(`You are an algorithm tutor helping a student learn the %s pattern.
-
-Problem: %s
-Pattern: %s
-Pattern Explanation: %s
-
-The student is working on this problem and may need help understanding the approach or debugging their solution.
-Focus on teaching the pattern and guiding them to understand the solution rather than just giving the answer.
-If they share their code, help them identify issues and guide them toward the correct approach.`, 
-			strings.Join(prob.Patterns, ", "),
-			prob.Title,
-			strings.Join(prob.Patterns, ", "),
-			prob.PatternExplanation,
-		)
-
-		// Prepare user message
-		userMessage := "I need help with this problem."
-		if userCode != "" {
-			userMessage = fmt.Sprintf("I need help with this problem. Here's my current solution:\n\n```%s\n%s\n```", language, userCode)
+		// Get user code from either flag or file
+		if filePath != "" && userCode == "" {
+			content, err := ioutil.ReadFile(filePath)
+			if err != nil {
+				outputVimError(fmt.Errorf("failed to read file: %v", err))
+				return
+			}
+			userCode = string(content)
 		}
 
-		// For now, return a response indicating AI hint is ready
-		// In a full implementation, this would integrate with claude-code-go or Ollama
+		// Load AI configuration
+		aiConfig, err := ai.LoadConfig()
+		if err != nil {
+			outputVimError(fmt.Errorf("AI not configured. Run 'algo-scales ai config' to set up: %v", err))
+			return
+		}
+
+		// Determine provider (use flag if provided, otherwise default)
+		var aiProvider ai.Provider
+		if provider != "" {
+			switch provider {
+			case "claude":
+				aiProvider = ai.ProviderClaude
+			case "ollama":
+				aiProvider = ai.ProviderOllama
+			default:
+				outputVimError(fmt.Errorf("unsupported provider: %s", provider))
+				return
+			}
+		} else {
+			switch aiConfig.DefaultProvider {
+			case "claude":
+				aiProvider = ai.ProviderClaude
+			case "ollama":
+				aiProvider = ai.ProviderOllama
+			default:
+				outputVimError(fmt.Errorf("no valid default provider configured"))
+				return
+			}
+		}
+
+		// Override model if specified via flags
+		if model != "" {
+			if aiProvider == ai.ProviderOllama && aiConfig.Ollama != nil {
+				aiConfig.Ollama.Model = model
+			}
+			// Claude uses default model from CLI, no need to override
+		}
+
+		// Create AI agent
+		agent, err := ai.NewAgent(aiProvider, aiConfig)
+		if err != nil {
+			outputVimError(fmt.Errorf("failed to create AI agent: %v", err))
+			return
+		}
+
+		if chatMode {
+			// Launch interactive chat mode
+			resp := map[string]interface{}{
+				"mode": "chat",
+				"command": fmt.Sprintf("%s ai repl --problem-id %s --language %s --provider %s", 
+					os.Args[0], problemID, language, string(aiProvider)),
+				"provider": string(aiProvider),
+				"model": model,
+			}
+			
+			jsonResp, err := json.Marshal(resp)
+			if err != nil {
+				outputVimError(fmt.Errorf("failed to marshal response: %v", err))
+				return
+			}
+			
+			fmt.Println(string(jsonResp))
+			return
+		}
+
+		// Single hint mode
+		hintStream, err := agent.GetHint(ctx, *prob, userCode, 1)
+		if err != nil {
+			outputVimError(fmt.Errorf("AI hint failed: %v", err))
+			return
+		}
+
+		// Collect the streaming response
+		var hintContent strings.Builder
+		hasContent := false
+		for chunk := range hintStream {
+			if chunk != "" {
+				hintContent.WriteString(chunk)
+				hasContent = true
+			}
+		}
+		
+		// If no content received, provide a fallback message
+		if !hasContent {
+			hintContent.WriteString("AI hint service is available but no content was generated. Try using 'algo-scales ai repl' for interactive chat.")
+		}
+
+		// Create response with the AI hint
 		resp := map[string]interface{}{
-			"ready": true,
-			"system_prompt": systemPrompt,
-			"user_message": userMessage,
-			"provider": provider,
+			"mode": "hint",
+			"hint": hintContent.String(),
+			"provider": string(aiProvider),
 			"model": model,
 		}
 
@@ -399,8 +476,10 @@ func init() {
 	aiHintCmd.Flags().String("problem-id", "", "Problem ID")
 	aiHintCmd.Flags().String("language", "go", "Programming language")
 	aiHintCmd.Flags().String("user-code", "", "User's current solution code")
+	aiHintCmd.Flags().String("file", "", "Path to solution file (alternative to --user-code)")
 	aiHintCmd.Flags().String("provider", "claude", "AI provider (claude or ollama)")
 	aiHintCmd.Flags().String("model", "", "AI model to use")
 	aiHintCmd.Flags().Bool("vim-mode", false, "Enable vim mode output")
+	aiHintCmd.Flags().Bool("chat", false, "Launch interactive chat mode")
 	aiHintCmd.MarkFlagRequired("problem-id")
 }

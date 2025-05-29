@@ -9,6 +9,7 @@ import (
 	"github.com/charmbracelet/lipgloss"
 	"github.com/lancekrogers/algo-scales/internal/ai"
 	"github.com/lancekrogers/algo-scales/internal/problem"
+	"github.com/lancekrogers/algo-scales/internal/services"
 	"github.com/spf13/cobra"
 	"gopkg.in/yaml.v3"
 )
@@ -75,6 +76,19 @@ var aiTestCmd = &cobra.Command{
 	},
 }
 
+var aiReplCmd = &cobra.Command{
+	Use:   "repl",
+	Short: "Start interactive AI chat session",
+	Long:  `Start an interactive AI chat session for algorithm learning assistance.`,
+	Run: func(cmd *cobra.Command, args []string) {
+		problemID, _ := cmd.Flags().GetString("problem-id")
+		language, _ := cmd.Flags().GetString("language")
+		provider, _ := cmd.Flags().GetString("provider")
+		
+		startAIRepl(problemID, language, provider)
+	},
+}
+
 func init() {
 	// Add config subcommands
 	aiConfigCmd.AddCommand(aiConfigShowCmd)
@@ -83,9 +97,13 @@ func init() {
 	// Add subcommands to ai command
 	aiCmd.AddCommand(aiConfigCmd)
 	aiCmd.AddCommand(aiTestCmd)
+	aiCmd.AddCommand(aiReplCmd)
 
 	// Add flags
 	aiTestCmd.Flags().StringP("provider", "p", "", "AI provider to test (claude or ollama)")
+	aiReplCmd.Flags().String("problem-id", "", "Problem ID for context")
+	aiReplCmd.Flags().String("language", "go", "Programming language")
+	aiReplCmd.Flags().String("provider", "", "AI provider (claude or ollama)")
 
 	// Add ai command to root
 	rootCmd.AddCommand(aiCmd)
@@ -509,6 +527,71 @@ func reviewCode(prob *problem.Problem, code string, language string) {
 	}
 
 	fmt.Println(formatter.FormatCodeReview(fullReview.String()))
+}
+
+func startAIRepl(problemID, language, provider string) {
+	ctx := context.Background()
+	
+	// Load AI configuration
+	config, err := ai.LoadConfig()
+	if err != nil {
+		fmt.Printf("AI not configured. Run 'algo-scales ai config' to set up: %v\n", err)
+		return
+	}
+	
+	// Use specified provider or default
+	var aiProvider ai.Provider
+	if provider != "" {
+		switch provider {
+		case "claude":
+			aiProvider = ai.ProviderClaude
+		case "ollama":
+			aiProvider = ai.ProviderOllama
+		default:
+			fmt.Printf("Unsupported provider: %s\n", provider)
+			return
+		}
+	} else {
+		switch config.DefaultProvider {
+		case "claude":
+			aiProvider = ai.ProviderClaude
+		case "ollama":
+			aiProvider = ai.ProviderOllama
+		default:
+			fmt.Println("No valid default provider configured")
+			return
+		}
+	}
+	
+	// Create AI agent
+	agent, err := ai.NewAgent(aiProvider, config)
+	if err != nil {
+		fmt.Printf("Failed to create AI agent: %v\n", err)
+		return
+	}
+	
+	// Get problem context if provided
+	var prob *problem.Problem
+	if problemID != "" {
+		problemService := services.DefaultRegistry.GetProblemService()
+		p, err := problemService.GetByID(ctx, problemID)
+		if err == nil {
+			prob = p
+		}
+	}
+	
+	// Start interactive REPL
+	repl := ai.NewREPL(agent)
+	
+	fmt.Printf("🤖 AI Assistant Ready! Provider: %s\n", aiProvider)
+	if prob != nil {
+		fmt.Printf("Problem Context: %s (%s pattern)\n", prob.Title, strings.Join(prob.Patterns, ", "))
+	}
+	
+	err = repl.Start(ctx, prob)
+	if err != nil {
+		fmt.Printf("REPL error: %v\n", err)
+	}
 }
 
 func init() {

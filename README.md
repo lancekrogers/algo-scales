@@ -28,6 +28,11 @@ Algo Scales is a command-line application that helps developers practice and mas
 
 - **Multiple Language Support**: Practice in Go, Python, or JavaScript
 
+### 🚧 In Development
+
+- **Neovim Plugin**: Advanced editor integration (in development - see [algo-scales-nvim](https://github.com/lancekrogers/algo-scales-nvim))
+- **VS Code Extension**: IDE integration (planned)
+
 ## Installation
 
 ### Prerequisites
@@ -81,6 +86,41 @@ Pre-built binaries are available for the following platforms:
 - Windows (x86_64)
 
 Download the appropriate binary for your platform from the [releases page](https://github.com/lancekrogers/algo-scales/releases).
+
+## 🎬 See AlgoScales in Action
+
+**Try the full workflow demo** to experience a complete learning session without writing any code:
+
+```bash
+# Clone and install
+git clone https://github.com/lancekrogers/algo-scales.git
+cd algo-scales && make install-user
+
+# Experience the complete workflow (8-12 minutes)
+./demo/full-workflow-demo.sh
+```
+
+**🎯 This demo shows exactly how AlgoScales works:**
+- How problems are displayed and organized by patterns
+- Complete problem-solving workflow with realistic user interactions
+- AI-powered hints, code review, and personalized guidance
+- Progress tracking and daily practice habits
+- The unique musical scale approach to algorithm learning
+
+### Other Demos
+
+```bash
+# Quick feature overview (2-3 minutes)
+./demo/quick-demo.sh
+
+# Detailed feature exploration (15-20 minutes)  
+./demo/demo.sh
+
+# Generate GIFs for sharing
+./demo/record-demo-gif.sh
+```
+
+**Perfect for evaluating AlgoScales before diving into real practice!**
 
 ## Usage
 
@@ -203,6 +243,20 @@ The server runs on port 8080 by default, but you can change this with the `PORT`
 
 Algo Scales is a commercial product licensed on a per-user basis. Each license is valid for one year from the purchase date.
 
+## Editor Integrations
+
+### Command Line Interface (CLI)
+✅ **Fully Functional** - Complete algorithm learning experience in your terminal
+
+### Neovim Plugin
+🚧 **In Development** - Advanced editor integration for Neovim users
+- Repository: [algo-scales-nvim](https://github.com/lancekrogers/algo-scales-nvim)  
+- Status: Core functionality implemented, testing in progress
+- Features: In-editor problem solving, AI hints, progress tracking
+
+### VS Code Extension  
+📋 **Planned** - IDE integration for Visual Studio Code users
+
 ## Contributing
 
 Contributions are welcome! Please feel free to submit a Pull Request.
@@ -211,7 +265,10 @@ Contributions are welcome! Please feel free to submit a Pull Request.
 
 ### Current Features
 - ✅ AI-powered hints and code reviews (Available now!)
-- ✅ Neovim plugin integration (Available now!)
+- ✅ Command line interface with full feature set
+- ✅ Multiple learning modes (learn, practice, daily)
+- ✅ Progress tracking and statistics
+- 🚧 Neovim plugin (in development)
 - 🚧 Terminal UI with interactive visualizations (In progress)
 
 ### Upcoming Features
