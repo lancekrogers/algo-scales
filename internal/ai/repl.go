@@ -5,7 +5,9 @@ import (
 	"context"
 	"fmt"
 	"os"
+	"os/signal"
 	"strings"
+	"syscall"
 
 	"github.com/charmbracelet/lipgloss"
 	"github.com/lancekrogers/algo-scales/internal/problem"
@@ -65,7 +67,19 @@ func (r *REPL) Start(ctx context.Context, prob *problem.Problem) error {
 	// Build system context
 	systemPrompt := r.buildSystemPrompt(prob)
 
+	// Set up signal handling for graceful exit
+	sigChan := make(chan os.Signal, 1)
+	signal.Notify(sigChan, os.Interrupt, syscall.SIGTERM)
+	
+	// Handle signals in a goroutine
+	go func() {
+		<-sigChan
+		fmt.Println(r.style.System.Render("\n\nInterrupted. Goodbye! Keep practicing! 👋"))
+		os.Exit(0)
+	}()
+
 	fmt.Println(r.style.System.Render("🤖 AI Assistant Ready! Type 'help' for commands or 'exit' to quit."))
+	fmt.Println(r.style.System.Render("   (Press Enter on empty line or use :q to exit)"))
 	if prob != nil {
 		pattern := ""
 		if len(prob.Patterns) > 0 {
@@ -75,23 +89,48 @@ func (r *REPL) Start(ctx context.Context, prob *problem.Problem) error {
 	}
 	fmt.Println()
 
-	reader := bufio.NewReader(os.Stdin)
+	// Exit commands based on claude-code-go demo
+	exitCommands := []string{
+		"exit", "quit", "bye", "goodbye", "q", ":q", ":quit", ":exit",
+		"done", "finish", "end", "stop", "close", "leave",
+		"/exit", "/quit", "\\q", "\\quit", // Common variations
+	}
 
+	scanner := bufio.NewScanner(os.Stdin)
 	for {
 		fmt.Print(r.style.User.Render("You> "))
 
-		// Read input (handle multi-line)
-		input, err := reader.ReadString('\n')
-		if err != nil {
-			break
+		// Read input
+		if !scanner.Scan() {
+			// EOF or error - exit gracefully
+			fmt.Println(r.style.System.Render("\nGoodbye! Keep practicing! 👋"))
+			return nil
 		}
-		input = strings.TrimSpace(input)
 
-		// Handle commands
-		switch strings.ToLower(input) {
-		case "exit", "quit", "q":
+		input := strings.TrimSpace(scanner.Text())
+		
+		// Empty input exits
+		if input == "" {
 			fmt.Println(r.style.System.Render("Goodbye! Keep practicing! 👋"))
 			return nil
+		}
+
+		// Check for exit commands
+		lowInput := strings.ToLower(input)
+		isExit := false
+		for _, cmd := range exitCommands {
+			if lowInput == cmd {
+				isExit = true
+				break
+			}
+		}
+		if isExit {
+			fmt.Println(r.style.System.Render("Goodbye! Keep practicing! 👋"))
+			return nil
+		}
+
+		// Handle other commands
+		switch lowInput {
 		case "help", "h", "?":
 			r.showHelp()
 			continue
@@ -237,14 +276,18 @@ Be encouraging and patient.`,
 func (r *REPL) showHelp() {
 	help := `
 Available Commands:
-  help     - Show this help message
-  clear    - Clear conversation history
-  code     - Show starter code for current problem
-  hint     - Get a level 1 hint (general approach)
-  hint 2   - Get a level 2 hint (specific guidance)
-  hint 3   - Get a level 3 hint (detailed pseudocode)
-  pattern  - Explain the algorithm pattern
-  exit     - Exit the assistant
+  help      - Show this help message
+  clear     - Clear conversation history
+  code      - Show starter code for current problem
+  hint      - Get a level 1 hint (general approach)
+  hint 2    - Get a level 2 hint (specific guidance)
+  hint 3    - Get a level 3 hint (detailed pseudocode)
+  pattern   - Explain the algorithm pattern
+  
+Exit Commands:
+  exit, quit, q, :q, bye, done, stop
+  Or press Enter on empty line
+  Or press Ctrl+C
 
 Tips:
   - Share your code for specific feedback
