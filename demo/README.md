@@ -14,29 +14,52 @@ Shows the realistic user experience including:
 - **Progress Tracking**: Statistics, streaks, and pattern mastery progression
 - **Complete Workflow**: From problem discovery to solution submission
 
-## Other Demos
+## Available Demos
 
-### Quick Overview
-**`./quick-demo.sh`** (2-3 minutes)
-- Core commands and features
-- Pattern organization
-- AI integration status
+### Core Demos
 
-### Detailed Exploration  
-**`./demo.sh`** (15-20 minutes)
-- Comprehensive feature walkthrough
-- Pre-written solutions for demonstration
-- Advanced AI capabilities
+1. **Quick Demo** (`./quick-demo.sh`) - 2-3 minutes
+   - Core commands and features
+   - Pattern organization  
+   - AI integration overview
+   - Perfect for quick evaluation
 
-### GIF Generation
-**`./record-demo-gif.sh`**
-- Automatically creates GIFs for social media/README
-- Requires `asciinema` and `agg` tools
+2. **Full Workflow Demo** (`./full-workflow-demo.sh`) - 8-12 minutes  
+   - Complete realistic user experience
+   - All AI features integrated
+   - Problem solving from start to finish
+   - Shows progress tracking and daily practice
 
-### Screenshot Generation
-**`./screenshot-demo.sh`**
-- Generates clean output for documentation
-- Perfect for README code blocks
+3. **Interactive Demo** (`./demo.sh`) - 15-20 minutes
+   - Hands-on exploration mode
+   - Pre-written solutions for demonstration
+   - Detailed feature walkthrough
+   - Advanced AI capabilities
+
+### Tools & Utilities
+
+**GIF Recording** (`./record-demo-gif.sh`)
+- Automatically records any demo as a GIF
+- Creates both full and social media versions
+- Requires dependencies:
+  ```bash
+  # macOS
+  brew install asciinema
+  cargo install --git https://github.com/asciinema/agg
+  
+  # Linux  
+  pip install asciinema
+  cargo install --git https://github.com/asciinema/agg
+  ```
+
+**Demo Testing** (`./test-demos.sh`)
+- Validates all demo scripts work correctly
+- Useful before recording or presenting
+
+**Manual Recording Guide** (`screen-record-guide.md`)
+- Fallback instructions for screen recording
+- Platform-specific guides (macOS, Linux, Windows)
+- GIF optimization tips
 
 ## Demo Configuration
 

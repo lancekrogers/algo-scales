@@ -8,6 +8,9 @@ set -e
 echo "🎬 AlgoScales Demo GIF Generator"
 echo "================================"
 echo ""
+echo "Usage: $0 [demo-script] [title]"
+echo "Example: $0 ./quick-demo.sh 'AlgoScales Quick Demo'"
+echo ""
 
 # Check dependencies
 check_dependency() {
@@ -58,10 +61,16 @@ echo "This will run the full workflow demo automatically."
 echo "Press Ctrl+C if you need to stop."
 echo ""
 
+# Select which demo to record
+DEMO_SCRIPT="${1:-./full-workflow-demo.sh}"
+DEMO_TITLE="${2:-AlgoScales Demo}"
+
+echo "Recording: $DEMO_SCRIPT"
+
 # Record the demo
 echo "" | DEMO_SPEED=fast asciinema rec "$ASCIICAST_FILE" \
-    --command="./full-workflow-demo.sh" \
-    --title="AlgoScales Full Workflow Demo" \
+    --command="$DEMO_SCRIPT" \
+    --title="$DEMO_TITLE" \
     --idle-time-limit=2 \
     --overwrite
 

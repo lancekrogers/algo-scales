@@ -10,6 +10,8 @@ Algo Scales is a command-line application that helps developers practice and mas
 
 ## Features
 
+![AlgoScales Quick Demo](demo/demo-assets/algoscales-ai-workflow-short.gif)
+
 - **🤖 AI-Powered Assistant**: Get intelligent hints, code reviews, and pattern explanations from Claude or Ollama ([Learn more](AI_ASSISTANT.md))
 
 - **Multiple Learning Modes**:
@@ -106,6 +108,95 @@ cd algo-scales && make install-user
 - AI-powered hints, code review, and personalized guidance
 - Progress tracking and daily practice habits
 - The unique musical scale approach to algorithm learning
+
+## 🤖 AI-Powered Workflow
+
+![AlgoScales AI Workflow Demo](demo/demo-assets/algoscales-ai-workflow.gif)
+
+AlgoScales integrates AI assistance throughout your learning journey. Here's how it works:
+
+### 1. Start Practice Session
+```bash
+$ algo-scales start practice sliding-window
+✓ Started session: Maximum Sum Subarray
+Opening vim with problem layout...
+```
+
+### 2. Work in Your Editor with Problem Context
+```
+┌─ Problem ──────────────────────────┬─ solution.go ────────────────────┐
+│ # Maximum Sum Subarray             │ package main                     │
+│                                    │                                  │
+│ **Difficulty**: Easy               │ func maxSumSubarray(arr []int,   │
+│ **Pattern**: sliding-window        │                     k int) int { │
+│                                    │     // TODO: Implement           │
+│ ## Description                     │                                  │
+│ Given an array of positive numbers │     return 0                     │
+│ and a positive integer k, find the │ }                                │
+│ maximum sum of any contiguous      │                                  │
+│ subarray of size k.                │                                  │
+├────────────────────────────────────┴──────────────────────────────────┤
+│ Tests: 0/4 passed                                                     │
+└───────────────────────────────────────────────────────────────────────┘
+```
+
+### 3. Get AI-Powered Hints (Progressive Difficulty)
+```vim
+:AlgoScalesAIHint
+```
+```
+🤖 AI Hint:
+Looking at your empty solution, let me guide you:
+
+The sliding window pattern maintains a window of fixed size k
+that slides through the array. Start by calculating the sum
+of the first k elements, then slide by removing the first
+element and adding the next. Track the maximum sum seen.
+```
+
+### 4. Interactive AI Chat for Deep Learning
+```vim
+:AlgoScalesAIChat
+```
+```
+🤖 AI Assistant Ready!
+You> What's the time complexity?
+
+Assistant> The time complexity is O(n) where n is the array length.
+We visit each element exactly once as the window slides through.
+Space complexity is O(1) - only using a few variables.
+
+You> How would this change for variable window size?
+
+Assistant> Great question! For variable window size, you'd use
+the expanding/contracting sliding window pattern. Track conditions
+to grow or shrink the window dynamically. Common in substring problems.
+
+You> exit
+Goodbye! Keep practicing! 👋
+```
+
+### 5. Auto-Testing & Immediate Feedback
+```
+✓ Test 1 passed: [2,1,5,1,3,2], k=3 → 9
+✓ Test 2 passed: [1,4,2,10,23,3,1,0,20], k=4 → 39
+✓ Test 3 passed: [3,4,5,6,7,2,9,8,1], k=2 → 17
+✓ Test 4 passed: Edge case - k=1
+
+🎉 All tests passed!
+```
+
+### 6. Track Your Progress
+```bash
+$ algo-scales stats
+📊 Your Progress:
+  Patterns mastered: 3/11
+  Problems solved: 15
+  Current streak: 7 days 🔥
+  Favorite pattern: Two Pointers
+
+🎯 Suggested next: Dynamic Programming basics
+```
 
 ### Other Demos
 
@@ -248,11 +339,40 @@ Algo Scales is a commercial product licensed on a per-user basis. Each license i
 ### Command Line Interface (CLI)
 ✅ **Fully Functional** - Complete algorithm learning experience in your terminal
 
+### Vim Plugin
+✅ **Available** - Seamless integration with Vim/Neovim for in-editor problem solving
+
+#### Installation (Using lazy.nvim)
+```lua
+{
+  'lancekrogers/algo-scales-vim',
+  config = function()
+    vim.g.algo_scales_path = 'algo-scales'  -- Path to binary
+    vim.g.algo_scales_language = 'go'       -- Default language
+    vim.g.algo_scales_auto_test = 1         -- Auto-run tests on save
+  end,
+  cmd = { 'AlgoScalesStart', 'AlgoScalesList', 'AlgoScalesAIHint', 'AlgoScalesAIChat' },
+  keys = {
+    { '<leader>as', '<cmd>AlgoScalesStart<cr>', desc = 'Start AlgoScales session' },
+    { '<leader>al', '<cmd>AlgoScalesList<cr>', desc = 'List problems' },
+    { '<leader>aH', '<cmd>AlgoScalesAIHint<cr>', desc = 'Get AI hint' },
+    { '<leader>aC', '<cmd>AlgoScalesAIChat<cr>', desc = 'Start AI chat' },
+  },
+}
+```
+
+#### Features
+- 🎯 Browse and start problems without leaving vim
+- 🤖 AI hints and chat directly in your editor
+- ✅ Auto-testing on file save
+- 📊 Progress tracking integration
+- 🎨 Problem layout with syntax highlighting
+
 ### Neovim Plugin
 🚧 **In Development** - Advanced editor integration for Neovim users
 - Repository: [algo-scales-nvim](https://github.com/lancekrogers/algo-scales-nvim)  
 - Status: Core functionality implemented, testing in progress
-- Features: In-editor problem solving, AI hints, progress tracking
+- Features: Enhanced UI components, floating windows, better Lua integration
 
 ### VS Code Extension  
 📋 **Planned** - IDE integration for Visual Studio Code users

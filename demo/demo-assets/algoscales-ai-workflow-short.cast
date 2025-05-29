@@ -1,0 +1,12 @@
+{"version": 2, "width": 190, "height": 22, "timestamp": 1748551015, "idle_time_limit": 1.0, "env": {"SHELL": "/bin/zsh", "TERM": "xterm-256color"}, "title": "AlgoScales AI Demo"}
+[0.000386, "o", "\r\n"]
+[0.135001, "o", "\u001b[3J\u001b[H\u001b[2J"]
+[0.135161, "o", "\u001b[0;33m🎵 AlgoScales - AI-Powered Algorithm Learning\u001b[0m\r\n"]
+[1.143018, "o", "\r\n\u001b[0;32m$ \u001b[0malgo-scales start practice sliding-window\r\n✓ Started: Maximum Sum Subarray\r\nOpening vim...\r\n"]
+[3.156588, "o", "\r\n\u001b[0;33m:AlgoScalesAIHint\u001b[0m\r\n"]
+[3.157188, "o", "\u001b[0;34m🤖 AI:\u001b[0m Use sliding window pattern - maintain window\r\nof size k, slide by removing first and adding next.\r\n"]
+[5.170842, "o", "\r\n\u001b[0;33m:AlgoScalesAIChat\u001b[0m\r\n"]
+[5.171035, "o", "\u001b[0;32mYou>\u001b[0m What's the time complexity?\r\n\u001b[0;34mAI>\u001b[0m O(n) - each element visited once\r\n"]
+[7.181283, "o", "\r\n✅ All tests passed!\r\n🎯 Pattern mastery: sliding-window +1\r\n"]
+[8.192974, "o", "\r\n\u001b[0;33m🎵 Master algorithms with AI guidance!\u001b[0m\r\n"]
+[8.193024, "o", "⭐ github.com/lancekrogers/algo-scales\r\n"]
