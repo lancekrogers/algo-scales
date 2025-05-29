@@ -1,10 +1,28 @@
-# Algo Scales
+# 🎵 AlgoScales
 
-An algorithm study tool designed for efficient interview preparation, focusing on common patterns used in technical coding interviews.
+Master algorithms through musical practice - because learning patterns is like learning scales.
+
+> *"Just as a pianist must practice scales daily to perform Chopin brilliantly, a developer must practice algorithm patterns to shine in technical interviews."*
 
 ## Overview
 
-Algo Scales is a command-line application that helps developers practice and master algorithm patterns for technical interviews. It emphasizes focused learning through curated problems organized by algorithm patterns, offering different learning modes to accommodate various study needs. The application primarily operates in CLI mode.
+AlgoScales applies the time-tested methodology of musical education to algorithm learning. Just as musicians build technique through daily scale practice, developers build problem-solving intuition through regular pattern practice.
+
+### The Musical Philosophy
+
+In music education, scales are fundamental patterns that appear in every piece of music. Musicians practice scales daily not to perform scales, but to build the muscle memory and pattern recognition needed for complex pieces. Similarly, AlgoScales teaches you the 11 fundamental algorithm patterns that appear in technical interviews:
+
+- **🎹 Sliding Window** = C Major Scale (fundamental and versatile)
+- **🎸 Two Pointers** = G Major Scale (balanced and efficient)  
+- **🎻 Fast & Slow Pointers** = D Major Scale (cycle detection)
+- **🎺 Hash Maps** = A Major Scale (quick lookups)
+- **🎷 Binary Search** = E Major Scale (divide and conquer)
+- **🥁 DFS** = B Major Scale (deep exploration)
+- **🎹 BFS** = F# Major Scale (level-by-level)
+- **🎸 Dynamic Programming** = Db Major Scale (optimization)
+- **🎻 Greedy** = Ab Major Scale (local decisions)
+- **🎺 Union-Find** = Eb Major Scale (connections)
+- **🎷 Heap/Priority Queue** = Bb Major Scale (ordering)
 
 > **Note**: The Terminal UI mode (`--tui` flag) is currently a work in progress and may not function as expected. Please use the standard CLI mode for a stable experience.
 
@@ -29,6 +47,8 @@ Algo Scales is a command-line application that helps developers practice and mas
 - **Configurable Timer**: Set time limits to simulate interview conditions
 
 - **Multiple Language Support**: Practice in Go, Python, or JavaScript
+
+- **🎵 Daily Scales Practice**: Complete all 11 patterns daily, just like a musician's routine
 
 ### 🚧 In Development
 
@@ -260,6 +280,9 @@ See the [AI Assistant Guide](AI_ASSISTANT.md) for detailed setup and usage instr
 # Start a session in Cram mode (rapid-fire problems)
 ./algo-scales start cram
 
+# Start your daily scales practice (practice all 11 patterns)
+./algo-scales daily
+
 # List all available problems
 ./algo-scales list
 
@@ -330,9 +353,17 @@ cd server
 
 The server runs on port 8080 by default, but you can change this with the `PORT` environment variable.
 
-## Licensing
+## License
 
-Algo Scales is a commercial product licensed on a per-user basis. Each license is valid for one year from the purchase date.
+AlgoScales is licensed under the AlgoScales Community License v1.0. See the [LICENSE](LICENSE) file for details.
+
+### Quick Summary:
+- ✅ **Currently free for personal use** - Subject to change
+- ✅ **Currently free for educators** - While available
+- ✅ **Free for non-commercial open source** - With attribution
+- ❌ **Commercial use requires license** - Contact for pricing
+
+The license allows the project to evolve its distribution model while ensuring commercial users contribute to development.
 
 ## Editor Integrations
 

@@ -15,15 +15,15 @@ This will start vim with the plugin loaded and show you available commands.
 
 **For Vim** (`~/.vimrc`):
 ```vim
-set runtimepath+=/Users/lancerogers/Dev/BlockheadConsulting/AlgoScales/algo-scales/vim-plugin
-let g:algo_scales_path = '/Users/lancerogers/Dev/BlockheadConsulting/AlgoScales/algo-scales/bin/algo-scales'
+set runtimepath+=/path/to/algo-scales/vim-plugin
+let g:algo_scales_path = '/path/to/algo-scales/bin/algo-scales'
 let g:algo_scales_language = 'go'
 ```
 
 **For Neovim** (`~/.config/nvim/init.vim` or `init.lua`):
 ```vim
-set runtimepath+=/Users/lancerogers/Dev/BlockheadConsulting/AlgoScales/algo-scales/vim-plugin
-let g:algo_scales_path = '/Users/lancerogers/Dev/BlockheadConsulting/AlgoScales/algo-scales/bin/algo-scales'
+set runtimepath+=/path/to/algo-scales/vim-plugin
+let g:algo_scales_path = '/path/to/algo-scales/bin/algo-scales'
 let g:algo_scales_language = 'go'
 ```
 

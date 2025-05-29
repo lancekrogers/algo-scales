@@ -20,7 +20,7 @@ services:
   #   image: postgres:14
   #   environment:
   #     - POSTGRES_USER=algoscales
-  #     - POSTGRES_PASSWORD=securepassword
+  #     - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}  # Set via environment variable
   #     - POSTGRES_DB=algoscales
   #   volumes:
   #     - db_data:/var/lib/postgresql/data

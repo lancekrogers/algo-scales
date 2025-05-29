@@ -1,0 +1,75 @@
+ALGOSCALES COMMUNITY LICENSE v1.0
+Copyright (c) 2025 Blockhead Consulting LLC / Lance Rogers
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+🎵 Preamble: A Better Way to Practice
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+AlgoScales was born from frustration with LeetCode. After years of studying
+algorithms, I found myself cramming for interviews using tools that felt like
+grinding rather than practicing. Web browsers are distraction machines - ads,
+notifications, tabs. This CLI brings the joy of musical practice to algorithm
+review in the terminal, where focus lives. Structured, progressive, and actually
+enjoyable.
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+📜 Terms and Conditions
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+1. **Personal and Educational Use - Currently Free**
+   - You may use, copy, and modify AlgoScales for personal learning at this time
+   - Educational institutions may use AlgoScales for teaching (subject to change)
+   - Individual developers preparing for interviews may use it (while available)
+   - Open source projects may integrate AlgoScales if they remain non-commercial
+   - The copyright holder reserves the right to modify these terms in future versions
+
+2. **Commercial Use Requires License**
+   - Any commercial use requires a commercial license from the copyright holder
+   - "Commercial use" includes but is not limited to:
+     * Selling AlgoScales or derivative works
+     * Using AlgoScales as part of a paid service or product
+     * Internal use at for-profit companies with >10 employees
+     * Bootcamps or training programs that charge tuition
+   - Contact lance@blockhead.consulting for commercial licensing
+
+3. **Attribution Required**
+   - All uses must retain this license and attribution to:
+     "AlgoScales by Lance Rogers / Blockhead Consulting"
+   - Modified versions must be clearly marked as such
+
+4. **Share-Alike for Modifications**
+   - If you distribute modified versions, they must use this same license
+   - You may not apply additional restrictions to your modifications
+   - Pull requests to the main project are encouraged and appreciated
+
+5. **Revenue Sharing for Commercial Derivatives**
+   - If you create a commercial product based on AlgoScales:
+     * You must obtain a commercial license
+     * Standard terms: 15% of gross revenue or negotiated flat fee
+     * This ensures the project's continued development
+
+6. **No Warranty**
+   - This software is provided "as is", without warranty of any kind
+   - The authors are not liable for any damages arising from its use
+
+7. **Future Transition Clause**
+   - The copyright holder may release future versions under different terms
+   - After 3 years (2028), this may transition to a standard open source license
+   - Existing users' rights under this license remain unchanged
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+🎯 This License Is:
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+✅ Currently free for personal use and learning
+✅ Currently free for educational institutions
+✅ Free for non-commercial open source projects
+❌ Not free for commercial use
+✅ Subject to change at copyright holder's discretion
+🤝 Balanced between accessibility and sustainability
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+💡 Why This License?
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+AlgoScales represents significant investment in curriculum design and
+educational methodology. This license ensures:
+- The project remains financially sustainable
+- Commercial users contribute to ongoing development
+- Terms can evolve as the project grows
+- The author maintains control over distribution
+
+For questions or commercial licensing: lance@blockhead.consulting

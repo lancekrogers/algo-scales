@@ -7,6 +7,7 @@ import (
 	"os"
 	"path/filepath"
 	"strings"
+	"time"
 
 	"github.com/lancekrogers/algo-scales/internal/problem"
 	"github.com/lancekrogers/claude-code-go/pkg/claude"
@@ -383,7 +384,7 @@ func (c *ClaudeProvider) saveSession(messages []Message, response string) {
 
 	session := map[string]interface{}{
 		"session_id": c.sessionID,
-		"timestamp":  os.Getenv("USER"), // Use timestamp in real implementation
+		"timestamp":  time.Now().Format(time.RFC3339),
 		"messages":   messages,
 		"response":   response,
 	}
