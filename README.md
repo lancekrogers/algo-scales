@@ -1,12 +1,12 @@
 # 🎵 AlgoScales
 
-Master algorithms through musical practice - because learning patterns is like learning scales.
+Master algorithms through structured practice - because learning patterns is like learning scales.
 
 > *"Just as a pianist must practice scales daily to perform Chopin brilliantly, a developer must practice algorithm patterns to shine in technical interviews."*
 
 ## 🚧 Project Status: Work in Progress
 
-AlgoScales is a functional algorithm practice tool that I use daily for interview prep. While it works well for its core purpose, the UX is still being refined. This is an active personal project that showcases:
+AlgoScales is a functional algorithm practice tool that I am building for daily interview prep. While it's functional, the UX is still being refined. This is an active personal project that showcases:
 
 - **Full-stack Go development** with a working CLI application
 - **AI integration** using Claude and Ollama for personalized learning
