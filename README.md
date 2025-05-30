@@ -4,16 +4,16 @@ Master algorithms through structured practice - because learning coding patterns
 
 > _"Just as a pianist must practice scales daily to perform Chopin brilliantly, a developer must practice algorithm patterns to shine in technical interviews."_
 
-## 🚧 Project Status: Work in Progress
+## 🚧 Project Status: MVP
 
-AlgoScales is a functional algorithm practice tool that I built to solve my own problem: making interview prep less tedious. It's currently fully functional but needs a bit of vim ux work before it's something I'd want to use for practice everyday.
+AlgoScales is a functional algorithm practice tool that I built to solve my own problem: making interview prep less tedious. The core functionality works well, but the vim plugin UX needs refinement before it's something I'd use for daily practice.
 
 Notable technical decisions:
 
 - Built in Go for fast execution and easy distribution
-- Integrated AI assistants (Claude/Ollama) for contextual learning
+- Integrated AI assistants (claude code cli/Ollama) for contextual learning
 - Terminal-first to avoid web distractions
-- Vim plugin because that's where I code anyway
+- Vim plugin because the more advanced neovim plugin isn't ready yet
 
 **What works well:**
 
@@ -414,7 +414,11 @@ The license allows the project to evolve its distribution model while ensuring c
 
 ### Vim Plugin
 
-✅ **Available** - Seamless integration with Vim/Neovim for in-editor problem solving
+✅ **Available (MVP)** - Seamless integration with Vim/Neovim for in-editor problem solving
+
+**Repository**: [algo-scales-vim](https://github.com/lancekrogers/algo-scales-vim)
+
+![AlgoScales Vim Plugin Demo](../algo-scales-vim-demo-faster.gif)
 
 #### Installation (Using lazy.nvim)
 
