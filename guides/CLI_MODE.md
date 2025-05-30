@@ -7,41 +7,60 @@ AlgoScales operates primarily in command-line interface (CLI) mode, which allows
 CLI mode is the default operating mode for AlgoScales. Simply run any command without flags to use CLI mode:
 
 ```bash
-# Run in CLI mode (default)
+# Start a practice session
 algo-scales start practice
 
-# Use the dedicated solve command
-algo-scales solve
+# Start a learn session (shows solutions)
+algo-scales start learn
+
+# Use the CLI solve command for single problems
+algo-scales cli solve
 ```
 
 > **Note**: The Terminal UI mode (`--tui` flag) is currently a work in progress and may not function as expected.
 
 ## Available Commands in CLI Mode
 
-### Solving Problems
+### Starting Sessions
 
 ```bash
-# Solve a random problem
-algo-scales solve
+# Start a practice session (no solutions shown)
+algo-scales start practice
+
+# Start a learn session (solutions available)
+algo-scales start learn
+
+# Start a cram session (rapid-fire practice)
+algo-scales start cram
+
+# Start with a specific pattern
+algo-scales start practice --pattern sliding-window
+
+# Start with a specific difficulty
+algo-scales start practice --difficulty medium
+
+# Start in a specific language
+algo-scales start practice --language python  # Options: go, python, javascript
+```
+
+### CLI Solve Command
+
+```bash
+# Solve a single problem
+algo-scales cli solve
 
 # Solve a specific problem by ID
-algo-scales solve two-sum
+algo-scales cli solve two-sum
 
-# Solve a problem with a specific pattern
-algo-scales solve --pattern sliding-window
-
-# Solve a problem with a specific difficulty
-algo-scales solve --difficulty medium
-
-# Solve in a specific language
-algo-scales solve --language python  # Options: go, python, javascript
+# Solve with specific options
+algo-scales cli solve --pattern hash-map --language python
 ```
 
 ### Daily Practice
 
 ```bash
 # Start daily practice (one problem from each pattern)
-algo-scales daily --cli
+algo-scales daily
 
 # Test your solution for the current problem
 algo-scales daily test
@@ -56,11 +75,55 @@ algo-scales daily resume-skipped
 algo-scales daily status
 ```
 
+### Listing Problems
+
+```bash
+# List all available problems
+algo-scales list
+
+# List problems by pattern
+algo-scales list patterns
+
+# List problems by difficulty
+algo-scales list difficulties
+
+# List problems by company
+algo-scales list companies
+```
+
+### AI Assistant
+
+```bash
+# Configure AI provider
+algo-scales ai config
+
+# Test AI configuration
+algo-scales ai test
+
+# Get AI hints (in vim)
+:AlgoScalesAIHint
+
+# Start AI chat (in vim)
+:AlgoScalesAIChat
+
+# Review code with AI
+algo-scales ai review [file]
+```
+
 ### Viewing Statistics
 
 ```bash
 # View your problem-solving statistics
-algo-scales solve stats
+algo-scales stats
+
+# View statistics by pattern
+algo-scales stats patterns
+
+# View your progress trends
+algo-scales stats trends
+
+# Reset your statistics
+algo-scales stats reset
 ```
 
 ## CLI Problem-Solving Workflow
@@ -127,7 +190,7 @@ Actual: [1,2]
 AlgoScales tracks your progress even in CLI mode. You can view your statistics with:
 
 ```bash
-algo-scales solve stats
+algo-scales stats
 ```
 
 This shows:
@@ -136,9 +199,39 @@ This shows:
 - Recent activity
 - Current practice streak
 
+For more detailed views:
+```bash
+algo-scales stats patterns  # Pattern-specific stats
+algo-scales stats trends    # Progress over time
+```
+
 ## Environment Variables
 
 - `EDITOR`: Set this to your preferred text editor for editing solutions
+
+## Vim Integration
+
+If you're using the vim plugin, additional commands are available:
+
+```vim
+" Start a new session
+:AlgoScalesStart
+
+" List problems
+:AlgoScalesList
+
+" Get progressive hints
+:AlgoScalesHint
+
+" Get AI hints
+:AlgoScalesAIHint
+
+" Start AI chat
+:AlgoScalesAIChat
+
+" Run tests
+:AlgoScalesTest
+```
 
 ## Tips for CLI Mode
 

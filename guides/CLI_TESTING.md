@@ -72,9 +72,11 @@ Before committing changes to CLI commands, test these scenarios:
 - [ ] `./bin/algo-scales start practice --split`
 
 ### CLI Commands
-- [ ] `./bin/algo-scales solve`
+- [ ] `./bin/algo-scales cli solve`
 - [ ] `./bin/algo-scales list`
 - [ ] `./bin/algo-scales stats`
+- [ ] `./bin/algo-scales daily`
+- [ ] `./bin/algo-scales ai config`
 
 ### Error Conditions
 - [ ] Invalid flags

@@ -4,6 +4,30 @@ Master algorithms through musical practice - because learning patterns is like l
 
 > *"Just as a pianist must practice scales daily to perform Chopin brilliantly, a developer must practice algorithm patterns to shine in technical interviews."*
 
+## 🚧 Project Status: Work in Progress
+
+AlgoScales is a functional algorithm practice tool that I use daily for interview prep. While it works well for its core purpose, the UX is still being refined. This is an active personal project that showcases:
+
+- **Full-stack Go development** with a working CLI application
+- **AI integration** using Claude and Ollama for personalized learning
+- **Vim/Neovim plugin development** for editor integration
+- **Educational design** applying musical pedagogy to technical learning
+
+**What works well:**
+- ✅ Core practice modes (learn, practice, cram)
+- ✅ Daily scales workflow for systematic practice
+- ✅ AI-powered hints and explanations
+- ✅ Progress tracking and statistics
+- ✅ Vim integration for distraction-free practice
+
+**What's still rough:**
+- 🔧 Command structure could be more intuitive
+- 🔧 TUI mode is incomplete
+- 🔧 Some edge cases in session management
+- 🔧 Documentation reflects intended design more than current state
+
+Feel free to explore, use it for practice, or contribute improvements!
+
 ## Overview
 
 AlgoScales applies the time-tested methodology of musical education to algorithm learning. Just as musicians build technique through daily scale practice, developers build problem-solving intuition through regular pattern practice.
@@ -24,7 +48,7 @@ In music education, scales are fundamental patterns that appear in every piece o
 - **🎺 Union-Find** = Eb Major Scale (connections)
 - **🎷 Heap/Priority Queue** = Bb Major Scale (ordering)
 
-> **Note**: The Terminal UI mode (`--tui` flag) is currently a work in progress and may not function as expected. Please use the standard CLI mode for a stable experience.
+> **Note**: The Terminal UI mode (`--tui` flag) is incomplete. Stick to CLI mode for now.
 
 ## Features
 
@@ -413,6 +437,8 @@ The license allows the project to evolve its distribution model while ensuring c
 Contributions are welcome! Please feel free to submit a Pull Request.
 
 ## Roadmap
+
+This is a personal project I'm actively developing while using it for my own interview preparation. Features are added based on what I find most useful in my practice.
 
 ### Current Features
 - ✅ AI-powered hints and code reviews (Available now!)
