@@ -418,7 +418,7 @@ The license allows the project to evolve its distribution model while ensuring c
 
 **Repository**: [algo-scales-vim](https://github.com/lancekrogers/algo-scales-vim)
 
-![AlgoScales Vim Plugin Demo](../algo-scales-vim-demo-faster.gif)
+![AlgoScales Vim Plugin Demo](demo/algo-scales-vim-demo-faster.gif)
 
 #### Installation (Using lazy.nvim)
 
