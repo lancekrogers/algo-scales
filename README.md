@@ -52,6 +52,10 @@ In music education, scales are fundamental patterns that appear in every piece o
 - **🎺 Union-Find** = Eb Major Scale (connections)
 - **🎷 Heap/Priority Queue** = Bb Major Scale (ordering)
 
+## Why AlgoScales Exists
+
+I built AlgoScales because the tech industry values algorithmic puzzle solving skills over building software, and I always find myself needing to grind for weeks each time I need to look for a new job because I focus on building software while I'm working. Building this tool - with its CLI, AI integration, vim plugin, and test coverage - required more software engineering skill than any leetcode interview tests for. Yet here we are: I built a production-quality system to help myself remember how to reverse a linked list in a non-real world scenario. Until the industry values building over reciting, we need to play the game. AlgoScales makes that game less painful, at least for me. Also was an excuse to avoid grinding leetcode for the last few weeks.
+
 > **Note**: The Terminal UI mode (`--tui` flag) is incomplete. Stick to CLI mode for now.
 
 ## Features
@@ -524,7 +528,7 @@ This is a personal project I'm actively developing while using it for my own int
 
 ## Credits
 
-Created by Blockhead Consulting
+Created by Lance Rogers of Blockhead Consulting
 
 ## Support
 
