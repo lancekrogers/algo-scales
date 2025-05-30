@@ -1,19 +1,22 @@
 # 🎵 AlgoScales
 
-Master algorithms through structured practice - because learning patterns is like learning scales.
+Master algorithms through structured practice - because learning coding patterns is like learning scales.
 
-> *"Just as a pianist must practice scales daily to perform Chopin brilliantly, a developer must practice algorithm patterns to shine in technical interviews."*
+> _"Just as a pianist must practice scales daily to perform Chopin brilliantly, a developer must practice algorithm patterns to shine in technical interviews."_
 
 ## 🚧 Project Status: Work in Progress
 
-AlgoScales is a functional algorithm practice tool that I am building for daily interview prep. While it's functional, the UX is still being refined. This is an active personal project that showcases:
+AlgoScales is a functional algorithm practice tool that I built to solve my own problem: making interview prep less tedious. It's currently fully functional but needs a bit of vim ux work before it's something I'd want to use for practice everyday.
 
-- **Full-stack Go development** with a working CLI application
-- **AI integration** using Claude and Ollama for personalized learning
-- **Vim/Neovim plugin development** for editor integration
-- **Educational design** applying musical pedagogy to technical learning
+Notable technical decisions:
+
+- Built in Go for fast execution and easy distribution
+- Integrated AI assistants (Claude/Ollama) for contextual learning
+- Terminal-first to avoid web distractions
+- Vim plugin because that's where I code anyway
 
 **What works well:**
+
 - ✅ Core practice modes (learn, practice, cram)
 - ✅ Daily scales workflow for systematic practice
 - ✅ AI-powered hints and explanations
@@ -21,6 +24,7 @@ AlgoScales is a functional algorithm practice tool that I am building for daily 
 - ✅ Vim integration for distraction-free practice
 
 **What's still rough:**
+
 - 🔧 Command structure could be more intuitive
 - 🔧 TUI mode is incomplete
 - 🔧 Some edge cases in session management
@@ -37,7 +41,7 @@ AlgoScales applies the time-tested methodology of musical education to algorithm
 In music education, scales are fundamental patterns that appear in every piece of music. Musicians practice scales daily not to perform scales, but to build the muscle memory and pattern recognition needed for complex pieces. Similarly, AlgoScales teaches you the 11 fundamental algorithm patterns that appear in technical interviews:
 
 - **🎹 Sliding Window** = C Major Scale (fundamental and versatile)
-- **🎸 Two Pointers** = G Major Scale (balanced and efficient)  
+- **🎸 Two Pointers** = G Major Scale (balanced and efficient)
 - **🎻 Fast & Slow Pointers** = D Major Scale (cycle detection)
 - **🎺 Hash Maps** = A Major Scale (quick lookups)
 - **🎷 Binary Search** = E Major Scale (divide and conquer)
@@ -89,17 +93,20 @@ In music education, scales are fundamental patterns that appear in every piece o
 ### Quick Install (Recommended)
 
 **Option 1: One-line installer (no sudo required)**
+
 ```bash
 curl -fsSL https://raw.githubusercontent.com/lancekrogers/algo-scales/main/install.sh | bash
 ```
 
 **Option 2: Go install (if you have Go)**
+
 ```bash
 # Install directly from source (no sudo required)
 go install github.com/lancekrogers/algo-scales@latest
 ```
 
 Both methods install to user directories that are typically already in your PATH:
+
 - `~/go/bin/algo-scales` (Go's default, usually in PATH automatically)
 - `~/.local/bin/algo-scales` (standard user bin directory)
 
@@ -110,7 +117,7 @@ Both methods install to user directories that are typically already in your PATH
 git clone https://github.com/Blockhead-Consulting/algo-scales.git
 cd algo-scales
 
-# Option 1: Install to user directory (no sudo required) - RECOMMENDED  
+# Option 1: Install to user directory (no sudo required) - RECOMMENDED
 make install-user
 # This installs to ~/go/bin or ~/.local/bin (usually already in PATH)
 
@@ -147,6 +154,7 @@ cd algo-scales && make install-user
 ```
 
 **🎯 This demo shows exactly how AlgoScales works:**
+
 - How problems are displayed and organized by patterns
 - Complete problem-solving workflow with realistic user interactions
 - AI-powered hints, code review, and personalized guidance
@@ -160,6 +168,7 @@ cd algo-scales && make install-user
 AlgoScales integrates AI assistance throughout your learning journey. Here's how it works:
 
 ### 1. Start Practice Session
+
 ```bash
 $ algo-scales start practice sliding-window
 ✓ Started session: Maximum Sum Subarray
@@ -167,6 +176,7 @@ Opening vim with problem layout...
 ```
 
 ### 2. Work in Your Editor with Problem Context
+
 ```
 ┌─ Problem ──────────────────────────┬─ solution.go ────────────────────┐
 │ # Maximum Sum Subarray             │ package main                     │
@@ -185,9 +195,11 @@ Opening vim with problem layout...
 ```
 
 ### 3. Get AI-Powered Hints (Progressive Difficulty)
+
 ```vim
 :AlgoScalesAIHint
 ```
+
 ```
 🤖 AI Hint:
 Looking at your empty solution, let me guide you:
@@ -199,9 +211,11 @@ element and adding the next. Track the maximum sum seen.
 ```
 
 ### 4. Interactive AI Chat for Deep Learning
+
 ```vim
 :AlgoScalesAIChat
 ```
+
 ```
 🤖 AI Assistant Ready!
 You> What's the time complexity?
@@ -221,6 +235,7 @@ Goodbye! Keep practicing! 👋
 ```
 
 ### 5. Auto-Testing & Immediate Feedback
+
 ```
 ✓ Test 1 passed: [2,1,5,1,3,2], k=3 → 9
 ✓ Test 2 passed: [1,4,2,10,23,3,1,0,20], k=4 → 39
@@ -231,6 +246,7 @@ Goodbye! Keep practicing! 👋
 ```
 
 ### 6. Track Your Progress
+
 ```bash
 $ algo-scales stats
 📊 Your Progress:
@@ -248,7 +264,7 @@ $ algo-scales stats
 # Quick feature overview (2-3 minutes)
 ./demo/quick-demo.sh
 
-# Detailed feature exploration (15-20 minutes)  
+# Detailed feature exploration (15-20 minutes)
 ./demo/demo.sh
 
 # Generate GIFs for sharing
@@ -381,7 +397,8 @@ The server runs on port 8080 by default, but you can change this with the `PORT`
 
 AlgoScales is licensed under the AlgoScales Community License v1.0. See the [LICENSE](LICENSE) file for details.
 
-### Quick Summary:
+### Quick Summary
+
 - ✅ **Currently free for personal use** - Subject to change
 - ✅ **Currently free for educators** - While available
 - ✅ **Free for non-commercial open source** - With attribution
@@ -392,12 +409,15 @@ The license allows the project to evolve its distribution model while ensuring c
 ## Editor Integrations
 
 ### Command Line Interface (CLI)
+
 ✅ **Fully Functional** - Complete algorithm learning experience in your terminal
 
 ### Vim Plugin
+
 ✅ **Available** - Seamless integration with Vim/Neovim for in-editor problem solving
 
 #### Installation (Using lazy.nvim)
+
 ```lua
 {
   'lancekrogers/algo-scales-vim',
@@ -417,6 +437,7 @@ The license allows the project to evolve its distribution model while ensuring c
 ```
 
 #### Features
+
 - 🎯 Browse and start problems without leaving vim
 - 🤖 AI hints and chat directly in your editor
 - ✅ Auto-testing on file save
@@ -424,12 +445,15 @@ The license allows the project to evolve its distribution model while ensuring c
 - 🎨 Problem layout with syntax highlighting
 
 ### Neovim Plugin
+
 🚧 **In Development** - Advanced editor integration for Neovim users
-- Repository: [algo-scales-nvim](https://github.com/lancekrogers/algo-scales-nvim)  
+
+- Repository: [algo-scales-nvim](https://github.com/lancekrogers/algo-scales-nvim)
 - Status: Core functionality implemented, testing in progress
 - Features: Enhanced UI components, floating windows, better Lua integration
 
-### VS Code Extension  
+### VS Code Extension
+
 📋 **Planned** - IDE integration for Visual Studio Code users
 
 ## Contributing
@@ -441,6 +465,7 @@ Contributions are welcome! Please feel free to submit a Pull Request.
 This is a personal project I'm actively developing while using it for my own interview preparation. Features are added based on what I find most useful in my practice.
 
 ### Current Features
+
 - ✅ AI-powered hints and code reviews (Available now!)
 - ✅ Command line interface with full feature set
 - ✅ Multiple learning modes (learn, practice, daily)
@@ -451,6 +476,7 @@ This is a personal project I'm actively developing while using it for my own int
 ### Upcoming Features
 
 #### Phase 1: Content & Learning
+
 - More algorithm patterns and problems
 - Interactive visualizations for algorithms
 - Simulated interview mode with AI interviewers
@@ -458,6 +484,7 @@ This is a personal project I'm actively developing while using it for my own int
 - Pattern-specific AI fine-tuning
 
 #### Phase 2: Cloud Sync & Progress Tracking
+
 - **User Progress Synchronization**
   - Store practice statistics server-side
   - Sync progress across devices
@@ -465,6 +492,7 @@ This is a personal project I'm actively developing while using it for my own int
   - Performance analytics dashboard
 
 #### Phase 3: Community & Gamification
+
 - **Social Learning Features**
   - Anonymous leaderboards by pattern mastery
   - Achievement system with badges
@@ -473,6 +501,7 @@ This is a personal project I'm actively developing while using it for my own int
   - Share progress without revealing solutions
 
 #### Phase 4: Personalized Learning
+
 - **AI-Driven Recommendations**
   - Identify knowledge gaps automatically
   - Personalized problem recommendations
@@ -481,6 +510,7 @@ This is a personal project I'm actively developing while using it for my own int
   - Weakness-focused practice sessions
 
 #### Phase 5: Teams & Enterprise
+
 - **Organization Features**
   - Team licenses with centralized billing
   - Manager dashboards for progress tracking
