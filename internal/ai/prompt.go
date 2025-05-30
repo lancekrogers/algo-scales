@@ -38,7 +38,9 @@ User's current approach:
 Provide a helpful hint at level {{.Level}}:
 - Level 1: General approach and pattern guidance
 - Level 2: More specific algorithmic hints
-- Level 3: Detailed pseudocode or implementation tips`
+- Level 3: Detailed pseudocode or implementation tips
+
+IMPORTANT: Do not provide the complete code implementation. Guide the student to implement it themselves.`
 
 	// Code review template
 	reviewTemplate := `Review this {{.Language}} code for the problem "{{.Problem.Title}}":
