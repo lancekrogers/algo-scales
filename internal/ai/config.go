@@ -172,7 +172,7 @@ func createDefaultConfig(configPath string) (*Config, error) {
 			Host:        "http://localhost:11434",
 			Model:       "llama3.2:latest",
 			Timeout:     300,
-			NumCtx:      4096,
+			NumCtx:      120000, // Set to 120k to fully utilize llama3.2's context window
 			Temperature: 0.7,
 		},
 		Prompts: &PromptConfig{

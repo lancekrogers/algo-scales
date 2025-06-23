@@ -310,6 +310,29 @@ Enhance your learning with AI-powered hints and explanations:
 ./algo-scales ai test
 ```
 
+#### Configuring Context Window Size
+
+For Ollama users, you can adjust the context window size to prevent system prompt truncation:
+
+```bash
+# Set context window to 120k tokens (recommended for llama3.2)
+./algo-scales ai config set ollama.num_ctx 120000
+
+# Set smaller context window to conserve memory
+./algo-scales ai config set ollama.num_ctx 32768
+
+# View current configuration
+./algo-scales ai config get ollama.num_ctx
+```
+
+**Model-specific recommendations:**
+- **llama3.2**: 120,000 tokens (default)
+- **llama3.1**: 8,192 tokens  
+- **codellama**: 16,384 tokens
+- **mixtral**: 32,768 tokens
+
+**Note**: Larger context windows use more memory but prevent AI responses from losing important context like the system prompt.
+
 See the [AI Assistant Guide](AI_ASSISTANT.md) for detailed setup and usage instructions.
 
 ### Available Commands
